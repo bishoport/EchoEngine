@@ -1,0 +1,306 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\openGL">
+      <UniqueIdentifier>{9b52d62e-d148-4309-9232-faf12ad06b08}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\openGL">
+      <UniqueIdentifier>{fc18c8f2-abfc-4d03-94b1-85c07197c3dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\GLCore">
+      <UniqueIdentifier>{1570c89b-4540-440d-9508-e1ed4b442c0c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\GLCore\Core">
+      <UniqueIdentifier>{7248a067-f271-41a2-93c0-a07e14ab5559}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\GLCore\Events">
+      <UniqueIdentifier>{6e623ff2-9d34-4962-a61e-24916361814b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\GLCore\Util">
+      <UniqueIdentifier>{26e02dc4-934b-42b4-b41b-eedb0b03bea2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ECS">
+      <UniqueIdentifier>{3076e687-fe5c-4f8f-8bc7-b391450d79c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Render">
+      <UniqueIdentifier>{1f538201-c602-4990-9c73-9d308f5d2dd1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GLCore">
+      <UniqueIdentifier>{fdf86646-4f42-4292-bc41-e1aff45025ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GLCore\Core">
+      <UniqueIdentifier>{fbf75e67-8290-4ec9-a6c5-bea575014e48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GLCore\Util">
+      <UniqueIdentifier>{33df23dd-4220-4741-ad9a-68dd6b802827}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Render">
+      <UniqueIdentifier>{e5db27e5-db41-45be-ae14-45b21c9a1ae8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\Glad\glad.c">
+      <Filter>Source Files\openGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLCore\Core\Application.cpp">
+      <Filter>Source Files\GLCore\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLCore\Core\Scene.cpp">
+      <Filter>Source Files\GLCore\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLCore\Core\GuiLayer.cpp">
+      <Filter>Source Files\GLCore\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLCore\Util\PerspectiveCamera.cpp">
+      <Filter>Source Files\GLCore\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLCore\Util\PerspectiveCameraController.cpp">
+      <Filter>Source Files\GLCore\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLCore\Render\PrimitivesHelper.cpp">
+      <Filter>Source Files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLCore\Core\Log.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLCore\Render\ShaderManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLCore\Core\AssetsPanel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLCore\Util\IMGLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLCore\Core\Input\InputManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_demo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_draw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_impl_glfw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_impl_opengl3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_tables.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imgui\imgui_widgets.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\imGizmo\ImGuizmo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLCore\Util\Skybox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLCore\Util\GridWorldReference.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLCore\Util\ModelLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLCore\Render\RenderManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLCore\Util\DynamicSkybox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLCore\Render\FBOManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLCore\Util\PostProcessingManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="vendor\Glad\glad.h">
+      <Filter>Header Files\openGL</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\Glad\khrplatform.h">
+      <Filter>Header Files\openGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\glpch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Core\Application.h">
+      <Filter>Header Files\GLCore\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Core\GuiLayer.h">
+      <Filter>Header Files\GLCore\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Core\Input\KeyCodes.h">
+      <Filter>Header Files\GLCore\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Core\Input\MouseButtonCodes.h">
+      <Filter>Header Files\GLCore\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Core\Scene.h">
+      <Filter>Header Files\GLCore\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Util\PerspectiveCamera.h">
+      <Filter>Header Files\GLCore\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Util\PerspectiveCameraController.h">
+      <Filter>Header Files\GLCore\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\ECS.h">
+      <Filter>Header Files\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\MeshFilter.h">
+      <Filter>Header Files\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\MeshRenderer.h">
+      <Filter>Header Files\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Render\PrimitivesHelper.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Render\Shader.h">
+      <Filter>Header Files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Core\Timestep.h">
+      <Filter>Header Files\GLCore\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Core\Log.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Core\Core.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Render\ShaderManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\DataStruct.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\Material.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\PointLight.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Core\AssetsPanel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Util\IMGLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Core\Input\InputManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imgui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imgui_impl_glfw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imgui_impl_opengl3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imgui_impl_opengl3_loader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imgui_internal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imstb_rectpack.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imstb_textedit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imstb_truetype.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imgui\imconfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\imGizmo\ImGuizmo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Util\Skybox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Util\GridWorldReference.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\SpotLight.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\DirectionalLight.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Util\ModelLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Render\RenderManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ECS\ComponentsIncludes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Util\DynamicSkybox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Render\FBOManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Core\Events\EventManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Util\PostProcessingManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\shaders\Default.vert" />
+    <None Include="assets\shaders\Debug.frag" />
+    <None Include="assets\shaders\Debug.vert" />
+    <None Include="assets\shaders\common.glsl" />
+    <None Include="assets\shaders\skybox\skybox.vs" />
+    <None Include="assets\shaders\skybox\skybox.fs" />
+    <None Include="assets\shaders\pbr.fs" />
+    <None Include="assets\shaders\shadows\directLight_shadow_mapping_depth_shader.vs" />
+    <None Include="assets\shaders\shadows\directLight_shadow_mapping_depth_shader.fs" />
+    <None Include="assets\shaders\shadows\spotLight_shadow_map_depth.vs" />
+    <None Include="assets\shaders\shadows\spotLight_shadow_map_depth.fs" />
+    <None Include="assets\shaders\shadows\pointLight_shadow_mapping_depth_shader.fs" />
+    <None Include="assets\shaders\shadows\pointLight_shadow_mapping_depth_shader.vs" />
+    <None Include="assets\shaders\shadows\pointLight_shadow_mapping_depth_shader.gs" />
+    <None Include="assets\shaders\skybox\dynamicSkybox.vs" />
+    <None Include="assets\shaders\skybox\dynamicSkybox.fs" />
+    <None Include="assets\shaders\postpro\hdr.vs" />
+    <None Include="assets\shaders\postpro\hdr.fs" />
+    <None Include="assets\shaders\main_output_FBO.vs" />
+    <None Include="assets\shaders\main_output_FBO.fs" />
+    <None Include="assets\shaders\postpro\blur.fs" />
+    <None Include="assets\shaders\postpro\blur.vs" />
+    <None Include="assets\shaders\postpro\bloom.vs" />
+    <None Include="assets\shaders\postpro\bloom.fs" />
+    <None Include="assets\shaders\pbr_ibl.frag" />
+  </ItemGroup>
+</Project>

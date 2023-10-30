@@ -1,0 +1,245 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{9df62c9e-7840-4dbb-8683-7cdf07ed1b5a}</ProjectGuid>
+    <RootNamespace>CoreOpenGL</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>vendor;vendor\imgui</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>libs</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>C:\Users\bisho\Documents\PRODUCCION_2023\EngineEcho\Desarrollos\CoreOpenGL\CoreOpenGL\vendor</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Users\bisho\Documents\PRODUCCION_2023\EngineEcho\Desarrollos\CoreOpenGL\CoreOpenGL\libs</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="src\GLCore\Core\Application.cpp" />
+    <ClCompile Include="src\GLCore\Core\AssetsPanel.cpp" />
+    <ClCompile Include="src\GLCore\Core\GuiLayer.cpp" />
+    <ClCompile Include="src\GLCore\Core\Input\InputManager.cpp" />
+    <ClCompile Include="src\GLCore\Core\Log.cpp" />
+    <ClCompile Include="src\GLCore\Render\FBOManager.cpp" />
+    <ClCompile Include="src\GLCore\Render\RenderManager.cpp" />
+    <ClCompile Include="src\GLCore\Util\DynamicSkybox.cpp" />
+    <ClCompile Include="src\GLCore\Util\GridWorldReference.cpp" />
+    <ClCompile Include="src\GLCore\Util\IMGLoader.cpp" />
+    <ClCompile Include="src\GLCore\Util\ModelLoader.cpp" />
+    <ClCompile Include="src\GLCore\Util\PerspectiveCamera.cpp" />
+    <ClCompile Include="src\GLCore\Util\PerspectiveCameraController.cpp" />
+    <ClCompile Include="src\GLCore\Util\PostProcessingManager.cpp" />
+    <ClCompile Include="src\GLCore\Util\Skybox.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\GLCore\Core\Scene.cpp" />
+    <ClCompile Include="src\GLCore\Render\PrimitivesHelper.cpp" />
+    <ClCompile Include="src\GLCore\Render\ShaderManager.cpp" />
+    <ClCompile Include="vendor\Glad\glad.c" />
+    <ClCompile Include="vendor\imGizmo\ImGuizmo.cpp" />
+    <ClCompile Include="vendor\imgui\imgui.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_demo.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_draw.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_tables.cpp" />
+    <ClCompile Include="vendor\imgui\imgui_widgets.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\ECS\ComponentsIncludes.h" />
+    <ClInclude Include="src\ECS\DirectionalLight.h" />
+    <ClInclude Include="src\ECS\Material.h" />
+    <ClInclude Include="src\ECS\PointLight.h" />
+    <ClInclude Include="src\ECS\SpotLight.h" />
+    <ClInclude Include="src\GLCore\Core\Application.h" />
+    <ClInclude Include="src\ECS\ECS.h" />
+    <ClInclude Include="src\ECS\MeshFilter.h" />
+    <ClInclude Include="src\ECS\MeshRenderer.h" />
+    <ClInclude Include="src\GLCore\Core\AssetsPanel.h" />
+    <ClInclude Include="src\GLCore\Core\Core.h" />
+    <ClInclude Include="src\GLCore\Core\Events\EventManager.h" />
+    <ClInclude Include="src\GLCore\Core\Input\InputManager.h" />
+    <ClInclude Include="src\GLCore\Core\Input\KeyCodes.h" />
+    <ClInclude Include="src\GLCore\Core\Log.h" />
+    <ClInclude Include="src\GLCore\Core\Input\MouseButtonCodes.h" />
+    <ClInclude Include="src\GLCore\Core\Timestep.h" />
+    <ClInclude Include="src\GLCore\Render\FBOManager.h" />
+    <ClInclude Include="src\GLCore\Render\RenderManager.h" />
+    <ClInclude Include="src\GLCore\Util\DynamicSkybox.h" />
+    <ClInclude Include="src\GLCore\Util\GridWorldReference.h" />
+    <ClInclude Include="src\GLCore\Util\IMGLoader.h" />
+    <ClInclude Include="src\GLCore\Util\ModelLoader.h" />
+    <ClInclude Include="src\GLCore\Util\PerspectiveCamera.h" />
+    <ClInclude Include="src\GLCore\Util\PerspectiveCameraController.h" />
+    <ClInclude Include="src\GLCore\Util\PostProcessingManager.h" />
+    <ClInclude Include="src\GLCore\Util\Skybox.h" />
+    <ClInclude Include="src\glpch.h" />
+    <ClInclude Include="src\GLCore\Core\GuiLayer.h" />
+    <ClInclude Include="src\GLCore\DataStruct.h" />
+    <ClInclude Include="src\GLCore\Core\Scene.h" />
+    <ClInclude Include="src\GLCore\Render\PrimitivesHelper.h" />
+    <ClInclude Include="src\GLCore\Render\Shader.h" />
+    <ClInclude Include="src\GLCore\Render\ShaderManager.h" />
+    <ClInclude Include="vendor\Glad\glad.h" />
+    <ClInclude Include="vendor\Glad\khrplatform.h" />
+    <ClInclude Include="vendor\imGizmo\ImGuizmo.h" />
+    <ClInclude Include="vendor\imgui\imconfig.h" />
+    <ClInclude Include="vendor\imgui\imgui.h" />
+    <ClInclude Include="vendor\imgui\imgui_impl_glfw.h" />
+    <ClInclude Include="vendor\imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="vendor\imgui\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="vendor\imgui\imgui_internal.h" />
+    <ClInclude Include="vendor\imgui\imstb_rectpack.h" />
+    <ClInclude Include="vendor\imgui\imstb_textedit.h" />
+    <ClInclude Include="vendor\imgui\imstb_truetype.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\shaders\common.glsl" />
+    <None Include="assets\shaders\Debug.frag" />
+    <None Include="assets\shaders\Debug.vert" />
+    <None Include="assets\shaders\main_output_FBO.fs" />
+    <None Include="assets\shaders\main_output_FBO.vs" />
+    <None Include="assets\shaders\pbr.fs" />
+    <None Include="assets\shaders\Default.vert" />
+    <None Include="assets\shaders\pbr_ibl.frag" />
+    <None Include="assets\shaders\postpro\bloom.fs" />
+    <None Include="assets\shaders\postpro\bloom.vs" />
+    <None Include="assets\shaders\postpro\blur.fs" />
+    <None Include="assets\shaders\postpro\blur.vs" />
+    <None Include="assets\shaders\postpro\hdr.fs" />
+    <None Include="assets\shaders\postpro\hdr.vs" />
+    <None Include="assets\shaders\shadows\directLight_shadow_mapping_depth_shader.fs" />
+    <None Include="assets\shaders\shadows\directLight_shadow_mapping_depth_shader.vs" />
+    <None Include="assets\shaders\shadows\pointLight_shadow_mapping_depth_shader.fs" />
+    <None Include="assets\shaders\shadows\pointLight_shadow_mapping_depth_shader.gs" />
+    <None Include="assets\shaders\shadows\pointLight_shadow_mapping_depth_shader.vs" />
+    <None Include="assets\shaders\shadows\spotLight_shadow_map_depth.fs" />
+    <None Include="assets\shaders\shadows\spotLight_shadow_map_depth.vs" />
+    <None Include="assets\shaders\skybox\dynamicSkybox.fs" />
+    <None Include="assets\shaders\skybox\dynamicSkybox.vs" />
+    <None Include="assets\shaders\skybox\skybox.fs" />
+    <None Include="assets\shaders\skybox\skybox.vs" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
