@@ -6,7 +6,6 @@
 
 namespace GLCore::Utils
 {
-
     GLCore::ModelParent ModelLoader::LoadModel(ImportOptions importOptions) {
         
         Assimp::Importer importer;
@@ -48,7 +47,6 @@ namespace GLCore::Utils
         return modelParent;
     }
 
-
     void ModelLoader::ProcessNode(aiNode* node, const aiScene* scene, ModelParent& modelParent, aiMatrix4x4 _nodeTransform, ImportOptions importOptions)
     {
         // Convertir a glm
@@ -87,8 +85,6 @@ namespace GLCore::Utils
             ModelLoader::ProcessNode(node->mChildren[i], scene, modelParent, _nodeTransform, importOptions);
         }
     }
-
-
 
     GLCore::MeshData ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, aiMatrix4x4 finalTransform, ImportOptions importOptions) {
 
@@ -186,7 +182,6 @@ namespace GLCore::Utils
         return meshData;
     }
 
-
     GLCore::Material ModelLoader::ProcessMaterials(aiMesh* mesh, const aiScene* scene, aiMatrix4x4 finalTransform, ImportOptions importOptions)
     {
         //EMPIEZAN LOS MATERIALES
@@ -199,25 +194,43 @@ namespace GLCore::Utils
         //COLOR DIFUSSE
         aiColor3D color(0.f, 0.f, 0.f);
         mat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
-        material.albedoColor.r = color.r;
-        material.albedoColor.g = color.g;
-        material.albedoColor.b = color.b;
+        material.color.r = color.r;
+        material.color.g = color.g;
+        material.color.b = color.b;
 
 
-        // Agregamos la carga de la textura DIFFUSSE aquí
+        // Agregamos la carga de la textura ALBEDO aquí
         if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == AI_SUCCESS)
         {
             std::string completePathTexture = importOptions.filePath + texturePath.C_Str();
-
             Texture texture;
-
             auto loadedImage = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str(), importOptions.filePath);
-
             if (loadedImage.pixels != nullptr) {
                 texture.image = std::move(loadedImage);
-                texture.image.path = texturePath.C_Str();
+                texture.image.path = completePathTexture;
+                texture.hasMap = true;
+                material.albedoMap = texture;
+                material.albedoMap.hasMap = true;
             }
+            else
+            {
+                std::string defaultPathTexture = "assets/textures/default/default_white.jpg";
+                texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture, importOptions.filePath);
+                texture.image.path = defaultPathTexture;
+                texture.hasMap = true;
+                material.albedoMap = texture;
+                material.albedoMap.hasMap = true;
+            }
+        }
+        else
+        {
+            Texture texture;
+            std::string defaultPathTexture = "assets/textures/default/default_white.jpg";
+            texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture, importOptions.filePath);
+            texture.image.path = defaultPathTexture;
+            texture.hasMap = true;
             material.albedoMap = texture;
+            material.albedoMap.hasMap = true;
         }
 
 
@@ -234,21 +247,26 @@ namespace GLCore::Utils
 
             if (loadedImage.pixels != nullptr) {
                 texture.image = std::move(loadedImage);
-                texture.image.path = texturePath.C_Str();
+                texture.image.path = completePathTexture;
+                texture.hasMap = true;
+                material.normalMap = texture;
             }
-            else {
-                std::string completePathTexture = "assets/textures/default/default_normal.jpg";
-                texture.image = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str(), importOptions.filePath);
-                texture.image.path = texturePath.C_Str();
+            else 
+            {
+                std::string defaultPathTexture = "assets/textures/default/default_normal.jpg";
+                texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture, importOptions.filePath);
+                texture.image.path = defaultPathTexture;
+                texture.hasMap = true;
+                material.normalMap = texture;
             }
-            material.normalMap = texture;
         }
         else
         {
-            std::string completePathTexture = "assets/textures/default/default_normal.jpg";
+            std::string defaultPathTexture = "assets/textures/default/default_normal.jpg";
             Texture texture;
-            texture.image = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str(), importOptions.filePath);
-            texture.image.path = texturePath.C_Str();
+            texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture, importOptions.filePath);
+            texture.image.path = defaultPathTexture;
+            texture.hasMap = true;
             material.normalMap = texture;
         }
 
@@ -259,17 +277,14 @@ namespace GLCore::Utils
         if (mat->GetTexture(aiTextureType_METALNESS, 0, &texturePath) == AI_SUCCESS)
         {
             std::string completePathTexture = importOptions.filePath + texturePath.C_Str();
-
             Texture texture;
-
             auto loadedImage = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str(), importOptions.filePath);
-
             if (loadedImage.pixels != nullptr) {
                 texture.image = std::move(loadedImage);
-                texture.image.path = texturePath.C_Str();
+                texture.image.path = completePathTexture;
+                texture.hasMap = true;
                 material.metallicMap = texture;
             }
-            material.metallicMap = texture;
         }
 
 
@@ -279,21 +294,15 @@ namespace GLCore::Utils
         if (mat->GetTexture(aiTextureType_SHININESS, 0, &texturePath) == AI_SUCCESS)
         {
             std::string completePathTexture = importOptions.filePath + texturePath.C_Str();
-
             Texture texture;
-
             auto loadedImage = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str(), importOptions.filePath);
-
             if (loadedImage.pixels != nullptr) {
                 texture.image = std::move(loadedImage);
-                texture.image.path = texturePath.C_Str();
-                
-            }
-            material.rougnessMap = texture;
+                texture.image.path = completePathTexture;
+                texture.hasMap = true;
+                material.rougnessMap = texture;
+            } 
         }
-
-
-
 
         // Agregamos la carga de la textura AO aquí
         if (mat->GetTexture(aiTextureType_AMBIENT_OCCLUSION, 0, &texturePath) == AI_SUCCESS)
@@ -306,10 +315,10 @@ namespace GLCore::Utils
 
             if (loadedImage.pixels != nullptr) {
                 texture.image = std::move(loadedImage);
-                texture.image.path = texturePath.C_Str();
-                
-            }
-            material.aOMap = texture;
+                texture.image.path = completePathTexture;
+                texture.hasMap = true;
+                material.aOMap = texture;
+            }  
         }
 
         return material;
@@ -339,7 +348,4 @@ namespace GLCore::Utils
 
         return to;
     }
-
-
-    
 }

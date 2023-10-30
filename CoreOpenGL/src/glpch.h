@@ -59,6 +59,7 @@ enum class MainMenuAction {
     AddPointLight,          // Representa agregar una luz puntual
     AddSpotLight,           // Representa agregar una luz foco
     AddCube,                // Representa agregar un cubo
+    AddSegmentedCube,                // Representa agregar un cubo
     AddSphere,              // Representa agregar una esfera
     AddQuad,                // Representa agregar un quad
     AddPlane                // Representa agregar un plane

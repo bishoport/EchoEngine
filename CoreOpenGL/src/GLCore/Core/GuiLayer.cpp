@@ -162,6 +162,10 @@ namespace GLCore {
             		{
             			UsarDelegado(MainMenuAction::AddCube);
             		}
+                    if (ImGui::MenuItem("Segmented Cube"))
+                    {
+                        UsarDelegado(MainMenuAction::AddSegmentedCube);
+                    }
             		if (ImGui::MenuItem("Sphere"))
             		{
             			UsarDelegado(MainMenuAction::AddSphere);

@@ -56,7 +56,8 @@ namespace ECS
 
         void prepareShadows()
         {
-            GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&shadowFBO, &shadowDepth, textureBuffers, shadowMapResolution, shadowMapResolution);
+           // GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&shadowFBO, &shadowDepth, textureBuffers, shadowMapResolution, shadowMapResolution);
+            GLCore::Render::FBOManager::CreateShadowMapFBO(&shadowFBO, &shadowTex, shadowMapResolution, shadowMapResolution);
         }
 
         void shadowMappingProjection(std::vector<ECS::Entity*> entitiesInScene)
@@ -141,16 +142,16 @@ namespace ECS
                 if (drawShadows)
                 {
                     //Texture shadow
-                    glActiveTexture(GL_TEXTURE7);
+                    glActiveTexture(GL_TEXTURE10);
                     glBindTexture(GL_TEXTURE_2D, shadowTex);
-                    GLCore::Render::ShaderManager::Get(name.c_str())->setInt(shadowMapL.str(), 7);
+                    GLCore::Render::ShaderManager::Get(name.c_str())->setInt(shadowMapL.str(), 10);
 
                     //MPV
                     GLCore::Render::ShaderManager::Get(name.c_str())->setMat4(shadowMapBiasMVPL.str(), shadowBias * shadowMVP);
                 }
                 else
                 {
-                    glActiveTexture(GL_TEXTURE7);
+                    glActiveTexture(GL_TEXTURE10);
                     glBindTexture(GL_TEXTURE_2D, 0);
                 }
             }
@@ -258,8 +259,6 @@ namespace ECS
                     }
                 }
             }
-
-
             ImGui::Separator();
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
         }

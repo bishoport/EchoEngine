@@ -3,6 +3,14 @@
 
 namespace GLCore 
 {
+    enum TEXTURE_TYPES {
+        ALBEDO,
+        NORMAL,
+        METALLIC,
+        ROUGHNESS,
+        AO
+    };
+
     // Definir un struct para las opciones de importación
     struct ImportOptions {
         std::string filePath;
@@ -22,12 +30,14 @@ namespace GLCore
     //LA VERSION EN GPU
     struct Texture {
         GLuint textureID = 0;
-        std::string type;
+        TEXTURE_TYPES type;
+        std::string typeString;
         Image image;
-        bool wasLoaded = false;
+        bool hasMap = false;
     };
 
     struct Material {
+
         float shininess;
         float hdrMultiply = 0.0f;
         float hdrIntensity = 0.3f;
@@ -35,29 +45,16 @@ namespace GLCore
         float gamma = 2.2f;
         //-------------------------------------------------------
 
-        //--PBR
-        //ALBEDO
-        glm::vec3 albedoColor = glm::vec3(1.0f, 1.0f, 1.0f);
+        std::vector<Texture*> textures;
+
         Texture albedoMap;
-        bool hasAlbedoMap = false;
-
-        //NORMAL
         Texture normalMap;
-        bool hasNormalMap = false;
-
-        //METALLIC
         Texture metallicMap;
-        bool hasMetallicMap = false;
-
-        //ROUGHTNESS
         Texture rougnessMap;
-        bool hasRougnessMap = false;
-
-        //AMBIENT OCLUSSION
         Texture aOMap;
-        bool hasAoMap = false;
 
         //VALUES
+        glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
         float normalIntensity = 0.5f;
         float metallicValue = 0.0f;
         float roughnessValue = 0.05f;
@@ -66,235 +63,95 @@ namespace GLCore
         //-------------------------------------------------------
 
 
+        void loadTextureData(Texture& map) {
+            if (map.hasMap) {
 
-        void prepare_PBRMaterials()
-        {
-            //--------------------------------------ALBEDO MAP TEXTURE--------------------------------------
-            if (albedoMap.image.pixels && albedoMap.image.width > 0) {
-                
-                glGenTextures(1, &albedoMap.textureID); //Aqui se genera por OpenGL un ID para la textura
-                glBindTexture(GL_TEXTURE_2D, albedoMap.textureID); //Bind-> abrir la textura para poder usarla para parametrizarla
+                if (map.textureID != 0) {
+                    glDeleteTextures(1, &map.textureID);
+                }
 
-                //Flags 
+                glGenTextures(1, &map.textureID);
+                glBindTexture(GL_TEXTURE_2D, map.textureID);
+
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-                GLenum format;
-                if (albedoMap.image.channels == 1)
+                GLenum format{};
+                if (map.image.channels == 1)
                     format = GL_RED;
-                else if (albedoMap.image.channels == 3)
+                else if (map.image.channels == 3)
                     format = GL_RGB;
-                else if (albedoMap.image.channels == 4)
+                else if (map.image.channels == 4)
                     format = GL_RGBA;
 
-                glTexImage2D(GL_TEXTURE_2D, 0, format, albedoMap.image.width, albedoMap.image.height, 0, format, GL_UNSIGNED_BYTE, albedoMap.image.pixels);
+                glTexImage2D(GL_TEXTURE_2D, 0, format, map.image.width, map.image.height, 0, format, GL_UNSIGNED_BYTE, map.image.pixels);
 
                 glGenerateMipmap(GL_TEXTURE_2D);
 
-                glBindTexture(GL_TEXTURE_2D, 0);  // Unbind the texture
-                hasAlbedoMap = true;
-
-                //GLCore::Utils::ImageLoader::freeImage(albedoMap.image);
-            }
-
-
-            //--------------------------------------NORMAL MAP TEXTURE--------------------------------------
-            if (normalMap.image.pixels && normalMap.image.width > 0) {
-                glGenTextures(1, &normalMap.textureID);
-                glBindTexture(GL_TEXTURE_2D, normalMap.textureID);
-
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-
-                GLenum format;
-                if (normalMap.image.channels == 1)
-                    format = GL_RED;
-                else if (normalMap.image.channels == 3)
-                    format = GL_RGB;
-                else if (normalMap.image.channels == 4)
-                    format = GL_RGBA;
-
-                glTexImage2D(GL_TEXTURE_2D, 0, format, normalMap.image.width, normalMap.image.height, 0, format, GL_UNSIGNED_BYTE, normalMap.image.pixels);
-
-                glGenerateMipmap(GL_TEXTURE_2D);
-
-                glBindTexture(GL_TEXTURE_2D, 0);  // Unbind the texture
-                hasNormalMap = true;
-            }
-
-
-            //--------------------------------------METALLIC MAP TEXTURE--------------------------------------
-            if (metallicMap.image.pixels && metallicMap.image.width > 0) {
-                glGenTextures(1, &metallicMap.textureID); //Aqui se genera por OpenGL un ID para la textura
-                glBindTexture(GL_TEXTURE_2D, metallicMap.textureID); //Bind-> abrir la textura para poder usarla para parametrizarla
-
-                //Flags 
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-                GLenum format = GL_RED;
-                if (metallicMap.image.channels == 1)
-                    format = GL_RED;
-                else if (metallicMap.image.channels == 3)
-                    format = GL_RGB;
-                else if (metallicMap.image.channels == 4)
-                    format = GL_RGBA;
-
-                glTexImage2D(GL_TEXTURE_2D, 0, format, metallicMap.image.width, metallicMap.image.height, 0, format, GL_UNSIGNED_BYTE, metallicMap.image.pixels);
-
-                glGenerateMipmap(GL_TEXTURE_2D);
-
-                glBindTexture(GL_TEXTURE_2D, 0);  // Unbind the texture
-                hasMetallicMap = true;
-            }
-
-
-
-            //--------------------------------------ROUGHNESS MAP TEXTURE--------------------------------------
-            if (rougnessMap.image.pixels && rougnessMap.image.width > 0) {
-                glGenTextures(1, &rougnessMap.textureID); //Aqui se genera por OpenGL un ID para la textura
-                glBindTexture(GL_TEXTURE_2D, rougnessMap.textureID); //Bind-> abrir la textura para poder usarla para parametrizarla
-
-                //Flags 
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-                GLenum format;
-                if (rougnessMap.image.channels == 1)
-                    format = GL_RED;
-                else if (rougnessMap.image.channels == 3)
-                    format = GL_RGB;
-                else if (rougnessMap.image.channels == 4)
-                    format = GL_RGBA;
-                glTexImage2D(GL_TEXTURE_2D, 0, format, rougnessMap.image.width, rougnessMap.image.height, 0, format, GL_UNSIGNED_BYTE, rougnessMap.image.pixels);
-
-                glGenerateMipmap(GL_TEXTURE_2D);
-
-                glBindTexture(GL_TEXTURE_2D, 0);  // Unbind the texture
-                hasRougnessMap = true;
-            }
-
-
-            //--------------------------------------AO MAP TEXTURE--------------------------------------
-            if (aOMap.image.pixels && aOMap.image.width > 0) {
-
-                glGenTextures(1, &aOMap.textureID);
-                glBindTexture(GL_TEXTURE_2D, aOMap.textureID);
-
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-                GLenum format;
-                if (aOMap.image.channels == 1)
-                    format = GL_RED;
-                else if (aOMap.image.channels == 3)
-                    format = GL_RGB;
-                else if (aOMap.image.channels == 4)
-                    format = GL_RGBA;
-                glTexImage2D(GL_TEXTURE_2D, 0, format, aOMap.image.width, aOMap.image.height, 0, format, GL_UNSIGNED_BYTE, aOMap.image.pixels);
-
-                glGenerateMipmap(GL_TEXTURE_2D);
-
-                glBindTexture(GL_TEXTURE_2D, 0);  // Unbind the texture
-                hasAoMap = true;
+                glBindTexture(GL_TEXTURE_2D, 0);
             }
         }
 
-        
+
+        void prepare_PBRMaterials()
+        {
+            if (textures.size() == 0)
+            {
+                albedoMap.typeString = "ALBEDO";
+                normalMap.typeString = "NORMAL";
+                metallicMap.typeString = "METALLIC";
+                rougnessMap.typeString = "ROUGHNESS";
+                aOMap.typeString = "AO";
+
+                albedoMap.type = TEXTURE_TYPES::ALBEDO;
+                normalMap.type = TEXTURE_TYPES::NORMAL;
+                metallicMap.type = TEXTURE_TYPES::METALLIC;
+                rougnessMap.type = TEXTURE_TYPES::ROUGHNESS;
+                aOMap.type = TEXTURE_TYPES::AO;
+
+                textures.push_back(&albedoMap);
+                textures.push_back(&normalMap);
+                textures.push_back(&metallicMap);
+                textures.push_back(&rougnessMap);
+                textures.push_back(&aOMap);
+            }
+            
+
+            loadTextureData(albedoMap);
+            loadTextureData(normalMap);
+            loadTextureData(metallicMap);
+            loadTextureData(rougnessMap);
+            loadTextureData(aOMap);
+        }
 
         void bindTextures(const std::string shaderName)
         {
             GLCore::Render::ShaderManager::Get(shaderName)->use();
+            int textureChannelInit = 4;
 
-            int textucheChannelInit = 4;
+            // Nombres de los mapas
+            std::vector<std::string> mapNames = { "albedo", "normal", "metallic", "roughness", "ao" };
 
-            //--Albedo Map
-            if (hasAlbedoMap) { // si tienes un mapa difuso
-                glActiveTexture(GL_TEXTURE0 + textucheChannelInit);
-                glBindTexture(GL_TEXTURE_2D, albedoMap.textureID);
-                GLCore::Render::ShaderManager::Get(shaderName)->setInt("material.albedoMap", textucheChannelInit);
-                GLCore::Render::ShaderManager::Get(shaderName)->setBool("material.hasAlbedoMap", true);
-            }
-            else
-            {
-                GLCore::Render::ShaderManager::Get(shaderName)->setBool("material.hasAlbedoMap", false);
-                glActiveTexture(GL_TEXTURE0 + textucheChannelInit);
-                glBindTexture(GL_TEXTURE_2D, 0);
-            }
-            textucheChannelInit++;
-            //--Normal Map
-            if (hasNormalMap) { // si tienes un mapa normales
-                glActiveTexture(GL_TEXTURE0 + textucheChannelInit);
-                glBindTexture(GL_TEXTURE_2D, normalMap.textureID);
-                GLCore::Render::ShaderManager::Get(shaderName)->setInt("material.normalMap", textucheChannelInit);
-                GLCore::Render::ShaderManager::Get(shaderName)->setBool("material.hasNormalMap", true);
-            }
-            else
-            {
-                GLCore::Render::ShaderManager::Get(shaderName)->setBool("material.hasNormalMap", false);
-                glActiveTexture(GL_TEXTURE0 + textucheChannelInit);
-                glBindTexture(GL_TEXTURE_2D, 0);
-            }
-            textucheChannelInit++;
-
-            //--METALLIC Map
-            if (hasMetallicMap) { // si tienes un mapa normales
-                glActiveTexture(GL_TEXTURE0 + textucheChannelInit);
-                glBindTexture(GL_TEXTURE_2D, metallicMap.textureID);
-                GLCore::Render::ShaderManager::Get(shaderName)->setInt("material.metallicMap", textucheChannelInit);
-                GLCore::Render::ShaderManager::Get(shaderName)->setBool("material.hasMetallicMap", true);
-            }
-            else
-            {
-                GLCore::Render::ShaderManager::Get(shaderName)->setBool("material.hasMetallicMap", false);
-                glActiveTexture(GL_TEXTURE0 + textucheChannelInit);
-                glBindTexture(GL_TEXTURE_2D, 0);
-            }
-            textucheChannelInit++;
-
-
-            //--ROUGHNESS Map
-            if (hasRougnessMap) { // si tienes un mapa normales
-                glActiveTexture(GL_TEXTURE0 + textucheChannelInit);
-                glBindTexture(GL_TEXTURE_2D, rougnessMap.textureID);
-                GLCore::Render::ShaderManager::Get(shaderName)->setInt("material.roughnessMap", textucheChannelInit);
-            }
-            else
-            {
-                GLCore::Render::ShaderManager::Get(shaderName)->setBool("material.hasRougnessMap", false);
-                glActiveTexture(GL_TEXTURE0 + textucheChannelInit);
-                glBindTexture(GL_TEXTURE_2D, 0);
-            }
-            textucheChannelInit++;
-
-
-            //--AO Map
-            if (hasAoMap) { // si tienes un mapa especulares
-                glActiveTexture(GL_TEXTURE0 + textucheChannelInit);
-                glBindTexture(GL_TEXTURE_2D, aOMap.textureID);
-                GLCore::Render::ShaderManager::Get(shaderName)->setInt("material.aoMap", textucheChannelInit);
-                GLCore::Render::ShaderManager::Get(shaderName)->setBool("material.hasAoMap", true);
-            }
-            else
-            {
-                GLCore::Render::ShaderManager::Get(shaderName)->setBool("material.hasAoMap", false);
-                glActiveTexture(GL_TEXTURE0 + textucheChannelInit);
-                glBindTexture(GL_TEXTURE_2D, 0);
+            // Iteramos sobre cada mapa en el vector 'textures'
+            for (size_t i = 0; i < textures.size(); i++) {
+                if (textures[i]->hasMap) {
+                    glActiveTexture(GL_TEXTURE0 + textureChannelInit);
+                    glBindTexture(GL_TEXTURE_2D, textures[i]->textureID);
+                    GLCore::Render::ShaderManager::Get(shaderName)->setInt("material." + mapNames[i] + "Map", textureChannelInit);
+                    GLCore::Render::ShaderManager::Get(shaderName)->setBool("material.has" + std::string(1, toupper(mapNames[i][0])) + mapNames[i].substr(1) + "Map", true);
+                }
+                else {
+                    GLCore::Render::ShaderManager::Get(shaderName)->setBool("material.has" + std::string(1, toupper(mapNames[i][0])) + mapNames[i].substr(1) + "Map", false);
+                    glActiveTexture(GL_TEXTURE0 + textureChannelInit);
+                    glBindTexture(GL_TEXTURE_2D, 0);
+                }
+                textureChannelInit++;
             }
 
-            //VALORES COMUNES
-            GLCore::Render::ShaderManager::Get(shaderName)->setVec3("material.albedo", albedoColor);
+            // Establece los valores comunes
+            GLCore::Render::ShaderManager::Get(shaderName)->setVec3("material.albedo", color);
             GLCore::Render::ShaderManager::Get(shaderName)->setFloat("material.hdrMultiply", hdrMultiply);
             GLCore::Render::ShaderManager::Get(shaderName)->setFloat("material.metallic", metallicValue);
             GLCore::Render::ShaderManager::Get(shaderName)->setFloat("material.roughness", roughnessValue);
@@ -304,8 +161,6 @@ namespace GLCore
             GLCore::Render::ShaderManager::Get(shaderName)->setFloat("material.hdrIntensity", hdrIntensity);
             GLCore::Render::ShaderManager::Get(shaderName)->setFloat("material.exposure", exposure);
             GLCore::Render::ShaderManager::Get(shaderName)->setFloat("material.gamma", gamma);
-            
-            
         }
     };
 

@@ -13,6 +13,7 @@ namespace GLCore::Render {
         static MeshData CreateQuad();
         static MeshData CreatePlane();
         static MeshData CreateCube();
+        static MeshData CreateSegmentedCube(int subdivisions = 1);
         static MeshData CreateSphere(float radius, unsigned int sectorCount, unsigned int stackCount);
 
         static void GenerateBuffers(MeshData& meshData);

@@ -73,7 +73,7 @@ namespace GLCore::Render {
         bbox.max = { -std::numeric_limits<float>::max(), -std::numeric_limits<float>::max(), -std::numeric_limits<float>::max() };
 
         // Asumimos que cada vértice tiene 8 componentes (3 para posición, 2 para textura, 3 para normal)
-        const int stride = 8;
+        const int stride = 3;
 
         // Iteramos sobre cada vértice
         for (size_t i = 0; i < vertices.size(); i += stride) {
@@ -270,6 +270,84 @@ namespace GLCore::Render {
 
         return meshData;
     }
+
+    GLCore::MeshData PrimitivesHelper::CreateSegmentedCube(int subdivisions) {
+
+        GLCore::MeshData meshData;
+        float step = 1.0f / (subdivisions + 1);
+        std::vector<float> vertexBuffer;
+        for (int face = 0; face < 6; ++face) {
+            for (int i = 0; i <= subdivisions + 1; ++i) {
+                for (int j = 0; j <= subdivisions + 1; ++j) {
+                    float x = -0.5f + i * step;
+                    float y = -0.5f + j * step;
+                    float z;
+
+                    switch (face) {
+                    case 0: z = 0.5f; break;
+                    case 1: z = -0.5f; break;
+                    case 2: z = x; x = 0.5f; break;
+                    case 3: z = x; x = -0.5f; break;
+                    case 4: z = y; y = 0.5f; break;
+                    case 5: z = y; y = -0.5f; break;
+                    }
+
+                    vertexBuffer.insert(vertexBuffer.end(), { x, y, z });
+
+                    vertexBuffer.insert(vertexBuffer.end(), { i * step, j * step }); // Coordenadas de textura
+
+                    // Normales (basado en la cara actual)
+                    switch (face) {
+                    case 0: vertexBuffer.insert(vertexBuffer.end(), { 0.0f, 0.0f, 1.0f }); break;
+                    case 1: vertexBuffer.insert(vertexBuffer.end(), { 0.0f, 0.0f, -1.0f }); break;
+                    case 2: vertexBuffer.insert(vertexBuffer.end(), { 1.0f, 0.0f, 0.0f }); break;
+                    case 3: vertexBuffer.insert(vertexBuffer.end(), { -1.0f, 0.0f, 0.0f }); break;
+                    case 4: vertexBuffer.insert(vertexBuffer.end(), { 0.0f, 1.0f, 0.0f }); break;
+                    case 5: vertexBuffer.insert(vertexBuffer.end(), { 0.0f, -1.0f, 0.0f }); break;
+                    }
+                }
+            }
+        }
+
+        std::vector<unsigned int> indices;
+        auto getIndex = [subdivisions](int face, int i, int j) {
+            return face * (subdivisions + 2) * (subdivisions + 2) + i * (subdivisions + 2) + j;
+        };
+
+        for (int face = 0; face < 6; ++face) {
+            for (int i = 0; i < subdivisions + 1; ++i) {
+                for (int j = 0; j < subdivisions + 1; ++j) {
+                    indices.push_back(getIndex(face, i, j));
+                    indices.push_back(getIndex(face, i + 1, j));
+                    indices.push_back(getIndex(face, i, j + 1));
+                    indices.push_back(getIndex(face, i, j + 1));
+                    indices.push_back(getIndex(face, i + 1, j));
+                    indices.push_back(getIndex(face, i + 1, j + 1));
+                }
+            }
+        }
+
+        // Conservo el cálculo de AABB, ya que parece correcto y no se me proporcionó la función CalculateBoundingBox
+        std::vector<float> posiciones;
+        for (size_t i = 0; i < vertexBuffer.size(); i += 8) {
+            posiciones.push_back(vertexBuffer[i]);
+            posiciones.push_back(vertexBuffer[i + 1]);
+            posiciones.push_back(vertexBuffer[i + 2]);
+        }
+        BoundingBox bbox = CalculateBoundingBox(posiciones);
+
+        meshData.minBounds = bbox.min;
+        meshData.maxBounds = bbox.max;
+
+        meshData.vertexBuffer = vertexBuffer;
+        meshData.indices = indices;
+        meshData.indexCount = indices.size();
+
+        return meshData;
+    }
+
+
+
 
     GLCore::MeshData PrimitivesHelper::CreateSphere(float radius, unsigned int sectorCount, unsigned int stackCount) {
 

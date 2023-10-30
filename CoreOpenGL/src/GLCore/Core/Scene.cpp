@@ -815,8 +815,6 @@ namespace GLCore {
 	void Scene::renderGUI()
     {
 		//-------------------------------------------HIERARCHY PANEL--------------------------------------
-		//ImGui::SetNextWindowDockID(GLCore::GuiLayer::dock_id_AssetScene, ImGuiCond_FirstUseEver);
-		
 		ImGui::Begin("Hierarchy", nullptr);
 		for (int i = 0; i < entitiesInScene.size(); i++)
 		{
@@ -841,6 +839,35 @@ namespace GLCore {
 					}
 					m_SelectedEntity = entitiesInScene[i];
 				}
+
+				//--DRAG_DROP
+				// Si comienza a arrastrar el nodo
+				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+				{
+					ImGui::SetDragDropPayload("DRAG_ENTITY", &i, sizeof(int)); // Podrías enviar más datos si lo necesitas
+					ImGui::Text("Drag %s", treeLabel.c_str());
+					ImGui::EndDragDropSource();
+				}
+
+				// Si un nodo es arrastrado sobre otro nodo
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DRAG_ENTITY"))
+					{
+						int sourceEntityIndex = *(const int*)payload->Data;
+						auto& sourceEntity = entitiesInScene[sourceEntityIndex]; // Entidad que estás arrastrando
+						auto& targetEntity = entitiesInScene[i]; // Entidad sobre la cual se hace el "drop"
+
+						sourceEntity->getComponent<ECS::Transform>().parent = targetEntity;
+						targetEntity->getComponent<ECS::Transform>().children.push_back(sourceEntity);
+
+						//targetEntity->getComponent<ECS::Transform>().addChild(sourceEntity);
+					}
+					ImGui::EndDragDropTarget();
+				}
+				//--END DRAG_DROP
+
+
 
 				if (treeOpen)
 				{
@@ -880,6 +907,18 @@ namespace GLCore {
 		//-------------------------------------------EVIROMENT LIGHT PANEL--------------------------------------
 		if (ImGui::Begin("Enviroment Panel"))
 		{
+			if (ImGui::Checkbox("Wireframe Mode", &isWireframe))
+			{
+				if (isWireframe)
+				{
+					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Habilita modo wireframe
+				}
+				else
+				{
+					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Vuelve al modo normal
+				}
+			}
+
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 			ImGui::Checkbox("Default FBO", &useStandardFBO);
 
@@ -994,6 +1033,18 @@ namespace GLCore {
 			gameObject->addComponent<ECS::MeshFilter>().initMesh(cube);
 			gameObject->addComponent<ECS::MeshRenderer>();
 			gameObject->addComponent<ECS::Material>();
+			gameObject->getComponent<ECS::Material>().setDafaultMaterial();
+		}
+		else if (action == MainMenuAction::AddSegmentedCube)
+		{
+			GLCore::MeshData segCube = GLCore::Render::PrimitivesHelper::CreateSegmentedCube(1);
+
+			gameObject = &manager.addEntity();
+			gameObject->name = "SegCube_" + std::to_string(entitiesInScene.size());
+			gameObject->addComponent<ECS::MeshFilter>().initMesh(segCube);
+			gameObject->addComponent<ECS::MeshRenderer>();
+			gameObject->addComponent<ECS::Material>();
+			gameObject->getComponent<ECS::Material>().setDafaultMaterial();
 		}
 		else if (action == MainMenuAction::AddSphere)
 		{
@@ -1004,6 +1055,7 @@ namespace GLCore {
 			gameObject->addComponent<ECS::MeshFilter>().initMesh(sphere);
 			gameObject->addComponent<ECS::MeshRenderer>();
 			gameObject->addComponent<ECS::Material>();
+			gameObject->getComponent<ECS::Material>().setDafaultMaterial();
 		}
 		else if (action == MainMenuAction::AddQuad)
 		{
@@ -1014,6 +1066,7 @@ namespace GLCore {
 			gameObject->addComponent<ECS::MeshFilter>().initMesh(quad);
 			gameObject->addComponent<ECS::MeshRenderer>();
 			gameObject->addComponent<ECS::Material>();
+			gameObject->getComponent<ECS::Material>().setDafaultMaterial();
 		}
 		else if (action == MainMenuAction::AddPlane)
 		{
@@ -1024,6 +1077,7 @@ namespace GLCore {
 			gameObject->addComponent<ECS::MeshFilter>().initMesh(plane);
 			gameObject->addComponent<ECS::MeshRenderer>();
 			gameObject->addComponent<ECS::Material>();
+			gameObject->getComponent<ECS::Material>().setDafaultMaterial();
 		}
 		else if (action == MainMenuAction::AddPointLight)
 		{

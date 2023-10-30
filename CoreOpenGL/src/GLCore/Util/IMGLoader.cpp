@@ -21,24 +21,16 @@ namespace GLCore::Utils {
             std::filesystem::path rutaPath(filepath);
             // Obtener el nombre del archivo con su extensión
             std::string nombreArchivo = rutaPath.filename().string();
-            std::cout << "Nombre del archivo: " << nombreArchivo << std::endl;
-
             std::string rutaTextura = buscarTextura(nombreArchivo, carpetaBase);
 
             if (!rutaTextura.empty()) {
-                std::cout << "Textura encontrada en: " << rutaTextura << std::endl;
+                //std::cout << "Textura encontrada en: " << rutaTextura << std::endl;
                 finalFilepath = rutaTextura;
             }
             else {
-                std::cout << "Textura no encontrada." << std::endl;
+                //std::cout << "Textura no encontrada." << std::endl;
             }
         }
-
-
-        
-
-
-
 
 
         Image image;

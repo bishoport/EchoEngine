@@ -13,9 +13,22 @@ namespace ECS {
         void init() override 
         {
             material = std::make_unique<GLCore::Material>();
-            material->albedoColor = glm::vec3(1.0f,1.0f,1.0f);
+            material->color = glm::vec3(1.0f,1.0f,1.0f);
             material->shininess = 32.0f;
         }
+
+		void setDafaultMaterial()
+		{
+			material->albedoMap.image = GLCore::Utils::ImageLoader::loadImage("assets/textures/default/default_white.jpg");
+			material->albedoMap.image.path = "assets/default/default_white.jpg";
+			material->albedoMap.hasMap = true;
+
+			material->normalMap.image = GLCore::Utils::ImageLoader::loadImage("assets/textures/default/default_normal.jpg");
+			material->normalMap.image.path = "assets/textures/default/default_normal.jpg";
+			material->normalMap.hasMap = true;
+
+			material->prepare_PBRMaterials();
+		}
 
 		void setMaterial(GLCore::Material& mat)
 		{
@@ -46,183 +59,107 @@ namespace ECS {
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
             ImGui::SliderInt2("Texture Repetition", glm::value_ptr(repetitionFactor), 1, 20);
+			ImGui::Separator();
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
             
-			DropCheckerPBR();
-            
-            ImGui::Separator();
-            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+			drawTextureProperties();
         }
 
     private:
         std::unique_ptr<GLCore::Material> material = nullptr;
-        std::string currentShaderName = "pbr";
+        std::string currentShaderName = "pbr_ibl";
         glm::ivec2 repetitionFactor = glm::ivec2(1, 1);
 
+		void drawTextureProperties()
+		{
+			ImGui::Dummy(ImVec2(10.0f, 20.0f));
 
-        void DropCheckerPBR()
-        {
-			//---ALBEDO
-			ImGui::ColorEdit3("Albedo", glm::value_ptr(material->albedoColor));
-			ImGui::InputFloat("hdr Multiply", &material->hdrMultiply, 0.001f, 0.001f);
-			if (material->hasAlbedoMap)
-				ImGui::Text(material->albedoMap.image.path.c_str());
-			else
-				ImGui::Text("Drop in black box");
-			ImGui::Image((void*)(intptr_t)material->albedoMap.textureID, ImVec2(128, 128), ImVec2(0, 0), ImVec2(1, 1), ImColor(255, 255, 255, 255));
+			for (size_t i = 0; i < material->textures.size(); i++) {
 
+				auto texture = material->textures[i];
+
+				ImGui::SetWindowFontScale(1.3); // 150% del tamaño original
+				ImGui::Text("%s", texture->typeString.c_str());
+				ImGui::SetWindowFontScale(1.0); // Vuelve al tamaño original
+
+				//--drop place
+				ImGui::Image((void*)(intptr_t)texture->textureID, ImVec2(128, 128), ImVec2(0, 0), ImVec2(1, 1), ImColor(255, 255, 255, 255));
+				HandleDragDropForTexture(*texture, "ASSET_DRAG");
+
+				if (texture->hasMap)
+				{
+					std::string treeNodeTitle = "Details: " + texture->typeString;
+					if (ImGui::TreeNode(treeNodeTitle.c_str())) {
+						ImGui::Text("File: %s", texture->image.path.c_str());
+						ImGui::Text("Width: %i", texture->image.width);
+						ImGui::Text("Height: %i", texture->image.height);
+						ImGui::Text("Channels: %i", texture->image.channels);
+
+						ImGui::TreePop();
+					}
+				}
+				else
+				{
+					ImGui::Text("Drop in black box");
+				}
+					
+
+
+				if (texture->type == GLCore::TEXTURE_TYPES::ALBEDO)
+				{
+					ImGui::ColorEdit3("Color", glm::value_ptr(material->color));
+					ImGui::InputFloat("hdr Multiply", &material->hdrMultiply, 0.001f, 0.001f);
+					ImGui::Separator();
+					ImGui::Dummy(ImVec2(10.0f, 20.0f));
+				}
+				else if (texture->type == GLCore::TEXTURE_TYPES::NORMAL)
+				{
+					ImGui::SliderFloat("Normal Intensity", &material->normalIntensity, 0.0f, 1.0f);
+					ImGui::Separator();
+					ImGui::Dummy(ImVec2(10.0f, 20.0f));
+				}
+				else if (texture->type == GLCore::TEXTURE_TYPES::METALLIC)
+				{
+					ImGui::SliderFloat("Metallic Value", &material->metallicValue, 0.0f, 1.0f);
+					ImGui::SliderFloat("Reflectance", &material->reflectanceValue, 0.0f, 1.0f, "%.2f");
+					ImGui::Separator();
+					ImGui::Dummy(ImVec2(10.0f, 20.0f));
+				}
+				else if (texture->type == GLCore::TEXTURE_TYPES::ROUGHNESS)
+				{
+					ImGui::SliderFloat("Roughtness Value", &material->roughnessValue, 0.05f, 1.0f);
+					ImGui::Separator();
+					ImGui::Dummy(ImVec2(10.0f, 20.0f));
+				}
+				else if (texture->type == GLCore::TEXTURE_TYPES::AO)
+				{
+					ImGui::Separator();
+				}
+			}
+		}
+
+		void HandleDragDropForTexture(GLCore::Texture& matTex, const char* assetTag)
+		{
 			if (ImGui::BeginDragDropTarget())
 			{
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(assetTag))
 				{
 					if (!ImGui::IsMouseDown(0))  // Chequeo si el botón izquierdo del ratón se ha liberado
 					{
 						std::string dropped_fpath = (const char*)payload->Data;
 
-						/*if (material->hasAlbedoMap)
-							GLCore::Utils::ImageLoader::freeImage(material->albedoMap.image);*/
+						// Nota: puedes agregar una condición aquí para liberar la imagen si es necesario
+						/*if (matTex.hasTexture)
+							GLCore::Utils::ImageLoader::freeImage(matTex.image);*/
 
-						material->albedoMap.image = GLCore::Utils::ImageLoader::loadImage("assets/" + dropped_fpath);
-						material->prepare_PBRMaterials();
-						
-					}
-				}
-				ImGui::EndDragDropTarget();
-			}
-			ImGui::Dummy(ImVec2(10.0f, 10.0f));
-			//------------------------------------------------------------------------ 
-
-
-
-			//---NORMAL
-			ImGui::Text("Normal");
-
-			ImGui::SliderFloat("Normal Intensity", &material->normalIntensity, 0.0f, 1.0f);
-			if (material->hasNormalMap)
-				ImGui::Text(material->normalMap.image.path.c_str());
-			else
-				ImGui::Text("Drop in black box");
-
-			ImGui::Image((void*)(intptr_t)material->normalMap.textureID, ImVec2(128, 128), ImVec2(0, 0), ImVec2(1, 1), ImColor(255, 255, 255, 255));
-
-			if (ImGui::BeginDragDropTarget())
-			{
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
-				{
-					if (!ImGui::IsMouseDown(0))  // Chequeo si el botón izquierdo del ratón se ha liberado
-					{
-						std::string dropped_fpath = (const char*)payload->Data;
-
-						/*if (material->hasNormalMap)
-							GLCore::Utils::ImageLoader::freeImage(material->normalMap.image);*/
-
-						material->normalMap.image = GLCore::Utils::ImageLoader::loadImage("assets/" + dropped_fpath);
-						material->prepare_PBRMaterials();
-
-					}
-				}
-				ImGui::EndDragDropTarget();
-			}
-			ImGui::Dummy(ImVec2(10.0f, 10.0f));
-			//------------------------------------------------------------------------ 
-
-			//---METALLIC
-			ImGui::Text("Metallic");
-			ImGui::SliderFloat("Metallic Value", &material->metallicValue, 0.0f, 1.0f);
-			ImGui::SliderFloat("F0", &material->reflectanceValue, 0.0f, 1.0f, "%.2f");
-			ImGui::SliderFloat("Fresnel Co", &material->fresnelCoefValue, 0.0f, 10.0f, "%.2f");
-			if (material->hasMetallicMap)
-				ImGui::Text(material->metallicMap.image.path.c_str());
-			else
-				ImGui::Text("Drop in black box");
-
-			ImGui::Image((void*)(intptr_t)material->metallicMap.textureID, ImVec2(128, 128), ImVec2(0, 0), ImVec2(1, 1), ImColor(255, 255, 255, 255));
-
-			if (ImGui::BeginDragDropTarget())
-			{
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
-				{
-					if (!ImGui::IsMouseDown(0))  // Chequeo si el botón izquierdo del ratón se ha liberado
-					{
-						std::string dropped_fpath = (const char*)payload->Data;
-
-						/*if (material->hasMetallicMap)
-							GLCore::Utils::ImageLoader::freeImage(material->metallicMap.image);*/
-
-						material->metallicMap.image = GLCore::Utils::ImageLoader::loadImage("assets/" + dropped_fpath);
-						material->prepare_PBRMaterials();
-
-					}
-				}
-				ImGui::EndDragDropTarget();
-			}
-			ImGui::Dummy(ImVec2(10.0f, 10.0f));
-			//------------------------------------------------------------------------ 
-
-
-
-			//---ROUGHNESS
-			ImGui::Text("Roughness");
-			ImGui::SliderFloat("Roughtness Value", &material->roughnessValue, 0.05f, 1.0f);
-			if (material->hasRougnessMap)
-				ImGui::Text(material->rougnessMap.image.path.c_str());
-			else
-				ImGui::Text("Drop in black box");
-
-			ImGui::Image((void*)(intptr_t)material->rougnessMap.textureID, ImVec2(128, 128), ImVec2(0, 0), ImVec2(1, 1), ImColor(255, 255, 255, 255));
-
-			if (ImGui::BeginDragDropTarget())
-			{
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
-				{
-					if (!ImGui::IsMouseDown(0))  // Chequeo si el botón izquierdo del ratón se ha liberado
-					{
-						std::string dropped_fpath = (const char*)payload->Data;
-
-						/*if (material->hasRougnessMap)
-							GLCore::Utils::ImageLoader::freeImage(material->rougnessMap.image);*/
-
-						material->rougnessMap.image = GLCore::Utils::ImageLoader::loadImage("assets/" + dropped_fpath);
+						matTex.image = GLCore::Utils::ImageLoader::loadImage("assets/" + dropped_fpath);
 						material->prepare_PBRMaterials();
 					}
 				}
 				ImGui::EndDragDropTarget();
 			}
-			ImGui::Dummy(ImVec2(10.0f, 10.0f));
-			//------------------------------------------------------------------------ 
+		}
 
-
-
-			//---AO
-			ImGui::Text("AO");
-
-			if (material->hasAoMap)
-				ImGui::Text(material->aOMap.image.path.c_str());
-			else
-				ImGui::Text("Drop in black box");
-
-			ImGui::Image((void*)(intptr_t)material->aOMap.textureID, ImVec2(128, 128), ImVec2(0, 0), ImVec2(1, 1), ImColor(255, 255, 255, 255));
-
-			if (ImGui::BeginDragDropTarget())
-			{
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_DRAG"))
-				{
-					if (!ImGui::IsMouseDown(0))  // Chequeo si el botón izquierdo del ratón se ha liberado
-					{
-						std::string dropped_fpath = (const char*)payload->Data;
-
-						if (material->hasAoMap)
-							GLCore::Utils::ImageLoader::freeImage(material->aOMap.image);
-
-						material->aOMap.image = GLCore::Utils::ImageLoader::loadImage("assets/" + dropped_fpath);
-						material->prepare_PBRMaterials();
-					}
-				}
-				ImGui::EndDragDropTarget();
-			}
-			ImGui::Dummy(ImVec2(10.0f, 10.0f));
-			//------------------------------------------------------------------------ 
-        }
     };
 
 }  // namespace ECS

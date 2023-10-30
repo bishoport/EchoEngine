@@ -163,6 +163,18 @@ namespace ECS
 			return m_isDirty;
 		}
 
+		/*void addChild(Entity* childEntity)
+		{
+			childEntity->getComponent<Transform>().parent = this->entity;
+			children.push_back(childEntity);
+		}
+
+		void removeChild(Entity* childEntity)
+		{
+			childEntity->getComponent<Transform>().parent = nullptr;
+			children.erase(std::remove(children.begin(), children.end(), childEntity), children.end());
+		}*/
+
 		void drawGUI_Inspector() override
 		{
 			ImGui::Text("Transform");

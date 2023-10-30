@@ -43,6 +43,9 @@ namespace GLCore {
         static std::pair<glm::vec3, float> SceneBounds;
 
     private:
+
+        bool isWireframe = false;
+
         //--ENTITIES
         ECS::Manager manager;
         std::vector<ECS::Entity*> entitiesInScene;
