@@ -301,6 +301,6 @@
     <None Include="assets\shaders\postpro\blur.vs" />
     <None Include="assets\shaders\postpro\bloom.vs" />
     <None Include="assets\shaders\postpro\bloom.fs" />
-    <None Include="assets\shaders\pbr_ibl.frag" />
+    <None Include="assets\shaders\pbr_ibl.fs" />
   </ItemGroup>
 </Project>

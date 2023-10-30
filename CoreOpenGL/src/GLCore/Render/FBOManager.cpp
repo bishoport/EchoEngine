@@ -44,6 +44,38 @@ namespace GLCore::Render
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
+
+    void FBOManager::CreateShadowMapFBO(GLuint* fbo, GLuint* shadowMap, GLuint SCR_WIDTH, GLuint SCR_HEIGHT) {
+        glGenFramebuffers(1, fbo);
+        glBindFramebuffer(GL_FRAMEBUFFER, *fbo);
+
+        glGenTextures(1, shadowMap);
+        glBindTexture(GL_TEXTURE_2D, *shadowMap);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
+
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, *shadowMap, 0);
+        glDrawBuffer(GL_NONE);  // No color buffer is drawn
+        glReadBuffer(GL_NONE);
+
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+            std::cout << "Framebuffer not complete!" << std::endl;
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+
+
+
+
+
+
     void FBOManager::UpdateFBO_Color_RGBA16F(GLuint* fbo, GLuint* rboDepth, std::vector<GLuint*>& colorBuffers, GLuint SCR_WIDTH, GLuint SCR_HEIGHT) {
         // Actualizar las texturas de los color buffers
         for (auto colorBuffer : colorBuffers) {

@@ -2,15 +2,20 @@
 #include "IMGLoader.h"
 #include "../Render/PrimitivesHelper.h"
 
+
+
 namespace GLCore::Utils
 {
 
     GLCore::ModelParent ModelLoader::LoadModel(ImportOptions importOptions) {
         
         Assimp::Importer importer;
-        
+
+        std::cout << "File ->" << importOptions.fileName << std::endl;
+        std::cout << "File path ->" << importOptions.filePath << std::endl;
+
         std::string completePath = importOptions.filePath + importOptions.fileName;
-        std::cout << "File ->" << completePath << std::endl;
+        std::cout << "Complete Path ->" << completePath << std::endl;
 
         unsigned int flags = aiProcess_Triangulate;
 
@@ -206,7 +211,7 @@ namespace GLCore::Utils
 
             Texture texture;
 
-            auto loadedImage = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str());
+            auto loadedImage = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str(), importOptions.filePath);
 
             if (loadedImage.pixels != nullptr) {
                 texture.image = std::move(loadedImage);
@@ -225,7 +230,7 @@ namespace GLCore::Utils
 
             Texture texture;
 
-            auto loadedImage = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str());
+            auto loadedImage = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str(), importOptions.filePath);
 
             if (loadedImage.pixels != nullptr) {
                 texture.image = std::move(loadedImage);
@@ -233,7 +238,7 @@ namespace GLCore::Utils
             }
             else {
                 std::string completePathTexture = "assets/textures/default/default_normal.jpg";
-                texture.image = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str());
+                texture.image = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str(), importOptions.filePath);
                 texture.image.path = texturePath.C_Str();
             }
             material.normalMap = texture;
@@ -242,7 +247,7 @@ namespace GLCore::Utils
         {
             std::string completePathTexture = "assets/textures/default/default_normal.jpg";
             Texture texture;
-            texture.image = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str());
+            texture.image = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str(), importOptions.filePath);
             texture.image.path = texturePath.C_Str();
             material.normalMap = texture;
         }
@@ -257,7 +262,7 @@ namespace GLCore::Utils
 
             Texture texture;
 
-            auto loadedImage = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str());
+            auto loadedImage = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str(), importOptions.filePath);
 
             if (loadedImage.pixels != nullptr) {
                 texture.image = std::move(loadedImage);
@@ -277,7 +282,7 @@ namespace GLCore::Utils
 
             Texture texture;
 
-            auto loadedImage = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str());
+            auto loadedImage = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str(), importOptions.filePath);
 
             if (loadedImage.pixels != nullptr) {
                 texture.image = std::move(loadedImage);
@@ -297,7 +302,7 @@ namespace GLCore::Utils
 
             Texture texture;
 
-            auto loadedImage = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str());
+            auto loadedImage = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str(), importOptions.filePath);
 
             if (loadedImage.pixels != nullptr) {
                 texture.image = std::move(loadedImage);
@@ -334,4 +339,7 @@ namespace GLCore::Utils
 
         return to;
     }
+
+
+    
 }

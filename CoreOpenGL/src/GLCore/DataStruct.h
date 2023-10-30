@@ -30,7 +30,9 @@ namespace GLCore
     struct Material {
         float shininess;
         float hdrMultiply = 0.0f;
-        float hdrIntensity = 0.0f;
+        float hdrIntensity = 0.3f;
+        float exposure = 1.0f;
+        float gamma = 2.2f;
         //-------------------------------------------------------
 
         //--PBR
@@ -300,6 +302,8 @@ namespace GLCore
             GLCore::Render::ShaderManager::Get(shaderName)->setFloat("material.reflectance", reflectanceValue);
             GLCore::Render::ShaderManager::Get(shaderName)->setFloat("material.fresnelCoef", fresnelCoefValue);
             GLCore::Render::ShaderManager::Get(shaderName)->setFloat("material.hdrIntensity", hdrIntensity);
+            GLCore::Render::ShaderManager::Get(shaderName)->setFloat("material.exposure", exposure);
+            GLCore::Render::ShaderManager::Get(shaderName)->setFloat("material.gamma", gamma);
             
             
         }

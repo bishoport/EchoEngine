@@ -61,7 +61,7 @@ namespace ECS
 
         void prepareShadows()
         {
-            GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&shadowFBO, &shadowDepth, textureBuffers, shadowMapResolution, shadowMapResolution);
+            GLCore::Render::FBOManager::CreateShadowMapFBO(&shadowFBO, &shadowTex, shadowMapResolution, shadowMapResolution);
         }
 
         
@@ -139,9 +139,9 @@ namespace ECS
                 if (drawShadows)
                 {
                     //Texture shadow
-                    glActiveTexture(GL_TEXTURE6);
+                    glActiveTexture(GL_TEXTURE10);
                     glBindTexture(GL_TEXTURE_2D, shadowTex);
-                    GLCore::Render::ShaderManager::Get(name.c_str())->setInt("dirLight.shadowMap", 6);
+                    GLCore::Render::ShaderManager::Get(name.c_str())->setInt("dirLight.shadowMap", 10);
 
                     //BIAS
                     //glm::mat4 shadowBias = glm::translate(glm::vec3(0.5)) * glm::scale(glm::vec3(0.5));
@@ -152,8 +152,8 @@ namespace ECS
                 }
                 else
                 {
-                    glActiveTexture(GL_TEXTURE6);
-                    glBindTexture(GL_TEXTURE_2D, 0);
+                    glActiveTexture(GL_TEXTURE0);
+                    glBindTexture(GL_TEXTURE_2D, 10);
                 }
             }
             if (debug)

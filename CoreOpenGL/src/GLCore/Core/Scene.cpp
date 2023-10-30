@@ -30,7 +30,7 @@ namespace GLCore {
 
         //--LOAD SHADERS
         GLCore::Render::ShaderManager::Load("pbr",           "assets/shaders/Default.vert",		       "assets/shaders/pbr.fs");
-		GLCore::Render::ShaderManager::Load("pbr_ibl", "assets/shaders/Default.vert", "assets/shaders/pbr_ibl.frag");
+		GLCore::Render::ShaderManager::Load("pbr_ibl", "assets/shaders/Default.vert", "assets/shaders/pbr_ibl.fs");
         GLCore::Render::ShaderManager::Load("debug",         "assets/shaders/Debug.vert",              "assets/shaders/Debug.frag");
         GLCore::Render::ShaderManager::Load("skybox",        "assets/shaders/skybox/skybox.vs",        "assets/shaders/skybox/skybox.fs");
         GLCore::Render::ShaderManager::Load("dynamicSkybox", "assets/shaders/skybox/dynamicSkybox.vs", "assets/shaders/skybox/dynamicSkybox.fs");
@@ -96,12 +96,12 @@ namespace GLCore {
 
 
 		//--MAIN FBO
-		//mainColorBuffers.push_back(&mainColorBuffer);
-		//GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&mainFBO, &mainRboDepth, mainColorBuffers, 800, 600);
-		////suscribir una función al evento de redimensionamiento de la ventana
-		//EventManager::getWindowResizeEvent().subscribe([this](GLuint width, GLuint height) {
-		//	GLCore::Render::FBOManager::UpdateFBO_Color_RGBA16F(&mainFBO, &mainRboDepth, mainColorBuffers, width, height);
-		//});
+		mainColorBuffers.push_back(&mainColorBuffer);
+		GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&mainFBO, &mainRboDepth, mainColorBuffers, 800, 600);
+		//suscribir una función al evento de redimensionamiento de la ventana
+		EventManager::getWindowResizeEvent().subscribe([this](GLuint width, GLuint height) {
+			GLCore::Render::FBOManager::UpdateFBO_Color_RGBA16F(&mainFBO, &mainRboDepth, mainColorBuffers, width, height);
+		});
 		//----------------------------------------------------------------------------------------------------------------------------
 
 
@@ -234,27 +234,7 @@ namespace GLCore {
 			if (useHDRIlumination == true)
 			{
 				//--------------------------------------------IBL
-				GLCore::Render::ShaderManager::Get("pbr_ibl")->use();
-
-				GLCore::Render::ShaderManager::Get("pbr_ibl")->setFloat("exposure", exposure);
-				GLCore::Render::ShaderManager::Get("pbr_ibl")->setFloat("gamma", gamma);
-				GLCore::Render::ShaderManager::Get("pbr_ibl")->setFloat("hdrIntensity", hdrIntensity);
-
-				GLCore::Render::ShaderManager::Get("background")->use();
-				GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 0);
-
 				glDepthFunc(GL_LEQUAL);
-				// render skybox (render as last to prevent overdraw)
-				GLCore::Render::ShaderManager::Get("background")->use();
-
-
-				glm::mat4 viewHDR = glm::mat4(glm::mat3(m_EditorCamera.GetCamera().GetViewMatrix()));
-
-				// Escala la matriz de vista para hacer el skybox más grande
-				float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
-				viewHDR = glm::scale(viewHDR, glm::vec3(scale, scale, scale));
-				GLCore::Render::ShaderManager::Get("background")->setMat4("view", viewHDR);
-				GLCore::Render::ShaderManager::Get("background")->setMat4("projection", m_EditorCamera.GetCamera().GetProjectionMatrix());
 
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
@@ -263,41 +243,78 @@ namespace GLCore {
 				glActiveTexture(GL_TEXTURE2);
 				glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);  // display prefilter map
 
+				GLCore::Render::ShaderManager::Get("pbr_ibl")->use();
 				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("irradianceMap", 0);
 				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("prefilterMap", 1);
 				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("brdfLUT", 2);
 
+				
+				glm::mat4 viewHDR = glm::mat4(glm::mat3(m_EditorCamera.GetCamera().GetViewMatrix()));
+				// Escala la matriz de vista para hacer el skybox más grande
+				float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
+				viewHDR = glm::scale(viewHDR, glm::vec3(scale, scale, scale));
+				GLCore::Render::ShaderManager::Get("background")->use();
+				GLCore::Render::ShaderManager::Get("background")->setMat4("view", viewHDR);
+				GLCore::Render::ShaderManager::Get("background")->setMat4("projection", m_EditorCamera.GetCamera().GetProjectionMatrix());
 				GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 0);
 				renderCube();
 				//----------------------------------------------------------------------------------------------------
 			}
-
 			
-
 			drawAllEntities();
 		}
 		else
 		{
-			////--PREPARE MAIN_FBO
-			//glBindFramebuffer(GL_FRAMEBUFFER, mainFBO);
-			//glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
-			//glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
-			//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			//--PREPARE MAIN_FBO
+			glBindFramebuffer(GL_FRAMEBUFFER, mainFBO);
+			glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
+			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			//drawAllEntities();
-			////-------------------------------------------------------------------------------------------------------------------------------------------
 
-			////--DRAW MAIN_FBO in QUAD
-			//glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
-			//glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
-			//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			if (useHDRIlumination == true)
+			{
+				//--------------------------------------------IBL
+				glDepthFunc(GL_LEQUAL);
 
-			//glActiveTexture(GL_TEXTURE0);
-			//glBindTexture(GL_TEXTURE_2D, mainColorBuffer);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap); // display irradiance map
+				glActiveTexture(GL_TEXTURE2);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);  // display prefilter map
 
-			//GLCore::Render::ShaderManager::Get("main_output_FBO")->use();
-			//GLCore::Render::ShaderManager::Get("main_output_FBO")->setInt("colorBuffer", 0);
-			//renderQuad();
+				GLCore::Render::ShaderManager::Get("pbr_ibl")->use();
+				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("irradianceMap", 0);
+				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("prefilterMap", 1);
+				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("brdfLUT", 2);
+
+
+				glm::mat4 viewHDR = glm::mat4(glm::mat3(m_EditorCamera.GetCamera().GetViewMatrix()));
+				// Escala la matriz de vista para hacer el skybox más grande
+				float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
+				viewHDR = glm::scale(viewHDR, glm::vec3(scale, scale, scale));
+				GLCore::Render::ShaderManager::Get("background")->use();
+				GLCore::Render::ShaderManager::Get("background")->setMat4("view", viewHDR);
+				GLCore::Render::ShaderManager::Get("background")->setMat4("projection", m_EditorCamera.GetCamera().GetProjectionMatrix());
+				GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 0);
+				renderCube();
+				//----------------------------------------------------------------------------------------------------
+			}
+			drawAllEntities();
+			//-------------------------------------------------------------------------------------------------------------------------------------------
+
+			//--DRAW MAIN_FBO in QUAD
+			glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
+			glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, mainColorBuffer);
+
+			GLCore::Render::ShaderManager::Get("main_output_FBO")->use();
+			GLCore::Render::ShaderManager::Get("main_output_FBO")->setInt("colorBuffer", 0);
+			renderQuad();
 			//-------------------------------------------------------------------------------------------------------------------------------------------
 		}
 

@@ -12,5 +12,7 @@ namespace GLCore::Render {
     public:
         static void CreateFBO_Color_RGBA16F(GLuint* fbo, GLuint* rboDepth, std::vector<GLuint*>& colorBuffers, GLuint SCR_WIDTH, GLuint SCR_HEIGHT);
         static void UpdateFBO_Color_RGBA16F(GLuint* fbo, GLuint* rboDepth, std::vector<GLuint*>& colorBuffers, GLuint SCR_WIDTH, GLuint SCR_HEIGHT);
+
+        static void CreateShadowMapFBO(GLuint* fbo, GLuint* shadowMap, GLuint SCR_WIDTH, GLuint SCR_HEIGHT);
     };
 }

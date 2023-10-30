@@ -59,7 +59,7 @@ namespace GLCore {
         //---------------------------------------------------
 
         //--FBO
-        bool useStandardFBO = true;
+        bool useStandardFBO = false;
         std::vector<GLuint*> mainColorBuffers;
         GLuint mainFBO;
         GLuint mainRboDepth;
@@ -90,8 +90,8 @@ namespace GLCore {
         //--POST_PROCESSING
         Utils::PostProcessingManager* postproManager = nullptr;
         bool usePostprocessing = false;
+
         float exposure = 1.0f;
-        float hdrIntensity = 0.5;
         float gamma = 2.2f;
         unsigned int quadVAO = 0;
         unsigned int quadVBO;

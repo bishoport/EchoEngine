@@ -38,7 +38,12 @@ namespace ECS {
         void drawGUI_Inspector() override
         {
             ImGui::Text("Material");
-			ImGui::SliderFloat("HDR INTENSITY", &material->hdrIntensity, 0.0f, 1.0f, "%.001f");
+			ImGui::SliderFloat("HDR INTENSITY", &material->hdrIntensity, 0.0f, 1.0f, "%.3f");
+			ImGui::Dummy(ImVec2(0.0f, 5.0f));
+			
+			ImGui::SliderFloat("HDR Exposure", &material->exposure, 0.0f, 10.0f, "%.3f");
+			ImGui::SliderFloat("HDR Gamma", &material->gamma, 0.0f, 10.0f, "%.3f");
+
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
             ImGui::SliderInt2("Texture Repetition", glm::value_ptr(repetitionFactor), 1, 20);
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
@@ -65,7 +70,6 @@ namespace ECS {
 			else
 				ImGui::Text("Drop in black box");
 			ImGui::Image((void*)(intptr_t)material->albedoMap.textureID, ImVec2(128, 128), ImVec2(0, 0), ImVec2(1, 1), ImColor(255, 255, 255, 255));
-
 
 			if (ImGui::BeginDragDropTarget())
 			{

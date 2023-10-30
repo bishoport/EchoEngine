@@ -36,37 +36,35 @@ vec3 N;
 vec3 V;
 vec3 R;
 vec3 F0;
+vec2 adjustedTexCoords;
 //-------------------
 
-// IBL
-uniform float exposure;
-uniform float gamma;
 
-uniform samplerCube irradianceMap;
-uniform samplerCube prefilterMap;
-uniform sampler2D brdfLUT;
-//-------------------
-
+// Factor de repetición
+uniform vec2 repetitionFactor; 
 
 void main()
 {
+    // Factor de repetición
+    adjustedTexCoords = TexCoords * repetitionFactor;
+
     if (material.hasAlbedoMap)
-        albedo = pow(texture(material.albedoMap, TexCoords).rgb, vec3(2.2));
+        albedo = pow(texture(material.albedoMap, adjustedTexCoords).rgb, vec3(2.2));
     else
         albedo = material.albedo;
 
     if (material.hasMetallicMap)
-        metallic = texture(material.metallicMap, TexCoords).r * material.metallic;
+        metallic = texture(material.metallicMap, adjustedTexCoords).r * material.metallic;
     else
         metallic = material.metallic;
 
     if (material.hasRougnessMap)
-        roughness = texture(material.roughnessMap, TexCoords).r * material.roughness;
+        roughness = texture(material.roughnessMap, adjustedTexCoords).r * material.roughness;
     else
         roughness = material.roughness;
 
     if (material.hasAoMap)
-        ao = texture(material.aoMap, TexCoords).r;
+        ao = texture(material.aoMap, adjustedTexCoords).r;
     else
         ao = 1.0;
     
@@ -80,15 +78,6 @@ void main()
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
     F0 = vec3(material.reflectance);
     F0 = mix(F0, albedo, metallic);
-
-    //IBL
-    //vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
-
-    //vec3 kS = F;
-    //vec3 kD = 1.0 - kS;
-    //kD *= 1.0 - metallic;
-
-    
 
 
     //FASE DE ILUMINACION
@@ -127,13 +116,11 @@ void main()
     Lo += material.hdrMultiply;
 
     //COMBINAMOS TODO
-    vec3 ambient = (albedo  * globalAmbient) * ao;
+    vec3 ambient = (albedo * globalAmbient) * ao;
     vec3 color = ambient + Lo;
+
     FragColor = vec4(color, 1.0);
 }
-
-
-
 
 
 
@@ -325,13 +312,13 @@ vec3 CalcPointLight(PointLight light)
 // ----------------------------------------------------------------------------
 vec3 getNormalFromMap()
 {
-    vec3 tangentNormal = texture(material.normalMap, TexCoords).xyz * 2.0 - 1.0;
+    vec3 tangentNormal = texture(material.normalMap, adjustedTexCoords).xyz * 2.0 - 1.0;
     tangentNormal = mix(vec3(0.0, 0.0, 1.0), tangentNormal, material.normalIntensity);  // Usamos mix para interpolar entre la N sin alterar y la N del mapa.
 
     vec3 Q1  = dFdx(FragPos);
     vec3 Q2  = dFdy(FragPos);
-    vec2 st1 = dFdx(TexCoords);
-    vec2 st2 = dFdy(TexCoords);
+    vec2 st1 = dFdx(adjustedTexCoords);
+    vec2 st2 = dFdy(adjustedTexCoords);
 
     vec3 N   = normalize(Normal);
     vec3 T   = normalize(Q1*st2.t - Q2*st1.t);
@@ -340,12 +327,12 @@ vec3 getNormalFromMap()
 
     return normalize(TBN * tangentNormal);
 
-    //vec3 tangentNormal = texture(material.normalMap, TexCoords).xyz * 2.0 - 1.0;
+    //vec3 tangentNormal = texture(material.normalMap, adjustedTexCoords).xyz * 2.0 - 1.0;
 
     //vec3 Q1  = dFdx(FragPos);
     //vec3 Q2  = dFdy(FragPos);
-    //vec2 st1 = dFdx(TexCoords);
-    //vec2 st2 = dFdy(TexCoords);
+    //vec2 st1 = dFdx(adjustedTexCoords);
+    //vec2 st2 = dFdy(adjustedTexCoords);
 
     //vec3 N   = normalize(Normal);
     //vec3 T   = normalize(Q1*st2.t - Q2*st1.t);

@@ -220,7 +220,7 @@
     <None Include="assets\shaders\main_output_FBO.vs" />
     <None Include="assets\shaders\pbr.fs" />
     <None Include="assets\shaders\Default.vert" />
-    <None Include="assets\shaders\pbr_ibl.frag" />
+    <None Include="assets\shaders\pbr_ibl.fs" />
     <None Include="assets\shaders\postpro\bloom.fs" />
     <None Include="assets\shaders\postpro\bloom.vs" />
     <None Include="assets\shaders\postpro\blur.fs" />

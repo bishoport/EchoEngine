@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 
 
+
 #include "assimp/Importer.hpp"
 #include "assimp/scene.h"
 #include "assimp/postprocess.h"
@@ -27,5 +28,8 @@ namespace GLCore::Utils
 
         static glm::mat4 aiMatrix4x4ToGlm(const aiMatrix4x4& from);
         static aiMatrix4x4 glmToAiMatrix4x4(const glm::mat4& from);
+
+        
+
     };
 }

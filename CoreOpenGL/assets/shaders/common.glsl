@@ -26,6 +26,8 @@ struct Material {
     float     fresnelCoef;
 
     float hdrIntensity;
+    float exposure;
+    float gamma;
 };
 
 struct DirLight {

@@ -4,7 +4,7 @@ namespace GLCore::Utils {
 
     std::unordered_map<std::string, Image> ImageLoader::loadedImages;
 
-    Image ImageLoader::loadImage(const std::string& filepath) 
+    Image ImageLoader::loadImage(const std::string& filepath, const std::string carpetaBase)
     {
         // Verifica si la imagen ya ha sido cargada
         auto found = loadedImages.find(filepath);
@@ -13,18 +13,47 @@ namespace GLCore::Utils {
             return found->second;
         }
 
+
+
+        std::string finalFilepath = filepath;
+        if (carpetaBase != "")
+        {
+            std::filesystem::path rutaPath(filepath);
+            // Obtener el nombre del archivo con su extensión
+            std::string nombreArchivo = rutaPath.filename().string();
+            std::cout << "Nombre del archivo: " << nombreArchivo << std::endl;
+
+            std::string rutaTextura = buscarTextura(nombreArchivo, carpetaBase);
+
+            if (!rutaTextura.empty()) {
+                std::cout << "Textura encontrada en: " << rutaTextura << std::endl;
+                finalFilepath = rutaTextura;
+            }
+            else {
+                std::cout << "Textura no encontrada." << std::endl;
+            }
+        }
+
+
+        
+
+
+
+
+
         Image image;
         stbi_set_flip_vertically_on_load(false);
-        image.pixels = stbi_load(filepath.c_str(), &(image.width), &(image.height), &(image.channels), 0);
+        image.pixels = stbi_load(finalFilepath.c_str(), &(image.width), &(image.height), &(image.channels), 0);
 
         if (!image.pixels)
         {
-            std::cout << "Image failed to load at path: " << filepath.c_str() << std::endl;
+            std::cout << "Image failed to load at path: " << finalFilepath.c_str() << std::endl;
         }
-        image.path = filepath.c_str();
-        loadedImages[filepath.c_str()] = image;
+        image.path = finalFilepath.c_str();
+        loadedImages[finalFilepath.c_str()] = image;
         return image;
     }
+
 
 
 
@@ -118,7 +147,29 @@ namespace GLCore::Utils {
     }
 
 
+    std::string ImageLoader::buscarTextura(const std::string& nombreArchivo, const std::string& carpetaBase)
+    {
+        // Intentar cargar la textura desde la ruta completa
+        if (std::filesystem::exists(nombreArchivo)) {
+            return nombreArchivo;
+        }
 
+        // Intentar cargar la textura desde la carpeta base
+        auto rutaCompleta = std::filesystem::path(carpetaBase) / nombreArchivo;
+        if (std::filesystem::exists(rutaCompleta)) {
+            return rutaCompleta.string();
+        }
+
+        // Buscar la textura en subcarpetas de la carpeta base
+        for (const auto& entrada : std::filesystem::recursive_directory_iterator(carpetaBase)) {
+            if (std::filesystem::is_regular_file(entrada) && entrada.path().filename() == nombreArchivo) {
+                return entrada.path().string();
+            }
+        }
+
+        // No se encontró la textura
+        return "";
+    }
 
 
 
