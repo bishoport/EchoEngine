@@ -141,7 +141,6 @@
     <ClCompile Include="src\GLCore\Core\Input\InputManager.cpp" />
     <ClCompile Include="src\GLCore\Core\Log.cpp" />
     <ClCompile Include="src\GLCore\Render\FBOManager.cpp" />
-    <ClCompile Include="src\GLCore\Render\RenderManager.cpp" />
     <ClCompile Include="src\GLCore\Util\DynamicSkybox.cpp" />
     <ClCompile Include="src\GLCore\Util\GridWorldReference.cpp" />
     <ClCompile Include="src\GLCore\Util\IMGLoader.cpp" />
@@ -183,7 +182,6 @@
     <ClInclude Include="src\GLCore\Core\Input\MouseButtonCodes.h" />
     <ClInclude Include="src\GLCore\Core\Timestep.h" />
     <ClInclude Include="src\GLCore\Render\FBOManager.h" />
-    <ClInclude Include="src\GLCore\Render\RenderManager.h" />
     <ClInclude Include="src\GLCore\Util\DynamicSkybox.h" />
     <ClInclude Include="src\GLCore\Util\GridWorldReference.h" />
     <ClInclude Include="src\GLCore\Util\IMGLoader.h" />

@@ -210,27 +210,24 @@ namespace GLCore::Utils
                 texture.image.path = completePathTexture;
                 texture.hasMap = true;
                 material.albedoMap = texture;
-                material.albedoMap.hasMap = true;
             }
             else
             {
-                std::string defaultPathTexture = "assets/textures/default/default_white.jpg";
+                std::string defaultPathTexture = "assets/default/default_white.jpg";
                 texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
                 texture.image.path = defaultPathTexture;
                 texture.hasMap = true;
                 material.albedoMap = texture;
-                material.albedoMap.hasMap = true;
             }
         }
         else
         {
             Texture texture;
-            std::string defaultPathTexture = "assets/textures/default/default_white.jpg";
+            std::string defaultPathTexture = "assets/default/default_white.jpg";
             texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
             texture.image.path = defaultPathTexture;
             texture.hasMap = true;
             material.albedoMap = texture;
-            material.albedoMap.hasMap = true;
         }
 
 
@@ -253,7 +250,7 @@ namespace GLCore::Utils
             }
             else 
             {
-                std::string defaultPathTexture = "assets/textures/default/default_normal.jpg";
+                std::string defaultPathTexture = "assets/default/default_normal.jpg";
                 texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
                 texture.image.path = defaultPathTexture;
                 texture.hasMap = true;
@@ -262,7 +259,7 @@ namespace GLCore::Utils
         }
         else
         {
-            std::string defaultPathTexture = "assets/textures/default/default_normal.jpg";
+            std::string defaultPathTexture = "assets/default/default_normal.jpg";
             Texture texture;
             texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
             texture.image.path = defaultPathTexture;
@@ -285,6 +282,23 @@ namespace GLCore::Utils
                 texture.hasMap = true;
                 material.metallicMap = texture;
             }
+            else
+            {
+                std::string defaultPathTexture = "assets/default/default_black.jpg";
+                texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
+                texture.image.path = defaultPathTexture;
+                texture.hasMap = true;
+                material.metallicMap = texture;
+            }
+        }
+        else
+        {
+            Texture texture;
+            std::string defaultPathTexture = "assets/default/default_black.jpg";
+            texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
+            texture.image.path = defaultPathTexture;
+            texture.hasMap = true;
+            material.metallicMap = texture;
         }
 
 
@@ -302,7 +316,28 @@ namespace GLCore::Utils
                 texture.hasMap = true;
                 material.rougnessMap = texture;
             } 
+            else
+            {
+                std::string defaultPathTexture = "assets/default/default_black.jpg";
+                texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
+                texture.image.path = defaultPathTexture;
+                texture.hasMap = true;
+                material.rougnessMap = texture;
+            }
         }
+        else
+        {
+            Texture texture;
+            std::string defaultPathTexture = "assets/default/default_black.jpg";
+            texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
+            texture.image.path = defaultPathTexture;
+            texture.hasMap = true;
+            material.rougnessMap = texture;
+        }
+
+
+
+
 
         // Agregamos la carga de la textura AO aquí
         if (mat->GetTexture(aiTextureType_AMBIENT_OCCLUSION, 0, &texturePath) == AI_SUCCESS)
@@ -319,6 +354,23 @@ namespace GLCore::Utils
                 texture.hasMap = true;
                 material.aOMap = texture;
             }  
+            else
+            {
+                std::string defaultPathTexture = "assets/default/default_withe.jpg";
+                texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
+                texture.image.path = defaultPathTexture;
+                texture.hasMap = true;
+                material.aOMap = texture;
+            }
+        }
+        else
+        {
+            Texture texture;
+            std::string defaultPathTexture = "assets/default/default_white.jpg";
+            texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
+            texture.image.path = defaultPathTexture;
+            texture.hasMap = true;
+            material.aOMap = texture;
         }
 
         return material;

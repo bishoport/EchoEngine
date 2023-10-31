@@ -99,6 +99,7 @@ void main()
     F0 = mix(F0, albedo, metallic);
 
 
+
     //FASE DE ILUMINACION
     vec3 Lo = vec3(0.0);
     
@@ -146,8 +147,7 @@ void main()
     
     vec3 irradiance = texture(irradianceMap, N).rgb;
     vec3 diffuse = mix(albedo, irradiance * albedo, material.hdrIntensity);
-    //vec3 diffuse      = irradiance * albedo;
-    
+
     // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
     const float MAX_REFLECTION_LOD = 4.0;
     vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;     
@@ -157,7 +157,6 @@ void main()
     
 
     //COMBINAMOS TODO
-    //vec3 ambient = ((kD * diffuse + specular)) * ao;
     vec3 ambient = (((kD * diffuse * globalAmbient) + specular) * ao);
     
     vec3 color = ambient + Lo;
@@ -213,23 +212,31 @@ vec3 CalcDirLight(DirLight light)
 float CalcDirectionalLightShadow(DirLight light)
 {
     float shadow = 1.0f;
-
     vec3 L = normalize(light.position - FragPos);
-
-    vec4 shadowCoord = light.shadowBiasMVP * vec4(FragPos,1.0);
-
-    vec3 sCoord=shadowCoord.xyz/shadowCoord.w;
-
+    vec4 shadowCoord = light.shadowBiasMVP * vec4(FragPos, 1.0);
+    vec3 sCoord = shadowCoord.xyz/shadowCoord.w;
     float bias = 0.005 * tan(acos(dot(N,L)));
 
-    for (int i=0;i<64;i++)
+    if (light.usePoisonDisk == true)
     {
-        if ( texture( light.shadowMap, sCoord.xy + poissonDisk[i]/300.0 ).r < sCoord.z-bias )
-            shadow-=1./64.;
+        for (int i=0; i<64; i++)
+        {
+            if (texture(light.shadowMap, sCoord.xy + poissonDisk[i]/300.0).r < sCoord.z-bias)
+                shadow -= 1./64.;
+        }
     }
+    else
+    {
+        if (texture(light.shadowMap, sCoord.xy).r < sCoord.z-bias)
+            shadow = 0.0;
+    }
+
+    // Aplicar shadowIntensity
+    shadow = mix(shadow, 1.0, light.shadowIntensity);
 
     return shadow;
 }
+
 
 
 vec3 CalcSpotLight(SpotLight light)
@@ -291,6 +298,9 @@ float CalcSpotLightShadow(SpotLight light)
             shadow-=1./64.;
     }
 
+    // Aplicar shadowIntensity
+    shadow = mix(shadow, 1.0, light.shadowIntensity);
+
     return shadow;
 }
 
@@ -336,6 +346,10 @@ vec3 CalcPointLight(PointLight light)
 
     return vec3(kD * albedo / PI + specular) * radiance * NdotL;
 }
+
+
+
+
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------

@@ -102,7 +102,7 @@ namespace GLCore {
         //---------------------------------------------------
 
         //--Illumination
-        glm::vec3 globalAmbient = glm::vec3(0.0f);
+        glm::vec3 globalAmbient = glm::vec3(0.055f, 0.055f, 0.055f);
         ImVec4 clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
         bool useDirectionalLight = false;
         int totalPointLight = 0;

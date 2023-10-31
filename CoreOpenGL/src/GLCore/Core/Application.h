@@ -2,7 +2,6 @@
 
 #include "../../glpch.h"
 #include "GuiLayer.h"
-#include "../Render/RenderManager.h"
 #include "Scene.h"
 #include <memory>
 #include "Input/InputManager.h"  // Asegúrate de que la ruta es correcta
@@ -11,14 +10,14 @@
 
 namespace GLCore {
 
-    enum class RenderPasses {
-        SHADOW_MAPPING,
-        RENDER_FORWARD
-    };
+    //enum class RenderPasses {
+    //    SHADOW_MAPPING,
+    //    RENDER_FORWARD
+    //};
 
-    struct RenderPassData {
-        int x, y, width, height;
-    };
+    //struct RenderPassData {
+    //    int x, y, width, height;
+    //};
 
     class Application {
     public:
@@ -29,8 +28,6 @@ namespace GLCore {
         void run();
         void shutdown();
         void processInput();
-
-        static GLCore::Render::RenderPasses currentRenderPass;// = GLCore::Render::RenderPasses::RENDER_FORWARD;
 
         static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
         void SetupInputCallbacks();
@@ -55,7 +52,6 @@ namespace GLCore {
         static GLuint viewportWidth;
         static GLuint viewportHeight;
 
-        static std::unique_ptr<GLCore::RenderPassData> renderPassData;
 
         static std::unique_ptr<Scene> scene;
 

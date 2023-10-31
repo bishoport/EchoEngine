@@ -18,9 +18,9 @@ namespace GLCore {
 	{
 		m_CurrentDirectory = s_AssetPath;
 
-		iconFolder = GLCore::Utils::ImageLoader::loadIcon("assets/icons/folder_icon.png");
-		iconModel  = GLCore::Utils::ImageLoader::loadIcon("assets/icons/model_icon.png");
-		iconImage  = GLCore::Utils::ImageLoader::loadIcon("assets/icons/picture_icon.png");
+		iconFolder = GLCore::Utils::ImageLoader::loadIcon("assets/default/icons/folder_icon.png");
+		iconModel  = GLCore::Utils::ImageLoader::loadIcon("assets/default/icons/model_icon.png");
+		iconImage  = GLCore::Utils::ImageLoader::loadIcon("assets/default/icons/picture_icon.png");
 	}
 
 

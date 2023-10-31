@@ -1,11 +1,6 @@
 
 
 struct Material {
-    float shininess;
-    float hdrMultiply;
-
-
-    //PBR
     bool      hasAlbedoMap;
     bool      hasNormalMap;
     bool      hasMetallicMap;
@@ -25,6 +20,8 @@ struct Material {
     float     reflectance;
     float     fresnelCoef;
 
+    float shininess;
+    float hdrMultiply;
     float hdrIntensity;
     float exposure;
     float gamma;
@@ -43,7 +40,7 @@ struct DirLight {
     //SHADOWS
     bool drawShadows;
     float shadowIntensity;
-    int usePoisonDisk;
+    bool usePoisonDisk;
     sampler2D shadowMap;
     mat4 shadowBiasMVP;
 };

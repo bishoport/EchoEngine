@@ -19,13 +19,25 @@ namespace ECS {
 
 		void setDafaultMaterial()
 		{
-			material->albedoMap.image = GLCore::Utils::ImageLoader::loadImage("assets/textures/default/default_white.jpg");
+			material->albedoMap.image = GLCore::Utils::ImageLoader::loadImage("assets/default/default_white.jpg");
 			material->albedoMap.image.path = "assets/default/default_white.jpg";
 			material->albedoMap.hasMap = true;
 
-			material->normalMap.image = GLCore::Utils::ImageLoader::loadImage("assets/textures/default/default_normal.jpg");
-			material->normalMap.image.path = "assets/textures/default/default_normal.jpg";
+			material->normalMap.image = GLCore::Utils::ImageLoader::loadImage("assets/default/default_normal.jpg");
+			material->normalMap.image.path = "assets/default/default_normal.jpg";
 			material->normalMap.hasMap = true;
+
+			material->metallicMap.image = GLCore::Utils::ImageLoader::loadImage("assets/default/default_black.jpg");
+			material->metallicMap.image.path = "assets/default/default_black.jpg";
+			material->metallicMap.hasMap = true;
+
+			material->rougnessMap.image = GLCore::Utils::ImageLoader::loadImage("assets/default/default_black.jpg");
+			material->rougnessMap.image.path = "assets/default/default_black.jpg";
+			material->rougnessMap.hasMap = true;
+
+			material->aOMap.image = GLCore::Utils::ImageLoader::loadImage("assets/default/default_white.jpg");
+			material->aOMap.image.path = "assets/default/default_white.jpg";
+			material->aOMap.hasMap = true;
 
 			material->prepare_PBRMaterials();
 		}

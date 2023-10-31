@@ -8,7 +8,6 @@ namespace ECS
     class DirectionalLight : public ECS::Component
     {
     public:
-
         unsigned int lightID = 0;
         bool active = true;
         bool debug = true;
@@ -19,23 +18,23 @@ namespace ECS
 
         //DirectionalLight values
         glm::vec3 direction = glm::vec3(0.0f, -10.0f, 0.0f);
+        float currentSceneRadius = 0.0f;
         float sceneRadiusOffset = 0.0f;
 
         //Shadow values
         int shadowMapResolution = 1024;
 
-
         std::vector<GLuint*> textureBuffers;
         GLuint shadowFBO = 0;
         GLuint shadowTex = 0;
         GLuint shadowDepth = 0;
-        
+
 
         glm::mat4 shadowMVP = glm::mat4(1.0f);
         bool drawShadows = false;
         float near_plane = 0.1f, far_plane = 100.0f;
-        float shadowIntensity = 1.0f;
-        bool usePoisonDisk = true;
+        float shadowIntensity = 0.5f;
+        bool usePoisonDisk = false;
         float orthoLeft = -10.0f;
         float orthoRight = 10.0f;
         float orthoBottom = -10.0f;
@@ -47,7 +46,6 @@ namespace ECS
         float orthoFarOffset = 0.0f;
 
         std::vector<ECS::Entity*> m_entitiesInScene;
-
 
         void init() override
         {
@@ -99,6 +97,8 @@ namespace ECS
         {
             auto [sceneCenter, sceneRadius] = GLCore::Scene::SceneBounds;
 
+            currentSceneRadius = sceneRadius;
+
             if (sceneRadius > 0.0f)
             {
                 sceneRadius += sceneRadiusOffset;
@@ -121,7 +121,6 @@ namespace ECS
             }
         }
 
-
         void draw() override
         {
             for (const auto& [name, shader] : GLCore::Render::ShaderManager::GetAllShaders())
@@ -133,7 +132,6 @@ namespace ECS
                 GLCore::Render::ShaderManager::Get(name.c_str())->setVec3("dirLight.ambient",   ambient);
                 GLCore::Render::ShaderManager::Get(name.c_str())->setVec3("dirLight.diffuse",   diffuse);
                 GLCore::Render::ShaderManager::Get(name.c_str())->setVec3("dirLight.specular",  specular);
-
                 GLCore::Render::ShaderManager::Get(name.c_str())->setBool("dirLight.drawShadows", drawShadows);
 
                 if (drawShadows)
@@ -142,13 +140,9 @@ namespace ECS
                     glActiveTexture(GL_TEXTURE10);
                     glBindTexture(GL_TEXTURE_2D, shadowTex);
                     GLCore::Render::ShaderManager::Get(name.c_str())->setInt("dirLight.shadowMap", 10);
-
-                    //BIAS
-                    //glm::mat4 shadowBias = glm::translate(glm::vec3(0.5)) * glm::scale(glm::vec3(0.5));
-                    
-
-                    //MPV
                     GLCore::Render::ShaderManager::Get(name.c_str())->setMat4("dirLight.shadowBiasMVP", shadowBias * shadowMVP);
+                    GLCore::Render::ShaderManager::Get(name.c_str())->setFloat("dirLight.shadowIntensity", shadowIntensity);
+                    GLCore::Render::ShaderManager::Get(name.c_str())->setBool("dirLight.usePoisonDisk", usePoisonDisk);
                 }
                 else
                 {
@@ -162,7 +156,6 @@ namespace ECS
             }
         }
 
-
         void drawGUI_Inspector() override
         {
             ImGui::Text("PointLight");
@@ -173,7 +166,7 @@ namespace ECS
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
             ImGui::SliderFloat("Orbit X", &angleX, 0.0f, 6.28319f);
             ImGui::SliderFloat("Orbit Y", &angleY, 0.0f, 6.28319f);
-            ImGui::SliderFloat("Scene Radius Offset", &sceneRadiusOffset, -10.0f, 10.0f, "%.1f");
+            ImGui::SliderFloat("Scene Radius Offset", &sceneRadiusOffset, -(currentSceneRadius * 10.0f), (currentSceneRadius * 10.0f), "%.1f");
 
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
             ImGui::ColorEdit3("Ambient", glm::value_ptr(ambient));
@@ -199,9 +192,9 @@ namespace ECS
                 ImGui::SliderFloat("Bottom", &orthoBottom, -100.0f, 100.0f);
 
                 ImGui::SliderFloat("Near", &orthoNear, 0.0f, 100.0f);
-                ImGui::SliderFloat("Near Offset", &orthoNearOffset, 0.0f, 100.0f);
+                ImGui::SliderFloat("Near Offset", &orthoNearOffset, -100.0f, 100.0f);
                 ImGui::SliderFloat("Far", &orthoFar, 0.0f, 500.0f);
-                ImGui::SliderFloat("Far Offset", &orthoFarOffset, 0.0f, 100.0f);
+                ImGui::SliderFloat("Far Offset", &orthoFarOffset, -100.0f, 100.0f);
 
                 ImGui::Dummy(ImVec2(0.0f, 20.0f));
                 if (ImGui::CollapsingHeader("Shadow Bias")) {
@@ -236,7 +229,6 @@ namespace ECS
                 }
             }
 
-
             ImGui::Separator();
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
         }
@@ -244,8 +236,6 @@ namespace ECS
         void onDestroy() override {}
 
     private:
-
-
         float angleX = 0.0f;
         float angleY = 0.0f;
 

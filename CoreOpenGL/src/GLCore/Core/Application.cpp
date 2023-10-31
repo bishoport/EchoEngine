@@ -13,12 +13,9 @@ namespace GLCore {
 
     Application* Application::s_Instance = nullptr;
 
-    std::unique_ptr<GLCore::RenderPassData> renderPassData = std::make_unique<GLCore::RenderPassData>();
     std::unique_ptr<GuiLayer> Application::guiLayer = nullptr;
 
     std::unique_ptr<Scene> Application::scene = nullptr; 
-
-    GLCore::Render::RenderPasses Application::currentRenderPass = GLCore::Render::RenderPasses::RENDER_FORWARD;
 
     Application::Application() : window(nullptr) {
         if (!s_Instance)

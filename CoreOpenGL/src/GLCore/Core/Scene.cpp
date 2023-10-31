@@ -77,12 +77,12 @@ namespace GLCore {
 		//--SKYBOX
 		std::vector<const char*> faces
 		{
-			"assets/textures/Skybox/right.jpg",
-			"assets/textures/Skybox/left.jpg",
-			"assets/textures/Skybox/top.jpg",
-			"assets/textures/Skybox/bottom.jpg",
-			"assets/textures/Skybox/front.jpg",
-			"assets/textures/Skybox/back.jpg"
+			"assets/default/Skybox/right.jpg",
+			"assets/default/Skybox/left.jpg",
+			"assets/default/Skybox/top.jpg",
+			"assets/default/Skybox/bottom.jpg",
+			"assets/default/Skybox/front.jpg",
+			"assets/default/Skybox/back.jpg"
 		};
 		skybox = new Utils::Skybox(faces);
 
@@ -106,7 +106,7 @@ namespace GLCore {
 
 
 		//--IBL
-		hdrTexture_daylight = GLCore::Utils::ImageLoader::loadHDR("assets/textures/default/HDR/newport_loft.hdr");
+		hdrTexture_daylight = GLCore::Utils::ImageLoader::loadHDR("assets/default/HDR/newport_loft.hdr");
 		prepare_PBR_IBL();
 		//--------------------------------------------------------------------------------------------------------------------------------
 
