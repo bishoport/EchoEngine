@@ -215,7 +215,7 @@ namespace GLCore::Utils
             else
             {
                 std::string defaultPathTexture = "assets/textures/default/default_white.jpg";
-                texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture, importOptions.filePath);
+                texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
                 texture.image.path = defaultPathTexture;
                 texture.hasMap = true;
                 material.albedoMap = texture;
@@ -226,7 +226,7 @@ namespace GLCore::Utils
         {
             Texture texture;
             std::string defaultPathTexture = "assets/textures/default/default_white.jpg";
-            texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture, importOptions.filePath);
+            texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
             texture.image.path = defaultPathTexture;
             texture.hasMap = true;
             material.albedoMap = texture;
@@ -254,7 +254,7 @@ namespace GLCore::Utils
             else 
             {
                 std::string defaultPathTexture = "assets/textures/default/default_normal.jpg";
-                texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture, importOptions.filePath);
+                texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
                 texture.image.path = defaultPathTexture;
                 texture.hasMap = true;
                 material.normalMap = texture;
@@ -264,7 +264,7 @@ namespace GLCore::Utils
         {
             std::string defaultPathTexture = "assets/textures/default/default_normal.jpg";
             Texture texture;
-            texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture, importOptions.filePath);
+            texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
             texture.image.path = defaultPathTexture;
             texture.hasMap = true;
             material.normalMap = texture;

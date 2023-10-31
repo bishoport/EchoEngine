@@ -54,27 +54,40 @@ void main()
 
     adjustedTexCoords = TexCoords * repetitionFactor;
 
-    if (material.hasAlbedoMap)
-        albedo = pow(texture(material.albedoMap, adjustedTexCoords).rgb, vec3(2.2));
-    else
+    if (material.hasAlbedoMap) {
+        vec3 textureColor = pow(texture(material.albedoMap, adjustedTexCoords).rgb, vec3(2.2));
+        albedo = textureColor * material.albedo; // Tonaliza la textura con el valor de material.albedo
+    }
+    else 
+    {
         albedo = material.albedo;
+    }
 
-    if (material.hasMetallicMap)
-        metallic = texture(material.metallicMap, adjustedTexCoords).r * material.metallic;
-    else
+    if (material.hasMetallicMap) 
+    {
+        float textureMetallic = texture(material.metallicMap, adjustedTexCoords).r;
+        metallic = textureMetallic * material.metallic; // Tonaliza la textura con el valor de material.metallic
+    }
+    else 
+    {
         metallic = material.metallic;
+    }
 
-    if (material.hasRougnessMap)
-        roughness = texture(material.roughnessMap, adjustedTexCoords).r * material.roughness;
-    else
+    if (material.hasRougnessMap) 
+    {
+        float textureRoughness = texture(material.roughnessMap, adjustedTexCoords).r;
+        roughness = textureRoughness * material.roughness; // Tonaliza la textura con el valor de material.roughness
+    }
+    else {
         roughness = material.roughness;
+    }
+
 
     if (material.hasAoMap)
         ao = texture(material.aoMap, adjustedTexCoords).r;
     else
         ao = 1.0;
-    
-    
+
 
     N = getNormalFromMap();      
     V = normalize(viewPos - FragPos);
