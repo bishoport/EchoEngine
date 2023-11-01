@@ -95,60 +95,21 @@ namespace GLCore {
 		gridWorldRef = new Utils::GridWorldReference();
 		//----------------------------------------------------------------------------------------------------------------------------
 
+		
+
+
+		//--MAIN FBO
+		mainColorBuffers = GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&mainFBO, &mainRboDepth, 1, 800, 600);
+		EventManager::getWindowResizeEvent().subscribe([this](GLuint width, GLuint height) {
+			GLCore::Render::FBOManager::UpdateFBO_Color_RGBA16F(&mainFBO, &mainRboDepth, mainColorBuffers, width, height);
+		});
+		// ---------------------------------------
+		
+		
 		//--IBL
 		hdrTexture_daylight = GLCore::Utils::ImageLoader::loadHDR("assets/default/HDR/newport_loft.hdr");
 		prepare_PBR_IBL();
 		//--------------------------------------------------------------------------------------------------------------------------------
-
-		//--MAIN FBO
-		//mainColorBuffers = GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&mainFBO, &mainRboDepth, 2, 800, 600);
-
-		////suscribir una función al evento de redimensionamiento de la ventana
-		//EventManager::getWindowResizeEvent().subscribe([this](GLuint width, GLuint height) {
-		//	GLCore::Render::FBOManager::UpdateFBO_Color_RGBA16F(&mainFBO, &mainRboDepth, mainColorBuffers, width, height);
-		//});
-
-		// configure (floating point) framebuffers
-	// ---------------------------------------
-		
-		glGenFramebuffers(1, &mainFBO);
-		glBindFramebuffer(GL_FRAMEBUFFER, mainFBO);
-		// create 2 floating point color buffers (1 for normal rendering, other for brightness threshold values)
-
-		glGenTextures(2, colorBuffers);
-		for (unsigned int i = 0; i < 2; i++)
-		{
-			glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, 800, 600, 0, GL_RGBA, GL_FLOAT, NULL);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);  // we clamp to the edge as the blur filter would otherwise sample repeated texture values!
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			// attach texture to framebuffer
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorBuffers[i], 0);
-		}
-		// create and attach depth buffer (renderbuffer)
-
-		glGenRenderbuffers(1, &mainRboDepth);
-		glBindRenderbuffer(GL_RENDERBUFFER, mainRboDepth);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 800, 600);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mainRboDepth);
-
-		// tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
-		unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-		glDrawBuffers(2, attachments);
-
-		// finally check if framebuffer is complete
-		auto fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-		if (fboStatus != GL_FRAMEBUFFER_COMPLETE)
-			std::cout << "Framebuffer not complete!: " << fboStatus << std::endl;
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		//----------------------------------------------------------------------------------------------------------------------------
-
-
-		
-
 
 		//postproManager = new Utils::PostProcessingManager(800, 600);
 
@@ -265,10 +226,52 @@ namespace GLCore {
 		
 		if (useStandardFBO)
 		{
-			//glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
+			glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
+			glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
+			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			if (useHDRIlumination == true)
+			{
+				//--------------------------------------------IBL
+				glDepthFunc(GL_LEQUAL);
+
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap); // display irradiance map
+				glActiveTexture(GL_TEXTURE2);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);  // display prefilter map
+
+				GLCore::Render::ShaderManager::Get("pbr_ibl")->use();
+				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("irradianceMap", 0);
+				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("prefilterMap", 1);
+				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("brdfLUT", 2);
+
+				
+				glm::mat4 viewHDR = glm::mat4(glm::mat3(m_EditorCamera.GetCamera().GetViewMatrix()));
+				// Escala la matriz de vista para hacer el skybox más grande
+				float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
+				viewHDR = glm::scale(viewHDR, glm::vec3(scale, scale, scale));
+				GLCore::Render::ShaderManager::Get("background")->use();
+				GLCore::Render::ShaderManager::Get("background")->setMat4("view", viewHDR);
+				GLCore::Render::ShaderManager::Get("background")->setMat4("projection", m_EditorCamera.GetCamera().GetProjectionMatrix());
+				GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 0);
+				renderCube();
+				//----------------------------------------------------------------------------------------------------
+			}
+			
+			drawAllEntities();
+		}
+		else
+		{
+			////--PREPARE MAIN_FBO
+			//glBindFramebuffer(GL_FRAMEBUFFER, mainFBO);
+
 			//glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
 			//glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
 			//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 
 			//if (useHDRIlumination == true)
 			//{
@@ -287,7 +290,7 @@ namespace GLCore {
 			//	GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("prefilterMap", 1);
 			//	GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("brdfLUT", 2);
 
-			//	
+
 			//	glm::mat4 viewHDR = glm::mat4(glm::mat3(m_EditorCamera.GetCamera().GetViewMatrix()));
 			//	// Escala la matriz de vista para hacer el skybox más grande
 			//	float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
@@ -301,92 +304,30 @@ namespace GLCore {
 			//}
 			//
 			//drawAllEntities();
-		}
-		else
-		{
-			/*glDrawBuffer(GL_COLOR_ATTACHMENT0);
-			glDrawBuffer(GL_COLOR_ATTACHMENT1);*/
-
-			//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffers[0], 0);
-			//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, colorBuffers[1], 0);
-
-			//GLuint attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-			//glDrawBuffers(2, attachments);
-
-			//--PREPARE MAIN_FBO
-			glBindFramebuffer(GL_FRAMEBUFFER, mainFBO);
+			////-------------------------------------------------------------------------------------------------------------------------------------------
 
 
-			glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
-			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+			////--DRAW MAIN_FBO in QUAD
+			//glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
+			//glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
+			//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			if (useHDRIlumination == true)
-			{
-				////--------------------------------------------IBL
-				//glDepthFunc(GL_LEQUAL);
+			//GLCore::Render::ShaderManager::Get("main_output_FBO")->use();
+			//for (size_t i = 0; i < mainColorBuffers.size(); i++)
+			//{
+			//	glActiveTexture(GL_TEXTURE0 + i);
+			//	glBindTexture(GL_TEXTURE_2D, mainColorBuffers[i]);
+			//	std::string uniformName = "colorBuffer_" + std::to_string(i);
+			//	GLCore::Render::ShaderManager::Get("main_output_FBO")->setInt(uniformName.c_str(), i);
+			//}
 
-				//glActiveTexture(GL_TEXTURE0);
-				//glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
-				//glActiveTexture(GL_TEXTURE1);
-				//glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap); // display irradiance map
-				//glActiveTexture(GL_TEXTURE2);
-				//glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);  // display prefilter map
-
-				//GLCore::Render::ShaderManager::Get("pbr_ibl")->use();
-				//GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("irradianceMap", 0);
-				//GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("prefilterMap", 1);
-				//GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("brdfLUT", 2);
-
-
-				//glm::mat4 viewHDR = glm::mat4(glm::mat3(m_EditorCamera.GetCamera().GetViewMatrix()));
-				//// Escala la matriz de vista para hacer el skybox más grande
-				//float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
-				//viewHDR = glm::scale(viewHDR, glm::vec3(scale, scale, scale));
-				//GLCore::Render::ShaderManager::Get("background")->use();
-				//GLCore::Render::ShaderManager::Get("background")->setMat4("view", viewHDR);
-				//GLCore::Render::ShaderManager::Get("background")->setMat4("projection", m_EditorCamera.GetCamera().GetProjectionMatrix());
-				//GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 0);
-				//renderCube();
-				////----------------------------------------------------------------------------------------------------
-			}
-			
-			drawAllEntities();
-
-			//-------------------------------------------------------------------------------------------------------------------------------------------
-
-
-			//--DRAW MAIN_FBO in QUAD
-			glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
-			glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-			
-
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, colorBuffers[0]);
-
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_2D, colorBuffers[1]);
-
-			GLCore::Render::ShaderManager::Get("main_output_FBO")->use();
-			GLCore::Render::ShaderManager::Get("main_output_FBO")->setInt("colorBuffer_0", 0);
-			GLCore::Render::ShaderManager::Get("main_output_FBO")->setInt("colorBuffer_1", 1);
-
-
-			renderQuad();
-			//-------------------------------------------------------------------------------------------------------------------------------------------
+			//renderQuad();
+			////-------------------------------------------------------------------------------------------------------------------------------------------
 		}
 
 		
-		/*int size = sizeof(colorBuffers) / sizeof(colorBuffers[0]);
-			for (size_t i = 0; i < size; i++)
-			{
-				glActiveTexture(GL_TEXTURE0 + i);
-				glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
-			}*/
+
 
 
 		//-ACTIVE SELECTED ENTITY
@@ -487,17 +428,15 @@ namespace GLCore {
 		//manager.draw();
 	}
 
-
-
 	void Scene::prepare_PBR_IBL()
 	{
-		glGenFramebuffers(1, &captureFBO);
-		glGenRenderbuffers(1, &captureRBO);
+		glGenFramebuffers(1, &IBL_FBO);
+		glGenRenderbuffers(1, &IBL_RBO);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-		glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+		glBindFramebuffer(GL_FRAMEBUFFER, IBL_FBO);
+		glBindRenderbuffer(GL_RENDERBUFFER, IBL_RBO);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, IBL_RBO);
 
 
 		// pbr: setup cubemap to render to and attach to framebuffer
@@ -543,7 +482,7 @@ namespace GLCore {
 		glBindTexture(GL_TEXTURE_2D, hdrTexture_daylight);
 
 		glViewport(0, 0, 512, 512); // don't forget to configure the viewport to the capture dimensions.
-		glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+		glBindFramebuffer(GL_FRAMEBUFFER, IBL_FBO);
 		for (unsigned int i = 0; i < 6; ++i)
 		{
 			GLCore::Render::ShaderManager::Get("equirectangularToCubemap")->setMat4("view", captureViews[i]);
@@ -578,8 +517,8 @@ namespace GLCore {
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-		glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+		glBindFramebuffer(GL_FRAMEBUFFER, IBL_FBO);
+		glBindRenderbuffer(GL_RENDERBUFFER, IBL_RBO);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
 
 
@@ -592,7 +531,7 @@ namespace GLCore {
 		glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
 
 		glViewport(0, 0, 32, 32); // don't forget to configure the viewport to the capture dimensions.
-		glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+		glBindFramebuffer(GL_FRAMEBUFFER, IBL_FBO);
 		for (unsigned int i = 0; i < 6; ++i)
 		{
 			GLCore::Render::ShaderManager::Get("irradiance")->setMat4("view", captureViews[i]);
@@ -632,14 +571,14 @@ namespace GLCore {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+		glBindFramebuffer(GL_FRAMEBUFFER, IBL_FBO);
 		unsigned int maxMipLevels = 5;
 		for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
 		{
 			// reisze framebuffer according to mip-level size.
 			unsigned int mipWidth = static_cast<unsigned int>(128 * std::pow(0.5, mip));
 			unsigned int mipHeight = static_cast<unsigned int>(128 * std::pow(0.5, mip));
-			glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+			glBindRenderbuffer(GL_RENDERBUFFER, IBL_RBO);
 			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
 			glViewport(0, 0, mipWidth, mipHeight);
 
@@ -672,8 +611,8 @@ namespace GLCore {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		// then re-configure capture framebuffer object and render screen-space quad with BRDF shader.
-		glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-		glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+		glBindFramebuffer(GL_FRAMEBUFFER, IBL_FBO);
+		glBindRenderbuffer(GL_RENDERBUFFER, IBL_RBO);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, Application::GetViewportWidth(), Application::GetViewportHeight());
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, brdfLUTTexture, 0);
 
@@ -1005,10 +944,10 @@ namespace GLCore {
 			ImGui::ColorEdit3("Global Ambient", &globalAmbient[0]);
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
-			int size = sizeof(colorBuffers) / sizeof(colorBuffers[0]);
-			for (size_t i = 0; i < size; i++)
+
+			for (size_t i = 0; i < mainColorBuffers.size(); i++)
 			{
-				ImGui::Image((void*)(intptr_t)colorBuffers[i], ImVec2(256, 256), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
+				ImGui::Image((void*)(intptr_t)mainColorBuffers[i], ImVec2(256, 256), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
 			}
 
 

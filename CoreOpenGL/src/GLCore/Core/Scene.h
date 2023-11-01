@@ -62,20 +62,20 @@ namespace GLCore {
         //---------------------------------------------------
 
         //--FBO
-        bool useStandardFBO = false;
-
+        bool useStandardFBO = true;
         GLuint mainFBO;
         GLuint mainRboDepth;
-        //std::vector<GLuint> mainColorBuffers;
-
-        unsigned int colorBuffers[2];
+        std::vector<GLuint> mainColorBuffers;
+        unsigned int quadVAO = 0;
+        unsigned int quadVBO;
+        void renderQuad();
         //----------------------------------------------------
         
 
         //IBL
         bool useHDRIlumination = false;
-        unsigned int captureFBO;
-        unsigned int captureRBO;
+        unsigned int IBL_FBO;
+        unsigned int IBL_RBO;
 
         float mixFactor = 0.0f;
 
@@ -92,16 +92,14 @@ namespace GLCore {
         void prepare_PBR_IBL();
         //----------------------------------------------------
 
+
         //--POST_PROCESSING
         Utils::PostProcessingManager* postproManager = nullptr;
         bool usePostprocessing = false;
-
         float exposure = 1.0f;
         float gamma = 2.2f;
-        unsigned int quadVAO = 0;
-        unsigned int quadVBO;
-        void renderQuad();
         //---------------------------------------------------
+
 
         //--Illumination
         glm::vec3 globalAmbient = glm::vec3(0.055f, 0.055f, 0.055f);
@@ -111,10 +109,11 @@ namespace GLCore {
         int totalSpotLight = 0;
         //---------------------------------------------------
 
-        float aspectRatio;
+        
 
-        //--EDITOR
+        //--CAMERA EDITOR
         GLCore::Utils::PerspectiveCameraController m_EditorCamera;
+        float aspectRatio;
         //---------------------------------------------------
 
         //--GUI
@@ -130,8 +129,6 @@ namespace GLCore {
 
 
         ModelParent loadFileModel(ImportOptions importOptions);
-
-
         bool pickingObj = false;
         bool selectingEntity = false;
         bool cursorOverSelectEntityDialog = false;
