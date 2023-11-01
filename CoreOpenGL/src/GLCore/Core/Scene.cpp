@@ -99,10 +99,10 @@ namespace GLCore {
 
 
 		//--MAIN FBO
-		/*mainColorBuffers = GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&mainFBO, &mainRboDepth, 1, 800, 600);
+		mainColorBuffers = GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&mainFBO, &mainRboDepth, 2, 800, 600);
 		EventManager::getWindowResizeEvent().subscribe([this](GLuint width, GLuint height) {
 			GLCore::Render::FBOManager::UpdateFBO_Color_RGBA16F(&mainFBO, &mainRboDepth, mainColorBuffers, width, height);
-		});*/
+		});
 		// ---------------------------------------
 		
 		
@@ -214,14 +214,14 @@ namespace GLCore {
 				}
 			}
 
-		//	//-SPOT LIGHTS
-		//	if (entitiesInScene[i]->hascomponent<ECS::SpotLight>())
-		//	{
-		//		if (entitiesInScene[i]->getComponent<ECS::SpotLight>().drawShadows)
-		//		{
-		//			entitiesInScene[i]->getComponent<ECS::SpotLight>().shadowMappingProjection(entitiesInScene);
-		//		}
-		//	}
+			//-SPOT LIGHTS
+			if (entitiesInScene[i]->hascomponent<ECS::SpotLight>())
+			{
+				if (entitiesInScene[i]->getComponent<ECS::SpotLight>().drawShadows)
+				{
+					entitiesInScene[i]->getComponent<ECS::SpotLight>().shadowMappingProjection(entitiesInScene);
+				}
+			}
 
 		//	//-POINTS LIGHTS
 		//	if (entitiesInScene[i]->hascomponent<ECS::PointLight>())
@@ -265,68 +265,68 @@ namespace GLCore {
 
 			drawAllEntities();
 		}
-		//else
-		//{
-		//	//--PREPARE MAIN_FBO
-		//	glBindFramebuffer(GL_FRAMEBUFFER, mainFBO);
+		else
+		{
+			//--PREPARE MAIN_FBO
+			glBindFramebuffer(GL_FRAMEBUFFER, mainFBO);
 
-		//	glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
-		//	glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
-		//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-		//	if (useHDRIlumination == true)
-		//	{
-		//		//--------------------------------------------IBL
-		//		glDepthFunc(GL_LEQUAL);
-
-		//		glActiveTexture(GL_TEXTURE0);
-		//		glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
-		//		glActiveTexture(GL_TEXTURE1);
-		//		glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap); // display irradiance map
-		//		glActiveTexture(GL_TEXTURE2);
-		//		glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);  // display prefilter map
-
-		//		GLCore::Render::ShaderManager::Get("pbr_ibl")->use();
-		//		GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("irradianceMap", 0);
-		//		GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("prefilterMap", 1);
-		//		GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("brdfLUT", 2);
+			glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
+			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-		//		glm::mat4 viewHDR = glm::mat4(glm::mat3(m_EditorCamera.GetCamera().GetViewMatrix()));
-		//		// Escala la matriz de vista para hacer el skybox más grande
-		//		float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
-		//		viewHDR = glm::scale(viewHDR, glm::vec3(scale, scale, scale));
-		//		GLCore::Render::ShaderManager::Get("background")->use();
-		//		GLCore::Render::ShaderManager::Get("background")->setMat4("view", viewHDR);
-		//		GLCore::Render::ShaderManager::Get("background")->setMat4("projection", m_EditorCamera.GetCamera().GetProjectionMatrix());
-		//		GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 0);
-		//		renderCube();
-		//		//----------------------------------------------------------------------------------------------------
-		//	}
-		//	
-		//	drawAllEntities();
-		//	//-------------------------------------------------------------------------------------------------------------------------------------------
+			if (useHDRIlumination == true)
+			{
+				//--------------------------------------------IBL
+				glDepthFunc(GL_LEQUAL);
+
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap); // display irradiance map
+				glActiveTexture(GL_TEXTURE2);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);  // display prefilter map
+
+				GLCore::Render::ShaderManager::Get("pbr_ibl")->use();
+				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("irradianceMap", 0);
+				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("prefilterMap", 1);
+				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("brdfLUT", 2);
+
+
+				glm::mat4 viewHDR = glm::mat4(glm::mat3(m_EditorCamera.GetCamera().GetViewMatrix()));
+				// Escala la matriz de vista para hacer el skybox más grande
+				float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
+				viewHDR = glm::scale(viewHDR, glm::vec3(scale, scale, scale));
+				GLCore::Render::ShaderManager::Get("background")->use();
+				GLCore::Render::ShaderManager::Get("background")->setMat4("view", viewHDR);
+				GLCore::Render::ShaderManager::Get("background")->setMat4("projection", m_EditorCamera.GetCamera().GetProjectionMatrix());
+				GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 0);
+				renderCube();
+				//----------------------------------------------------------------------------------------------------
+			}
+			
+			drawAllEntities();
+			//-------------------------------------------------------------------------------------------------------------------------------------------
 
 
 
-		//	//--DRAW MAIN_FBO in QUAD
-		//	glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
-		//	glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
-		//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			//--DRAW MAIN_FBO in QUAD
+			glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
+			glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//	GLCore::Render::ShaderManager::Get("main_output_FBO")->use();
-		//	for (size_t i = 4; i < mainColorBuffers.size(); i++)
-		//	{
-		//		glActiveTexture(GL_TEXTURE0 + i);
-		//		glBindTexture(GL_TEXTURE_2D, mainColorBuffers[i]);
-		//		std::string uniformName = "colorBuffer_" + std::to_string(i);
-		//		GLCore::Render::ShaderManager::Get("main_output_FBO")->setInt(uniformName.c_str(), i);
-		//	}
+			GLCore::Render::ShaderManager::Get("main_output_FBO")->use();
+			for (size_t i = 4; i < mainColorBuffers.size(); i++)
+			{
+				glActiveTexture(GL_TEXTURE0 + i);
+				glBindTexture(GL_TEXTURE_2D, mainColorBuffers[i]);
+				std::string uniformName = "colorBuffer_" + std::to_string(i);
+				GLCore::Render::ShaderManager::Get("main_output_FBO")->setInt(uniformName.c_str(), i);
+			}
 
-		//	renderQuad();
-		//	//-------------------------------------------------------------------------------------------------------------------------------------------
-		//}
+			renderQuad();
+			//-------------------------------------------------------------------------------------------------------------------------------------------
+		}
 
 		
 

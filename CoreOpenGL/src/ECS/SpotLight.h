@@ -56,14 +56,13 @@ namespace ECS
 
         void prepareShadows()
         {
-           // GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&shadowFBO, &shadowDepth, textureBuffers, shadowMapResolution, shadowMapResolution);
-            GLCore::Render::FBOManager::CreateShadowMapFBO(&shadowFBO, &shadowTex, shadowMapResolution, shadowMapResolution);
+            GLCore::Render::FBOManager::CreateShadowMapFBO(&shadowFBO, &shadowDepth, &shadowTex, shadowMapResolution);
         }
 
         void shadowMappingProjection(std::vector<ECS::Entity*> entitiesInScene)
         {
             glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
-            glViewport(0, 0, 1024, 1024);
+            glViewport(0, 0, shadowMapResolution, shadowMapResolution);
             glClearColor(1, 1, 1, 1);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

@@ -52,29 +52,33 @@ namespace GLCore::Render
 
 
 
-    void FBOManager::CreateShadowMapFBO(GLuint* fbo, GLuint* shadowMap, GLuint SCR_WIDTH, GLuint SCR_HEIGHT) {
-        glGenFramebuffers(1, fbo);
-        glBindFramebuffer(GL_FRAMEBUFFER, *fbo);
+    void FBOManager::CreateShadowMapFBO(GLuint* shadowFBO, GLuint* shadowDepth, GLuint* shadowTex, GLuint shadowMapResolution)
+    {
+        glGenTextures(1, shadowTex);
+        glBindTexture(GL_TEXTURE_2D, *shadowTex);
 
-        glGenTextures(1, shadowMap);
-        glBindTexture(GL_TEXTURE_2D, *shadowMap);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, shadowMapResolution, shadowMapResolution, 0, GL_RGB, GL_FLOAT, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
 
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, *shadowMap, 0);
-        glDrawBuffer(GL_NONE);  // No color buffer is drawn
-        glReadBuffer(GL_NONE);
+        glGenTextures(1, shadowDepth);
+        glBindTexture(GL_TEXTURE_2D, *shadowDepth);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, shadowMapResolution, shadowMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            std::cout << "Framebuffer not complete!" << std::endl;
-        }
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glGenFramebuffers(1, shadowFBO);
+        glBindFramebuffer(GL_FRAMEBUFFER, *shadowFBO);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, *shadowTex, 0);
+        glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, *shadowDepth, 0);
+        GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0 };
+        glDrawBuffers(1, drawBuffers);
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) printf("FBO Error\n");
+        glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
     }
 
 
