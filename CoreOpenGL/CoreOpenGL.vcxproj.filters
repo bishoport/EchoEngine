@@ -269,6 +269,9 @@
     <ClInclude Include="src\GLCore\Util\PostProcessingManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\ECS\CharacterController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\Default.vert" />

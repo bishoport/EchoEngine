@@ -63,10 +63,12 @@ namespace GLCore {
 
         //--FBO
         bool useStandardFBO = false;
-        std::vector<GLuint*> mainColorBuffers;
+
         GLuint mainFBO;
         GLuint mainRboDepth;
-        GLuint mainColorBuffer;
+        //std::vector<GLuint> mainColorBuffers;
+
+        unsigned int colorBuffers[2];
         //----------------------------------------------------
         
 

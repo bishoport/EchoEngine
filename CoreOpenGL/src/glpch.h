@@ -62,5 +62,6 @@ enum class MainMenuAction {
     AddSegmentedCube,                // Representa agregar un cubo
     AddSphere,              // Representa agregar una esfera
     AddQuad,                // Representa agregar un quad
-    AddPlane                // Representa agregar un plane
+    AddPlane,                // Representa agregar un plane
+    AddCharacterController
 };

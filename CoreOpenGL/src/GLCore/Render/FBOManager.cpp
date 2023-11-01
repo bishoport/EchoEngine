@@ -4,15 +4,17 @@ namespace GLCore::Render
 {
 #include <vector>
 
-    void FBOManager::CreateFBO_Color_RGBA16F(GLuint* fbo, GLuint* rboDepth, std::vector<GLuint*>& colorBuffers, GLuint SCR_WIDTH, GLuint SCR_HEIGHT) {
-        
+    std::vector<GLuint> FBOManager::CreateFBO_Color_RGBA16F(GLuint* fbo, GLuint* rboDepth, const unsigned int numColorBuffers, GLuint SCR_WIDTH, GLuint SCR_HEIGHT) {
+
         // set up floating point framebuffer to render scene to
         glGenFramebuffers(1, fbo);
         glBindFramebuffer(GL_FRAMEBUFFER, *fbo);
 
-        for (unsigned int i = 0; i < colorBuffers.size(); i++) {
-            glGenTextures(1, colorBuffers[i]);
-            glBindTexture(GL_TEXTURE_2D, *colorBuffers[i]);
+        std::vector<GLuint> colorBuffers(numColorBuffers);
+        glGenTextures(numColorBuffers, colorBuffers.data());
+
+        for (unsigned int i = 0; i < numColorBuffers; i++) {
+            glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -20,7 +22,7 @@ namespace GLCore::Render
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
             // attach texture to framebuffer
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, *colorBuffers[i], 0);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorBuffers[i], 0);
         }
 
         // create and attach depth buffer (renderbuffer)
@@ -30,11 +32,13 @@ namespace GLCore::Render
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, *rboDepth);
 
         // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
-        std::vector<GLenum> attachments(colorBuffers.size());
-        for (unsigned int i = 0; i < colorBuffers.size(); ++i) {
+        std::vector<GLenum> attachments(numColorBuffers);
+        for (unsigned int i = 0; i < numColorBuffers; ++i) {
             attachments[i] = GL_COLOR_ATTACHMENT0 + i;
         }
-        glDrawBuffers(colorBuffers.size(), attachments.data());
+        
+        glDrawBuffers(numColorBuffers, attachments.data());
+        //glDrawBuffer(GL_COLOR_ATTACHMENT0 + 0);
 
         // finally check if framebuffer is complete
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
@@ -42,7 +46,10 @@ namespace GLCore::Render
         }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        return colorBuffers;
     }
+
 
 
     void FBOManager::CreateShadowMapFBO(GLuint* fbo, GLuint* shadowMap, GLuint SCR_WIDTH, GLuint SCR_HEIGHT) {
@@ -76,10 +83,10 @@ namespace GLCore::Render
 
 
 
-    void FBOManager::UpdateFBO_Color_RGBA16F(GLuint* fbo, GLuint* rboDepth, std::vector<GLuint*>& colorBuffers, GLuint SCR_WIDTH, GLuint SCR_HEIGHT) {
+    void FBOManager::UpdateFBO_Color_RGBA16F(GLuint* fbo, GLuint* rboDepth, std::vector<GLuint> colorBuffers, GLuint SCR_WIDTH, GLuint SCR_HEIGHT) {
         // Actualizar las texturas de los color buffers
         for (auto colorBuffer : colorBuffers) {
-            glBindTexture(GL_TEXTURE_2D, *colorBuffer);
+            glBindTexture(GL_TEXTURE_2D, colorBuffer);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
         }
 

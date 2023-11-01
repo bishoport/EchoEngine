@@ -200,6 +200,18 @@ namespace GLCore {
             		ImGui::EndMenu(); // Fin del menú Lights
             	}
 
+
+                // Sección de OTROS
+                if (ImGui::BeginMenu("TOOLS"))
+                {
+                    if (ImGui::MenuItem("Character controller"))
+                    {
+                        UsarDelegado(MainMenuAction::AddCharacterController);
+                    }
+                    
+                    ImGui::EndMenu(); // Fin del menú OTROS
+                }
+
             	ImGui::EndMenu(); // Fin del menú GameObjects
             }
 

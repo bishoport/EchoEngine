@@ -176,6 +176,7 @@ namespace GLCore {
             glfwSwapBuffers(window);
             glfwPollEvents();
         }
+        glfwTerminate();
     }
 
     void Application::processInput() {
