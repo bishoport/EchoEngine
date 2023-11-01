@@ -55,11 +55,35 @@ namespace ECS
             textureBuffers.push_back(&shadowTex);
 
             prepareShadows();
-        }
+        } 
+
 
         void prepareShadows()
         {
-            GLCore::Render::FBOManager::CreateShadowMapFBO(&shadowFBO, &shadowTex, shadowMapResolution, shadowMapResolution);
+            //GLCore::Render::FBOManager::CreateShadowMapFBO(&shadowFBO, &shadowTex, shadowMapResolution, shadowMapResolution);
+
+            glGenFramebuffers(1, &shadowFBO);
+            glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+
+            glGenTextures(1, &shadowTex);
+            glBindTexture(GL_TEXTURE_2D, shadowTex);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowMapResolution, shadowMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
+
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowTex, 0);
+            glDrawBuffer(GL_NONE);  // No color buffer is drawn
+            glReadBuffer(GL_NONE);
+
+            if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+                std::cout << "Framebuffer not complete!" << std::endl;
+            }
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
 
         
@@ -67,6 +91,7 @@ namespace ECS
         void shadowMappingProjection(std::vector<ECS::Entity*> entitiesInScene)
         {
             m_entitiesInScene = entitiesInScene;
+
             glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
             glViewport(0, 0, shadowMapResolution, shadowMapResolution);
             glClearColor(1, 1, 1, 1);
@@ -146,8 +171,8 @@ namespace ECS
                 }
                 else
                 {
-                    glActiveTexture(GL_TEXTURE0);
-                    glBindTexture(GL_TEXTURE_2D, 10);
+                    glActiveTexture(GL_TEXTURE10);
+                    glBindTexture(GL_TEXTURE_2D, 0);
                 }
             }
             if (debug)

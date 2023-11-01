@@ -129,7 +129,7 @@ namespace GLCore
         void bindTextures(const std::string shaderName)
         {
             GLCore::Render::ShaderManager::Get(shaderName)->use();
-            int textureChannelInit = 4;
+            int textureChannelInit = 3;
 
             // Nombres de los mapas
             std::vector<std::string> mapNames = { "albedo", "normal", "metallic", "roughness", "ao" };
