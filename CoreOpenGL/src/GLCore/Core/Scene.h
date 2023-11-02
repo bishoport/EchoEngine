@@ -51,6 +51,7 @@ namespace GLCore {
         std::vector<ECS::Entity*> entitiesInScene;
         ECS::Entity* m_SelectedEntity = nullptr;
         ECS::Entity* gridWorldReference = nullptr;
+        ECS::Entity* postprocessGameObject = nullptr;
         //std::pair<glm::vec3, float> CalcSceneBundle();
         void CalcSceneBundle();
         //---------------------------------------------------

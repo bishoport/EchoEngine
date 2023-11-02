@@ -75,7 +75,7 @@ namespace GLCore::Utils
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
         glDrawArrays(GL_TRIANGLES, 0, 36);
-        glDepthFunc(GL_LESS); // set depth function back to default
+        //glDepthFunc(GL_LESS); // set depth function back to default
         //glDepthMask(GL_TRUE);
     }
 

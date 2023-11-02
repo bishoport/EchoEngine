@@ -8,6 +8,7 @@
 
 #include "../Util/ModelLoader.h"
 #include "../../ECS/CharacterController.h"
+#include "../../ECS/Bloom.h"
 
 
 
@@ -22,6 +23,7 @@ namespace GLCore {
 
     bool Scene::initialize()
     {
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
         //--CAMARA
         m_EditorCamera.GetCamera().SetPosition(glm::vec3(-1.492, 6.195f, 25.196f));
@@ -99,18 +101,22 @@ namespace GLCore {
 
 
 		//--MAIN FBO
-		mainColorBuffers = GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&mainFBO, &mainRboDepth, 2, 800, 600);
+		mainColorBuffers = GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&mainFBO, &mainRboDepth, 3, 800, 600);
 		EventManager::getWindowResizeEvent().subscribe([this](GLuint width, GLuint height) {
 			GLCore::Render::FBOManager::UpdateFBO_Color_RGBA16F(&mainFBO, &mainRboDepth, mainColorBuffers, width, height);
 		});
 		// ---------------------------------------
 		
+
+
 		
 		//--IBL
 		hdrTexture_daylight = GLCore::Utils::ImageLoader::loadHDR("assets/default/HDR/newport_loft.hdr");
 		prepare_PBR_IBL();
 		//--------------------------------------------------------------------------------------------------------------------------------
 
+		postprocessGameObject = &manager.addEntity();
+		postprocessGameObject->name = "Postprocessing";
 		//postproManager = new Utils::PostProcessingManager(800, 600);
 
 
@@ -201,6 +207,15 @@ namespace GLCore {
 			GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("brdfLUT", 2);
 			//----------------------------------------------------------------------------------------------------
 		}
+		//else
+		//{
+		//	glActiveTexture(GL_TEXTURE0);
+		//	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+		//	glActiveTexture(GL_TEXTURE1);
+		//	glBindTexture(GL_TEXTURE_CUBE_MAP, 0); // display irradiance map
+		//	glActiveTexture(GL_TEXTURE2);
+		//	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);  // display prefilter map
+		//}
 
 		//--SHADOWS PASS
 		for (int i = 0; i < entitiesInScene.size(); i++)
@@ -267,8 +282,10 @@ namespace GLCore {
 		}
 		else
 		{
+			glDepthFunc(GL_LESS);
 			//--PREPARE MAIN_FBO
 			glBindFramebuffer(GL_FRAMEBUFFER, mainFBO);
+
 
 			glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
 			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
@@ -308,7 +325,7 @@ namespace GLCore {
 			drawAllEntities();
 			//-------------------------------------------------------------------------------------------------------------------------------------------
 
-
+			
 
 			//--DRAW MAIN_FBO in QUAD
 			glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
@@ -316,7 +333,7 @@ namespace GLCore {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			GLCore::Render::ShaderManager::Get("main_output_FBO")->use();
-			for (size_t i = 4; i < mainColorBuffers.size(); i++)
+			for (size_t i = 0; i < mainColorBuffers.size(); i++)
 			{
 				glActiveTexture(GL_TEXTURE0 + i);
 				glBindTexture(GL_TEXTURE_2D, mainColorBuffers[i]);
@@ -341,7 +358,10 @@ namespace GLCore {
 		//-------------------------------------------------------------------------------------------------------------------------------------------
 
 
-
+		GLenum err;
+		while ((err = glGetError()) != GL_NO_ERROR) {
+			std::cerr << "OpenGL error: " << err << std::endl;
+		}
 
 
 
@@ -1137,6 +1157,16 @@ namespace GLCore {
 			gameObject->addComponent<ECS::Material>();
 			gameObject->getComponent<ECS::Material>().setDafaultMaterial();
 		}
+		else if (action == MainMenuAction::AddBloom)
+		{
+
+			postprocessGameObject->addComponent<ECS::Bloom>().prepare(Application::GetViewportWidth(),
+																	  Application::GetViewportHeight());
+		}
+
+
+
+		
 
 		//Autoselect in creating
 		if (gameObject != nullptr)

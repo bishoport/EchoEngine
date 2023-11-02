@@ -16,5 +16,5 @@ void main()
     vec3 color1 = texture(colorBuffer_1, TexCoords).rgb;
 
     FragColor0 = vec4(color0, 1.0);
-    FragColor1 = vec4(color1, 1.0);  // puedes modificar esta salida según tus necesidades
+    FragColor1 = vec4(color1, 1.0);
 }

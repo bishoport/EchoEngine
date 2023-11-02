@@ -164,6 +164,7 @@
     <ClCompile Include="vendor\imgui\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\ECS\Bloom.h" />
     <ClInclude Include="src\ECS\CharacterController.h" />
     <ClInclude Include="src\ECS\ComponentsIncludes.h" />
     <ClInclude Include="src\ECS\DirectionalLight.h" />

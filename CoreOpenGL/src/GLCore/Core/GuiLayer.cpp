@@ -215,8 +215,23 @@ namespace GLCore {
             	ImGui::EndMenu(); // Fin del menú GameObjects
             }
 
-            /*if (ImGui::BeginMenu("Tools")) { ImGui::EndMenu(); }
-            if (ImGui::BeginMenu("About")) { ImGui::EndMenu(); }*/
+
+
+            if (ImGui::BeginMenu("Components")) { 
+
+                if (ImGui::BeginMenu("Postprocessing"))
+                {
+                    if (ImGui::MenuItem("Bloom"))
+                    {
+                        UsarDelegado(MainMenuAction::AddBloom);
+                    }
+                    ImGui::EndMenu(); // Fin del menú OTROS
+                }
+                ImGui::EndMenu(); 
+            }
+
+
+            if (ImGui::BeginMenu("About")) { ImGui::EndMenu(); }
             ImGui::EndMenuBar();
         }
         //-----------------------------------------------------------------------------------------------

@@ -63,5 +63,6 @@ enum class MainMenuAction {
     AddSphere,              // Representa agregar una esfera
     AddQuad,                // Representa agregar un quad
     AddPlane,                // Representa agregar un plane
-    AddCharacterController
+    AddCharacterController,
+    AddBloom
 };
