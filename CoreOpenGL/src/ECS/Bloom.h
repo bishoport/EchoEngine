@@ -8,6 +8,8 @@ namespace ECS
     class Bloom : public ECS::Component
     {
     public:
+
+        bool ready = false;
         GLuint FBO = 0;
         GLuint colorBuffers[2];
         GLuint depthBuffer = 0;
@@ -54,6 +56,8 @@ namespace ECS
 
             // 6. Desvincular el framebuffer
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+            ready = true;
         }
 
 

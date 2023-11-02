@@ -100,10 +100,9 @@ namespace GLCore {
 		
 
 
-		//--MAIN FBO
-		mainColorBuffers = GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&mainFBO, &mainRboDepth, 3, 800, 600);
+		//--Evento resize
 		EventManager::getWindowResizeEvent().subscribe([this](GLuint width, GLuint height) {
-			GLCore::Render::FBOManager::UpdateFBO_Color_RGBA16F(&mainFBO, &mainRboDepth, mainColorBuffers, width, height);
+			postprocessGameObject->getComponent<ECS::Bloom>().update(width, height);
 		});
 		// ---------------------------------------
 		
@@ -117,7 +116,7 @@ namespace GLCore {
 
 		postprocessGameObject = &manager.addEntity();
 		postprocessGameObject->name = "Postprocessing";
-		//postproManager = new Utils::PostProcessingManager(800, 600);
+		postprocessGameObject->addComponent<ECS::Bloom>().prepare(Application::GetViewportWidth(), Application::GetViewportHeight());
 
 
 		assetsPanel.SetDelegate([this](ImportOptions importOptions) {
@@ -207,15 +206,6 @@ namespace GLCore {
 			GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("brdfLUT", 2);
 			//----------------------------------------------------------------------------------------------------
 		}
-		//else
-		//{
-		//	glActiveTexture(GL_TEXTURE0);
-		//	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-		//	glActiveTexture(GL_TEXTURE1);
-		//	glBindTexture(GL_TEXTURE_CUBE_MAP, 0); // display irradiance map
-		//	glActiveTexture(GL_TEXTURE2);
-		//	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);  // display prefilter map
-		//}
 
 		//--SHADOWS PASS
 		for (int i = 0; i < entitiesInScene.size(); i++)
@@ -282,14 +272,17 @@ namespace GLCore {
 		}
 		else
 		{
-			glDepthFunc(GL_LESS);
-			//--PREPARE MAIN_FBO
-			glBindFramebuffer(GL_FRAMEBUFFER, mainFBO);
-
-
-			glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
 			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			//glDepthFunc(GL_LESS);
+			
+			//--PREPARE MAIN_FBO
+			glBindFramebuffer(GL_FRAMEBUFFER, postprocessGameObject->getComponent<ECS::Bloom>().FBO);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
+			
+
 
 
 			if (useHDRIlumination == true)
@@ -325,30 +318,36 @@ namespace GLCore {
 			drawAllEntities();
 			//-------------------------------------------------------------------------------------------------------------------------------------------
 
-			
+			GLCore::Render::ShaderManager::Get("main_output_FBO")->use();
 
-			//--DRAW MAIN_FBO in QUAD
-			glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
+			glActiveTexture(GL_TEXTURE5);
+			glBindTexture(GL_TEXTURE_2D, postprocessGameObject->getComponent<ECS::Bloom>().colorBuffers[0]);
+			GLCore::Render::ShaderManager::Get("main_output_FBO")->setInt("colorBuffer_0", 5);
+
+			glActiveTexture(GL_TEXTURE6);
+			glBindTexture(GL_TEXTURE_2D, postprocessGameObject->getComponent<ECS::Bloom>().colorBuffers[1]);
+			GLCore::Render::ShaderManager::Get("main_output_FBO")->setInt("colorBuffer_1", 6);
+
+			////--DRAW MAIN_FBO in QUAD
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			GLCore::Render::ShaderManager::Get("main_output_FBO")->use();
-			for (size_t i = 0; i < mainColorBuffers.size(); i++)
+			
+
+			/*for (size_t i = 0; i < 2; i++)
 			{
 				glActiveTexture(GL_TEXTURE0 + i);
-				glBindTexture(GL_TEXTURE_2D, mainColorBuffers[i]);
+				glBindTexture(GL_TEXTURE_2D, postprocessGameObject->getComponent<ECS::Bloom>().colorBuffers[i]);
 				std::string uniformName = "colorBuffer_" + std::to_string(i);
 				GLCore::Render::ShaderManager::Get("main_output_FBO")->setInt(uniformName.c_str(), i);
-			}
+			}*/
 
 			renderQuad();
 			//-------------------------------------------------------------------------------------------------------------------------------------------
 		}
 
 		
-
-
-
 		//-ACTIVE SELECTED ENTITY
 		if (m_SelectedEntity != nullptr && m_SelectedEntity->hascomponent<ECS::MeshRenderer>())
 		{
@@ -966,11 +965,14 @@ namespace GLCore {
 			ImGui::ColorEdit3("Global Ambient", &globalAmbient[0]);
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
-
-			for (size_t i = 0; i < mainColorBuffers.size(); i++)
+			if (postprocessGameObject->getComponent<ECS::Bloom>().ready)
 			{
-				ImGui::Image((void*)(intptr_t)mainColorBuffers[i], ImVec2(256, 256), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
+				for (int i = 0; i < 2; i++)
+				{
+					ImGui::Image((void*)(intptr_t)postprocessGameObject->getComponent<ECS::Bloom>().colorBuffers[i], ImVec2(256, 256), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
+				}
 			}
+			
 
 
 			//ImGui::Checkbox("Skybox", &skybox->isActive);
@@ -1157,16 +1159,7 @@ namespace GLCore {
 			gameObject->addComponent<ECS::Material>();
 			gameObject->getComponent<ECS::Material>().setDafaultMaterial();
 		}
-		else if (action == MainMenuAction::AddBloom)
-		{
 
-			postprocessGameObject->addComponent<ECS::Bloom>().prepare(Application::GetViewportWidth(),
-																	  Application::GetViewportHeight());
-		}
-
-
-
-		
 
 		//Autoselect in creating
 		if (gameObject != nullptr)
