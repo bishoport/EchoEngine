@@ -2,13 +2,20 @@
 #include <iostream>
 #include "Application.h"
 #include "../Render/ShaderManager.h"
+#include "../Render/RendererManager.h"
 #include <imGizmo/ImGuizmo.h>
+
+#include "../../ECS/MeshFilter.h"
+#include "../../ECS/MeshRenderer.h"
+#include "../../ECS/Material.h"
+#include "../../ECS/PointLight.h"
 #include "../../ECS/SpotLight.h"
 #include "../../ECS/DirectionalLight.h"
+#include "../../ECS/CharacterController.h"
+
 
 #include "../Util/ModelLoader.h"
-#include "../../ECS/CharacterController.h"
-#include "../../ECS/Bloom.h"
+
 
 
 
@@ -16,6 +23,9 @@
 namespace GLCore {
 
 	std::pair<glm::vec3, float> Scene::SceneBounds = { glm::vec3(0.0f), 0.0f };
+
+	Render::RendererManager* rendererManager = new Render::RendererManager();
+	
 
     Scene::Scene() : m_EditorCamera(16.0f / 9.0f) {}
 
@@ -97,26 +107,25 @@ namespace GLCore {
 		gridWorldRef = new Utils::GridWorldReference();
 		//----------------------------------------------------------------------------------------------------------------------------
 
-		
 
-
-		//--Evento resize
-		EventManager::getWindowResizeEvent().subscribe([this](GLuint width, GLuint height) {
-			postprocessGameObject->getComponent<ECS::Bloom>().update(width, height);
-		});
-		// ---------------------------------------
-		
-
-
-		
 		//--IBL
 		hdrTexture_daylight = GLCore::Utils::ImageLoader::loadHDR("assets/default/HDR/newport_loft.hdr");
 		prepare_PBR_IBL();
 		//--------------------------------------------------------------------------------------------------------------------------------
 
-		postprocessGameObject = &manager.addEntity();
-		postprocessGameObject->name = "Postprocessing";
-		postprocessGameObject->addComponent<ECS::Bloom>().prepare(Application::GetViewportWidth(), Application::GetViewportHeight());
+		//--POST-PROCESS
+		postproManager = new Utils::PostProcessingManager();
+		postproManager->PrepareFBO(800,600);
+		//--------------------------------------------------------------------------------------------------------------------------------
+
+
+
+		//--RESIZE WINDOW EVENT
+		//EventManager::getWindowResizeEvent().subscribe([this](GLuint width, GLuint height) {
+		//	});
+		// ---------------------------------------
+
+
 
 
 		assetsPanel.SetDelegate([this](ImportOptions importOptions) {
@@ -150,13 +159,15 @@ namespace GLCore {
 		//--ENTITIES
         manager.refresh();
         manager.update();
-        entitiesInScene = manager.getAllEntities();
-		if (entitiesInScene.size() > 0)
+
+		rendererManager->entitiesInScene = manager.getAllEntities();
+		
+		if (rendererManager->entitiesInScene.size() > 0)
 		{
 			CalcSceneBundle();
 		}
-		
 		//----------------------------------------------------------------------------------------------------------------------------
+
 
         //--CAMERA
         aspectRatio = static_cast<float>(GLCore::Application::GetViewportWidth()) / static_cast<float>(GLCore::Application::GetViewportHeight());
@@ -188,7 +199,7 @@ namespace GLCore {
 		}
 
 
-		if (useHDRIlumination == true)
+		if (showSkybox == true)
 		{
 			//--------------------------------------------IBL
 			//glDepthFunc(GL_LEQUAL);
@@ -204,88 +215,25 @@ namespace GLCore {
 			GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("irradianceMap", 0);
 			GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("prefilterMap", 1);
 			GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("brdfLUT", 2);
-			//----------------------------------------------------------------------------------------------------
 		}
-
-		//--SHADOWS PASS
-		for (int i = 0; i < entitiesInScene.size(); i++)
-		{
-			//-DIRECTIONAL LIGHTS
-			if (entitiesInScene[i]->hascomponent<ECS::DirectionalLight>())
-			{
-				if (entitiesInScene[i]->getComponent<ECS::DirectionalLight>().drawShadows)
-				{
-					entitiesInScene[i]->getComponent<ECS::DirectionalLight>().shadowMappingProjection(entitiesInScene);
-				}
-			}
-
-			//-SPOT LIGHTS
-			if (entitiesInScene[i]->hascomponent<ECS::SpotLight>())
-			{
-				if (entitiesInScene[i]->getComponent<ECS::SpotLight>().drawShadows)
-				{
-					entitiesInScene[i]->getComponent<ECS::SpotLight>().shadowMappingProjection(entitiesInScene);
-				}
-			}
-
-		//	//-POINTS LIGHTS
-		//	if (entitiesInScene[i]->hascomponent<ECS::PointLight>())
-		//	{
-		//		//if (entitiesInScene[i]->getComponent<ECS::PointLight>().drawShadows)
-		//		//{
-		//		//	entitiesInScene[i]->getComponent<ECS::PointLight>().shadowMappingProjection(entitiesInScene);
-		//		//}
-		//	}	
-		}
-		//----------------------------------------------------------------------------------------------------------------
-
-
-		
 		//-------------------------------------------------------------------------------------------------------------------------------------------
 
 
-
-
+		//--RENDER-PIPELINE
+		
+		//__1.-SHADOW PASS
+		rendererManager->passShadow();
 
 		
-		if (useStandardFBO)
+		if (usePostpro) 
 		{
-			glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
+			//glBindFramebuffer(GL_FRAMEBUFFER, postprocessGameObject->getComponent<ECS::Bloom>().FBO);
+			glBindFramebuffer(GL_FRAMEBUFFER, postproManager->FBO);
 			glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
 			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			if (useHDRIlumination == true)
-			{
-				glm::mat4 viewHDR = glm::mat4(glm::mat3(m_EditorCamera.GetCamera().GetViewMatrix()));
-				// Escala la matriz de vista para hacer el skybox más grande
-				float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
-				viewHDR = glm::scale(viewHDR, glm::vec3(scale, scale, scale));
-				GLCore::Render::ShaderManager::Get("background")->use();
-				GLCore::Render::ShaderManager::Get("background")->setMat4("view", viewHDR);
-				GLCore::Render::ShaderManager::Get("background")->setMat4("projection", m_EditorCamera.GetCamera().GetProjectionMatrix());
-				GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 0);
-				renderCube();
-			}
-
-			drawAllEntities();
-		}
-		else
-		{
-			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			//glDepthFunc(GL_LESS);
-			
-			//--PREPARE MAIN_FBO
-			glBindFramebuffer(GL_FRAMEBUFFER, postprocessGameObject->getComponent<ECS::Bloom>().FBO);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-			glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
-			
-
-
-
-			if (useHDRIlumination == true)
+			if (showSkybox == true)
 			{
 				//--------------------------------------------IBL
 				glDepthFunc(GL_LEQUAL);
@@ -314,40 +262,66 @@ namespace GLCore {
 				renderCube();
 				//----------------------------------------------------------------------------------------------------
 			}
+
 			
-			drawAllEntities();
+			//__2.-LIGHT PASS
+			rendererManager->passLights();
+
+			//__3.-GEOMETRY PASS
+			gridWorldRef->Render();
+			rendererManager->passGeometry();
 			//-------------------------------------------------------------------------------------------------------------------------------------------
 
-			GLCore::Render::ShaderManager::Get("main_output_FBO")->use();
-
-			glActiveTexture(GL_TEXTURE5);
-			glBindTexture(GL_TEXTURE_2D, postprocessGameObject->getComponent<ECS::Bloom>().colorBuffers[0]);
-			GLCore::Render::ShaderManager::Get("main_output_FBO")->setInt("colorBuffer_0", 5);
-
-			glActiveTexture(GL_TEXTURE6);
-			glBindTexture(GL_TEXTURE_2D, postprocessGameObject->getComponent<ECS::Bloom>().colorBuffers[1]);
-			GLCore::Render::ShaderManager::Get("main_output_FBO")->setInt("colorBuffer_1", 6);
-
-			////--DRAW MAIN_FBO in QUAD
+			//__4.-DRAW FINAL RENDER TO TEXTURE IN QUAD
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			
+			GLCore::Render::ShaderManager::Get("main_output_FBO")->use();
 
-			/*for (size_t i = 0; i < 2; i++)
+			int textureIndex = 5;
+			for (size_t i = 0; i < 2; i++)
 			{
-				glActiveTexture(GL_TEXTURE0 + i);
-				glBindTexture(GL_TEXTURE_2D, postprocessGameObject->getComponent<ECS::Bloom>().colorBuffers[i]);
+				glActiveTexture(GL_TEXTURE0 + textureIndex);
+				//glBindTexture(GL_TEXTURE_2D, postprocessGameObject->getComponent<ECS::Bloom>().colorBuffers[i]);
+				glBindTexture(GL_TEXTURE_2D, postproManager->colorBuffers[i]);
 				std::string uniformName = "colorBuffer_" + std::to_string(i);
-				GLCore::Render::ShaderManager::Get("main_output_FBO")->setInt(uniformName.c_str(), i);
-			}*/
+				GLCore::Render::ShaderManager::Get("main_output_FBO")->setInt(uniformName.c_str(), textureIndex);
+				textureIndex++;
+			}
 
 			renderQuad();
 			//-------------------------------------------------------------------------------------------------------------------------------------------
 		}
+		else
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
+			glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
+			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+			if (showSkybox == true)
+			{
+				glm::mat4 viewHDR = glm::mat4(glm::mat3(m_EditorCamera.GetCamera().GetViewMatrix()));
+				// Escala la matriz de vista para hacer el skybox más grande
+				float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
+				viewHDR = glm::scale(viewHDR, glm::vec3(scale, scale, scale));
+				GLCore::Render::ShaderManager::Get("background")->use();
+				GLCore::Render::ShaderManager::Get("background")->setMat4("view", viewHDR);
+				GLCore::Render::ShaderManager::Get("background")->setMat4("projection", m_EditorCamera.GetCamera().GetProjectionMatrix());
+				GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 0);
+				renderCube();
+			}
+
+			//RenderPipeline
+			rendererManager->passLights();
+			gridWorldRef->Render();
+			rendererManager->passGeometry();
+		}
+		//-------------------------------------------------------------------------------------------------------------------------------------------
 		
+
+
 		//-ACTIVE SELECTED ENTITY
 		if (m_SelectedEntity != nullptr && m_SelectedEntity->hascomponent<ECS::MeshRenderer>())
 		{
@@ -362,92 +336,9 @@ namespace GLCore {
 			std::cerr << "OpenGL error: " << err << std::endl;
 		}
 
-
-
-		//-RESET
-		//if (usePostprocessing == true)
-		//{
-		//	postProcessingManager->RenderHDR();
-		//	drawAllEntities();
-
-		//	glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
-		//	glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
-		//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		//	
-		//	glActiveTexture(GL_TEXTURE0);
-		//	glBindTexture(GL_TEXTURE_2D, postProcessingManager->colorBuffer);
-
-		//	GLCore::Render::ShaderManager::Get("hdr")->use();
-		//	GLCore::Render::ShaderManager::Get("hdr")->setInt("hdr", usePostprocessing);
-		//	GLCore::Render::ShaderManager::Get("hdr")->setInt("hdrBuffer", 0);
-		//	GLCore::Render::ShaderManager::Get("hdr")->setFloat("exposure", exposure);
-		//	GLCore::Render::ShaderManager::Get("hdr")->setFloat("gamma", gamma);
-		//	renderQuad();
-		//}
-		//else
-		//{
-		//	glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
-		//	glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
-		//	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-		//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		//	Application::currentRenderPass = GLCore::Render::RenderPasses::RENDER_FORWARD;
-		//	drawAllEntities();
-		//}
-
-		//----------------------------------------------------------------------------------------------------------------
-
-		
     }
 
-	void Scene::drawAllEntities()
-	{
-		//-OTHERS
-		//if (skybox->isActive)
-		//{
-		//	skybox->Render(m_EditorCamera.GetCamera().GetViewMatrix(), m_EditorCamera.GetCamera().GetProjectionMatrix());
-		//}
-		gridWorldRef->Render();
-		//----------------------------------------------------------------------------------------------------------------
 
-		//-ENTITIES CALL DRAW()
-		for (int i = 0; i < entitiesInScene.size(); i++)
-		{
-			//-MATERIALS
-			if (entitiesInScene[i]->hascomponent<ECS::Material>()) // Only root entities
-			{
-				entitiesInScene[i]->getComponent<ECS::Material>().draw();
-			}
-			//-DIRECTIONAL LIGHTS
-			if (entitiesInScene[i]->hascomponent<ECS::DirectionalLight>())
-			{
-				/*dynamicSkybox->Render(m_EditorCamera.GetCamera().GetViewMatrix(), m_EditorCamera.GetCamera().GetProjectionMatrix(),
-					entitiesInScene[i]->getComponent<ECS::Transform>().position);*/
-
-				entitiesInScene[i]->getComponent<ECS::DirectionalLight>().draw();
-			}
-			//-POINTS LIGHTS
-			if (entitiesInScene[i]->hascomponent<ECS::PointLight>())
-			{
-				entitiesInScene[i]->getComponent<ECS::PointLight>().draw();
-			}
-			//-SPOT LIGHTS
-			if (entitiesInScene[i]->hascomponent<ECS::SpotLight>())
-			{
-				entitiesInScene[i]->getComponent<ECS::SpotLight>().draw();
-			}
-			//-MESH FILTERS
-			if (entitiesInScene[i]->hascomponent<ECS::MeshFilter>())
-			{
-				entitiesInScene[i]->getComponent<ECS::MeshFilter>().draw();
-			}
-			//-MESH RENDERER
-			if (entitiesInScene[i]->hascomponent<ECS::MeshRenderer>())
-			{
-				entitiesInScene[i]->getComponent<ECS::MeshRenderer>().draw();
-			}
-		}
-		//manager.draw();
-	}
 
 	void Scene::prepare_PBR_IBL()
 	{
@@ -645,8 +536,6 @@ namespace GLCore {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
-	// renderQuad() renders a 1x1 XY quad in NDC
-	// -----------------------------------------
 	void Scene::renderQuad()
 	{
 		if (quadVAO == 0)
@@ -750,7 +639,7 @@ namespace GLCore {
 		glm::vec3 sceneMinBounds = glm::vec3(FLT_MAX);
 		glm::vec3 sceneMaxBounds = glm::vec3(-FLT_MAX);
 
-		for (ECS::Entity* entity : entitiesInScene)
+		for (ECS::Entity* entity : rendererManager->entitiesInScene)
 		{
 			if (entity->hascomponent<ECS::MeshRenderer>()) {
 				ECS::MeshRenderer& renderer = entity->getComponent<ECS::MeshRenderer>();
@@ -843,15 +732,15 @@ namespace GLCore {
     {
 		//-------------------------------------------HIERARCHY PANEL--------------------------------------
 		ImGui::Begin("Hierarchy", nullptr);
-		for (int i = 0; i < entitiesInScene.size(); i++)
+		for (int i = 0; i < rendererManager->entitiesInScene.size(); i++)
 		{
-			if (entitiesInScene[i]->getComponent<ECS::Transform>().parent == nullptr) // Only root entities
+			if (rendererManager->entitiesInScene[i]->getComponent<ECS::Transform>().parent == nullptr) // Only root entities
 			{
 				ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-				if (m_SelectedEntity == entitiesInScene[i])
+				if (m_SelectedEntity == rendererManager->entitiesInScene[i])
 					node_flags |= ImGuiTreeNodeFlags_Selected;
 
-				std::string treeLabel = entitiesInScene[i]->name;
+				std::string treeLabel = rendererManager->entitiesInScene[i]->name;
 
 				bool treeOpen = ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, treeLabel.c_str());
 				
@@ -864,7 +753,7 @@ namespace GLCore {
 							m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = false;
 						}
 					}
-					m_SelectedEntity = entitiesInScene[i];
+					m_SelectedEntity = rendererManager->entitiesInScene[i];
 				}
 
 				//--DRAG_DROP
@@ -882,8 +771,8 @@ namespace GLCore {
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DRAG_ENTITY"))
 					{
 						int sourceEntityIndex = *(const int*)payload->Data;
-						auto& sourceEntity = entitiesInScene[sourceEntityIndex]; // Entidad que estás arrastrando
-						auto& targetEntity = entitiesInScene[i]; // Entidad sobre la cual se hace el "drop"
+						auto& sourceEntity = rendererManager->entitiesInScene[sourceEntityIndex]; // Entidad que estás arrastrando
+						auto& targetEntity = rendererManager->entitiesInScene[i]; // Entidad sobre la cual se hace el "drop"
 
 						sourceEntity->getComponent<ECS::Transform>().parent = targetEntity;
 						targetEntity->getComponent<ECS::Transform>().children.push_back(sourceEntity);
@@ -898,9 +787,9 @@ namespace GLCore {
 
 				if (treeOpen)
 				{
-					for (int j = 0; j < entitiesInScene[i]->getComponent<ECS::Transform>().children.size(); j++)
+					for (int j = 0; j < rendererManager->entitiesInScene[i]->getComponent<ECS::Transform>().children.size(); j++)
 					{
-						auto& child = entitiesInScene[i]->getComponent<ECS::Transform>().children[j];
+						auto& child = rendererManager->entitiesInScene[i]->getComponent<ECS::Transform>().children[j];
 
 						ImGuiTreeNodeFlags child_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
 						if (m_SelectedEntity == child)
@@ -945,13 +834,10 @@ namespace GLCore {
 					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Vuelve al modo normal
 				}
 			}
-
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
-			ImGui::Checkbox("Default FBO", &useStandardFBO);
 
-			ImGui::Dummy(ImVec2(0.0f, 5.0f));
-			ImGui::Checkbox("HDR Ilumination", &useHDRIlumination);
-			if (useHDRIlumination == true)
+			ImGui::Checkbox("Show SkyBox", &showSkybox);
+			if (showSkybox == true)
 			{
 				ImGui::SliderFloat("HDR EXPOSURE", &exposure, 0.0f, 10.0f, "%.5f");
 				ImGui::SliderFloat("HDR GAMMA", &gamma, 0.0f, 3.0f, "%.5f");
@@ -962,14 +848,16 @@ namespace GLCore {
 			ImGui::ColorEdit3("Clear color", (float*)&clearColor);
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
+
 			ImGui::ColorEdit3("Global Ambient", &globalAmbient[0]);
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
-			if (postprocessGameObject->getComponent<ECS::Bloom>().ready)
+			ImGui::Checkbox("PostPro", &usePostpro);
+			if (postproManager->isReady)
 			{
 				for (int i = 0; i < 2; i++)
 				{
-					ImGui::Image((void*)(intptr_t)postprocessGameObject->getComponent<ECS::Bloom>().colorBuffers[i], ImVec2(256, 256), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
+					ImGui::Image((void*)(intptr_t)postproManager->colorBuffers[i], ImVec2(256, 256), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
 				}
 			}
 			
@@ -1066,7 +954,7 @@ namespace GLCore {
 			GLCore::MeshData cube = GLCore::Render::PrimitivesHelper::CreateCube();
 
 			gameObject = &manager.addEntity();
-			gameObject->name = "Cube_" + std::to_string(entitiesInScene.size());
+			gameObject->name = "Cube_" + std::to_string(rendererManager->entitiesInScene.size());
 			gameObject->addComponent<ECS::MeshFilter>().initMesh(cube);
 			gameObject->addComponent<ECS::MeshRenderer>();
 			gameObject->addComponent<ECS::Material>();
@@ -1077,7 +965,7 @@ namespace GLCore {
 			GLCore::MeshData segCube = GLCore::Render::PrimitivesHelper::CreateSegmentedCube(1);
 
 			gameObject = &manager.addEntity();
-			gameObject->name = "SegCube_" + std::to_string(entitiesInScene.size());
+			gameObject->name = "SegCube_" + std::to_string(rendererManager->entitiesInScene.size());
 			gameObject->addComponent<ECS::MeshFilter>().initMesh(segCube);
 			gameObject->addComponent<ECS::MeshRenderer>();
 			gameObject->addComponent<ECS::Material>();
@@ -1088,7 +976,7 @@ namespace GLCore {
 			GLCore::MeshData sphere = GLCore::Render::PrimitivesHelper::CreateSphere(1, 20, 20);
 
 			gameObject = &manager.addEntity();
-			gameObject->name = "Sphere_" + std::to_string(entitiesInScene.size());
+			gameObject->name = "Sphere_" + std::to_string(rendererManager->entitiesInScene.size());
 			gameObject->addComponent<ECS::MeshFilter>().initMesh(sphere);
 			gameObject->addComponent<ECS::MeshRenderer>();
 			gameObject->addComponent<ECS::Material>();
@@ -1099,7 +987,7 @@ namespace GLCore {
 			GLCore::MeshData quad = GLCore::Render::PrimitivesHelper::CreateQuad();
 
 			gameObject = &manager.addEntity();
-			gameObject->name = "Quad_" + std::to_string(entitiesInScene.size());
+			gameObject->name = "Quad_" + std::to_string(rendererManager->entitiesInScene.size());
 			gameObject->addComponent<ECS::MeshFilter>().initMesh(quad);
 			gameObject->addComponent<ECS::MeshRenderer>();
 			gameObject->addComponent<ECS::Material>();
@@ -1110,7 +998,7 @@ namespace GLCore {
 			GLCore::MeshData plane = GLCore::Render::PrimitivesHelper::CreatePlane();
 
 			gameObject = &manager.addEntity();
-			gameObject->name = "Plane_" + std::to_string(entitiesInScene.size());
+			gameObject->name = "Plane_" + std::to_string(rendererManager->entitiesInScene.size());
 			gameObject->addComponent<ECS::MeshFilter>().initMesh(plane);
 			gameObject->addComponent<ECS::MeshRenderer>();
 			gameObject->addComponent<ECS::Material>();
@@ -1153,7 +1041,7 @@ namespace GLCore {
 			
 			GLCore::MeshData segCube = GLCore::Render::PrimitivesHelper::CreateSegmentedCube(1);
 
-			gameObject->name = "SegCube_" + std::to_string(entitiesInScene.size());
+			gameObject->name = "SegCube_" + std::to_string(rendererManager->entitiesInScene.size());
 			gameObject->addComponent<ECS::MeshFilter>().initMesh(segCube);
 			gameObject->addComponent<ECS::MeshRenderer>();
 			gameObject->addComponent<ECS::Material>();
@@ -1171,7 +1059,7 @@ namespace GLCore {
 	void Scene::getModelPathFromAssets(ImportOptions importOptions)
 	{
 		
-		importOptions.modelID = entitiesInScene.size() + 1;
+		importOptions.modelID = rendererManager->entitiesInScene.size() + 1;
 
 		loadFileModel(importOptions);
 	}

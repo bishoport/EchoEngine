@@ -6,33 +6,29 @@ namespace GLCore::Utils
 {
     class PostProcessingManager {
     public:
-        bool isActive = true;
-       
+        bool isReady = false;
+        GLuint FBO = 0;
+        GLuint colorBuffers[2];
+        GLuint depthBuffer = 0;
+
+
         bool hdr = false;
         bool bloom = false;
 
-        GLuint postproFBO;
-        GLuint postproRboDepth;
 
-        std::vector<GLuint*> colorBuffers;
-        GLuint originalColorBuffer;
-        GLuint brightColorBuffer;
-
-        PostProcessingManager(GLuint screenWith, GLuint screenHeight);
+        PostProcessingManager();
         ~PostProcessingManager();
-
-
-        void PrepareFX(GLuint screenWith, GLuint screenHeight);
 
         void RenderWithPostProcess();
 
+        void PrepareFBO(GLuint SCR_WIDTH, GLuint SCR_HEIGHT);
+
+        void UpdateFBO_size(GLuint SCR_WIDTH, GLuint SCR_HEIGHT);
+
+        void DrawGUI_Inspector();
+
 
     private:
-        
-
-
-        GLuint SCR_WIDTH = 800;
-        GLuint SCR_HEIGHT = 600;
         
     };
 }

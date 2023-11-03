@@ -4,10 +4,8 @@
 #include "../Render/Shader.h"
 
 #include "../../ECS/ECS.h"
-#include "../../ECS/MeshFilter.h"
-#include "../../ECS/MeshRenderer.h"
-#include "../../ECS/Material.h"
-#include "../../ECS/PointLight.h"
+
+
 
 #include "../Util/PerspectiveCameraController.h"
 #include "../Util/PostProcessingManager.h"
@@ -48,10 +46,10 @@ namespace GLCore {
 
         //--ENTITIES
         ECS::Manager manager;
-        std::vector<ECS::Entity*> entitiesInScene;
+        //std::vector<ECS::Entity*> entitiesInScene;
         ECS::Entity* m_SelectedEntity = nullptr;
         ECS::Entity* gridWorldReference = nullptr;
-        ECS::Entity* postprocessGameObject = nullptr;
+        
         //std::pair<glm::vec3, float> CalcSceneBundle();
         void CalcSceneBundle();
         //---------------------------------------------------
@@ -62,19 +60,21 @@ namespace GLCore {
         Utils::GridWorldReference* gridWorldRef = nullptr;
         //---------------------------------------------------
 
-        //--FBO
-        bool useStandardFBO = true;
-        GLuint mainFBO;
-        GLuint mainRboDepth;
-        std::vector<GLuint> mainColorBuffers;
+
+        //--POST_PROCESSING
+        Utils::PostProcessingManager* postproManager = nullptr;
+        bool usePostpro = false;
+        float exposure = 1.0f;
+        float gamma = 2.2f;
         unsigned int quadVAO = 0;
         unsigned int quadVBO;
         void renderQuad();
-        //----------------------------------------------------
+        //---------------------------------------------------
         
 
+
         //IBL
-        bool useHDRIlumination = false;
+        bool showSkybox = false;
         unsigned int IBL_FBO;
         unsigned int IBL_RBO;
 
@@ -94,12 +94,7 @@ namespace GLCore {
         //----------------------------------------------------
 
 
-        //--POST_PROCESSING
-        Utils::PostProcessingManager* postproManager = nullptr;
-        bool usePostprocessing = false;
-        float exposure = 1.0f;
-        float gamma = 2.2f;
-        //---------------------------------------------------
+        
 
 
         //--Illumination

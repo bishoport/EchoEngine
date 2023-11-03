@@ -1,6 +1,7 @@
 #pragma once
 #include "ECS.h"
 #include "../GLCore/Render/PrimitivesHelper.h"
+#include "../GLCore/Core/Scene.h"
 
 
 namespace ECS

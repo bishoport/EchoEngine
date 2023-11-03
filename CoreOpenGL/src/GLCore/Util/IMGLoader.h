@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../glpch.h"
-#include <stb_image/stb_image.h>
+
 #include <filesystem>
 #include <iostream>
 

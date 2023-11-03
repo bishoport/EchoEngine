@@ -129,6 +129,9 @@
     <ClCompile Include="src\GLCore\Render\FBOManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\GLCore\Render\RendererManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\GLCore\Util\PostProcessingManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -272,7 +275,7 @@
     <ClInclude Include="src\ECS\CharacterController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\ECS\Bloom.h">
+    <ClInclude Include="src\GLCore\Render\RendererManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

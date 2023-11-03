@@ -23,7 +23,7 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/quaternion.hpp>
 
-
+#include <stb_image/stb_image.h>
 
 //IMGUI
 #define IMGUI_DEFINE_MATH_OPERATORS

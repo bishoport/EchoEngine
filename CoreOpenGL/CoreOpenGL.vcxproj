@@ -141,6 +141,7 @@
     <ClCompile Include="src\GLCore\Core\Input\InputManager.cpp" />
     <ClCompile Include="src\GLCore\Core\Log.cpp" />
     <ClCompile Include="src\GLCore\Render\FBOManager.cpp" />
+    <ClCompile Include="src\GLCore\Render\RendererManager.cpp" />
     <ClCompile Include="src\GLCore\Util\DynamicSkybox.cpp" />
     <ClCompile Include="src\GLCore\Util\GridWorldReference.cpp" />
     <ClCompile Include="src\GLCore\Util\IMGLoader.cpp" />
@@ -164,7 +165,6 @@
     <ClCompile Include="vendor\imgui\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\ECS\Bloom.h" />
     <ClInclude Include="src\ECS\CharacterController.h" />
     <ClInclude Include="src\ECS\ComponentsIncludes.h" />
     <ClInclude Include="src\ECS\DirectionalLight.h" />
@@ -184,6 +184,7 @@
     <ClInclude Include="src\GLCore\Core\Input\MouseButtonCodes.h" />
     <ClInclude Include="src\GLCore\Core\Timestep.h" />
     <ClInclude Include="src\GLCore\Render\FBOManager.h" />
+    <ClInclude Include="src\GLCore\Render\RendererManager.h" />
     <ClInclude Include="src\GLCore\Util\DynamicSkybox.h" />
     <ClInclude Include="src\GLCore\Util\GridWorldReference.h" />
     <ClInclude Include="src\GLCore\Util\IMGLoader.h" />
