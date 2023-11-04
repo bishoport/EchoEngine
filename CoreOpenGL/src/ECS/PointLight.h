@@ -189,7 +189,6 @@ namespace ECS {
                     glActiveTexture(GL_TEXTURE0);              // donde SHADOW_SLOT es un índice que no se solape con tus otras texturas.
                     glBindTexture(GL_TEXTURE_CUBE_MAP, shadowTex);   // 'shadowTextureID' es el ID de la textura de sombra que creaste.
                     GLCore::Render::ShaderManager::Get(name.c_str())->setInt(shadowMapL.str(), 0);
-
                     GLCore::Render::ShaderManager::Get(name.c_str())->setFloat(shadowIntensityL.str().c_str(), shadowIntensity);
                 }
                 else

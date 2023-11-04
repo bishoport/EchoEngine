@@ -25,7 +25,6 @@ namespace ECS
         //Shadow values
         int shadowMapResolution = 1024;
 
-        std::vector<GLuint*> textureBuffers;
         GLuint shadowFBO = 0;
         GLuint shadowTex = 0;
         GLuint shadowDepth = 0;
@@ -53,10 +52,28 @@ namespace ECS
             entity->name = "DirectionalLight";
             entity->getComponent<Transform>().position = glm::vec3( - 2.0f, 4.0f, -1.0f);
 
-            textureBuffers.push_back(&shadowTex);
-
             prepareShadows();
         } 
+
+
+        void onDestroy() override
+        {
+            // Liberar el mapa de sombras y los recursos asociados.
+            if (shadowTex != 0) {
+                glDeleteTextures(1, &shadowTex);
+                shadowTex = 0;
+            }
+
+            if (shadowDepth != 0) {
+                glDeleteTextures(1, &shadowDepth);
+                shadowDepth = 0;
+            }
+
+            if (shadowFBO != 0) {
+                glDeleteFramebuffers(1, &shadowFBO);
+                shadowFBO = 0;
+            }
+        }
 
 
         void prepareShadows()
@@ -69,6 +86,9 @@ namespace ECS
         void shadowMappingProjection(std::vector<ECS::Entity*> entitiesInScene)
         {
             m_entitiesInScene = entitiesInScene;
+
+
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
             glViewport(0, 0, shadowMapResolution, shadowMapResolution);
@@ -94,6 +114,8 @@ namespace ECS
                     }
                 }
             }
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
 
         void update() override
@@ -235,8 +257,6 @@ namespace ECS
             ImGui::Separator();
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
         }
-
-        void onDestroy() override {}
 
     private:
         float angleX = 0.0f;

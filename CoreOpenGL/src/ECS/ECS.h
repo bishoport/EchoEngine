@@ -28,9 +28,6 @@ namespace ECS
 	using ComponentArray = std::array<Component*, maxComponents>;
 
 
-
-
-
 	class Component
 	{
 	public:
@@ -42,10 +39,125 @@ namespace ECS
 		virtual void onDestroy() {}
 		~Component() { onDestroy(); }
 	};
+	
 
 
 
+	class Entity
+	{
+	private:
+		int id;             // ID de la entidad
+		std::vector<std::unique_ptr<Component>> components;
+		ComponentArray componentArray;
+		ComponentBitSet componentBitSet;
 
+	public:
+		std::string name;
+		bool active = true;
+
+		bool markedToDelete = false;
+
+		Entity(int nextID) {
+			id = nextID;
+		}
+
+		int getID() const {
+			return id;
+		}
+
+		void update()
+		{
+			for (auto& c : components) c->update();
+		}
+
+		void draw()
+		{
+			for (auto& c : components) c->draw();
+		}
+
+		void drawGUI_Inspector()
+		{
+			for (auto& c : components) c->drawGUI_Inspector();
+		}
+
+		const std::vector<std::unique_ptr<Component>>& getComponents() const {
+			return components;
+		}
+		
+
+
+		bool isActive() const { return active; }
+		void destroy() { active = false; }
+
+		template <typename T> bool hascomponent() const
+		{
+			if (&getComponent<T>() != NULL)
+			{
+				return true;
+			}
+			return false;
+		}
+
+		template <typename T, typename... TArgs> T& addComponent(TArgs&&... mArgs)
+		{
+			T* c(new T(std::forward<TArgs>(mArgs)...));
+			c->entity = this;
+			std::unique_ptr<Component> uPtr{ c };
+			components.emplace_back(std::move(uPtr));
+			componentArray[getComponentTypeID<T>()] = c;
+			componentBitSet[getComponentTypeID<T>()] = true;
+
+			c->init();
+			return *c;
+		}
+
+
+		template<typename T> T& getComponent() const
+		{
+			auto ptr(componentArray[getComponentTypeID<T>()]);
+			return *static_cast<T*>(ptr);
+		}
+
+		void removeAllComponents() {
+			while (!components.empty()) {
+				components.back()->onDestroy(); // Llama a onDestroy antes de eliminar el componente
+				components.pop_back(); // Elimina el último componente, llama al destructor
+			}
+			componentArray.fill(nullptr); // Resetear el array de componentes a nullptrs
+			componentBitSet.reset(); // Resetear el bitset a 0
+		}
+
+		template<typename T> void removeComponent()
+		{
+			// Comprobar si el componente existe
+			auto typeID = getComponentTypeID<T>();
+			if (!componentBitSet[typeID]) {
+				return; // No tiene el componente, así que no hay nada que eliminar
+			}
+
+			// Eliminar el puntero del vector 'components'
+			auto it = std::find_if(components.begin(), components.end(),
+				[](const std::unique_ptr<Component>& component) {
+					return dynamic_cast<T*>(component.get()) != nullptr;
+				});
+			if (it != components.end()) {
+				// Llamar a onDestroy antes de eliminar el componente
+				(*it)->onDestroy();
+
+				// Realizar la eliminación efectiva del componente
+				components.erase(it);
+			}
+
+			// Actualizar el 'componentArray' y 'componentBitSet'
+			componentArray[typeID] = nullptr;
+			componentBitSet[typeID] = false;
+
+			// Si necesitas realizar alguna limpieza específica del componente, puedes hacerlo aquí
+		}
+	};
+
+
+	
 
 
 	class Transform : public Component
@@ -61,7 +173,7 @@ namespace ECS
 		//Dirty flag
 		bool m_isDirty = true;
 
-		Entity* parent;
+		Entity* parent = nullptr;
 		std::vector<Entity*> children;
 
 		glm::mat4 getLocalModelMatrix() const
@@ -163,22 +275,13 @@ namespace ECS
 			return m_isDirty;
 		}
 
-		/*void addChild(Entity* childEntity)
-		{
-			childEntity->getComponent<Transform>().parent = this->entity;
-			children.push_back(childEntity);
-		}
-
-		void removeChild(Entity* childEntity)
-		{
-			childEntity->getComponent<Transform>().parent = nullptr;
-			children.erase(std::remove(children.begin(), children.end(), childEntity), children.end());
-		}*/
-
 		void drawGUI_Inspector() override
 		{
-			ImGui::Text("Transform");
+			ImGui::Dummy(ImVec2(0.0f, 5.0f));
+			ImGui::Text("Entity ID: %i", entity->getID());
+			ImGui::Separator();
 
+			ImGui::Text("Transform");
 			ImGui::DragFloat3("Position", glm::value_ptr(position), 0.01f);
 			glm::vec3 eulers = glm::degrees(glm::eulerAngles(rotation));
 			if (ImGui::DragFloat3("Rotation", glm::value_ptr(eulers), 0.01f)) {
@@ -193,88 +296,11 @@ namespace ECS
 
 
 
-
-
-
-	class Entity
-	{
-	private:
-		std::vector<std::unique_ptr<Component>> components;
-		ComponentArray componentArray;
-		ComponentBitSet componentBitSet;
-
-	public:
-		std::string name;
-		bool active = true;
-
-
-		void update()
-		{
-			for (auto& c : components) c->update();
-		}
-
-		void draw()
-		{
-			for (auto& c : components) c->draw();
-		}
-
-		void drawGUI_Inspector()
-		{
-			for (auto& c : components) c->drawGUI_Inspector();
-		}
-
-		const std::vector<std::unique_ptr<Component>>& getComponents() const {
-			return components;
-		}
-		
-
-
-		bool isActive() const { return active; }
-		void destroy() { active = false; }
-
-		template <typename T> bool hascomponent() const
-		{
-			if (&getComponent<T>() != NULL)
-			{
-				return true;
-			}
-			return false;
-
-			//return ComponentBitSet[getComponentTypeID<T>];
-		}
-
-		template <typename T, typename... TArgs> T& addComponent(TArgs&&... mArgs)
-		{
-			T* c(new T(std::forward<TArgs>(mArgs)...));
-			c->entity = this;
-			std::unique_ptr<Component> uPtr{ c };
-			components.emplace_back(std::move(uPtr));
-
-			componentArray[getComponentTypeID<T>()] = c;
-			componentBitSet[getComponentTypeID<T>()] = true;
-
-			c->init();
-			return *c;
-		}
-
-
-		template<typename T> T& getComponent() const
-		{
-			auto ptr(componentArray[getComponentTypeID<T>()]);
-			return *static_cast<T*>(ptr);
-		}
-
-
-	};
-
-
-
-
-
 	class Manager
 	{
 	private:
 		std::vector<std::unique_ptr<Entity>> entities;
+		int nextID = 0;// Contador para generar IDs únicos
 	public:
 		void update()
 		{
@@ -293,17 +319,21 @@ namespace ECS
 
 		void refresh()
 		{
-			entities.erase(std::remove_if(std::begin(entities), std::end(entities),
-				[](const std::unique_ptr<Entity>& mEntity)
-				{
-					return !mEntity->isActive();
-				}),
-				std::end(entities));
+			for (size_t i = 0; i < entities.size();) 
+			{
+				if (entities[i]->markedToDelete) {
+					removeEntity(entities[i].get());
+				}
+				else {
+					++i;
+				}
+			}
 		}
 
 		Entity& addEntity()
 		{
-			Entity* e = new Entity();
+			Entity* e = new Entity(nextID);
+			nextID++;
 			std::unique_ptr<Entity> uPtr{ e };
 			entities.emplace_back(std::move(uPtr));
 
@@ -319,6 +349,40 @@ namespace ECS
 
 			return *e;
 		}
+
+		void removeEntity(Entity* e, bool isRootCall = true) {
+			if (!e) return; // Si el puntero a la entidad es nulo, no hacer nada.
+
+			// Desactivar temporalmente la entidad
+			e->active = false;
+
+			// Intenta encontrar el componente Transform sin eliminar los componentes todavía.
+			Transform* transform = nullptr;
+			try {
+				transform = &(e->getComponent<Transform>());
+			}
+			catch (...) {
+				// Manejar la excepción
+			}
+
+			if (transform) {
+				auto childrenCopy = transform->children; // Hacer una copia de los hijos para iterar de manera segura.
+
+				for (auto it = childrenCopy.rbegin(); it != childrenCopy.rend(); ++it) {
+					removeEntity(*it, false); // Aquí es una llamada recursiva, así que no es la llamada "raíz".
+				}
+			}
+
+			e->removeAllComponents(); // Eliminar todos los componentes de la entidad.
+
+			auto it = std::find_if(entities.begin(), entities.end(),
+				[e](const std::unique_ptr<Entity>& entity) { return entity.get() == e; });
+
+			if (it != entities.end()) {
+				entities.erase(it); // Elimina la entidad del vector.
+			}
+		}
+
 
 		// Devolver un vector de punteros crudos a las entidades
 		std::vector<Entity*> getAllEntities()

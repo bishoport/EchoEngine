@@ -17,6 +17,26 @@ namespace ECS {
             material->shininess = 32.0f;
         }
 
+		void onDestroy() override
+		{
+			Component::onDestroy();
+
+			// Libera las texturas asociadas con el material.
+			for (auto& texture : material->textures) {
+				if (texture->hasMap) {
+					// Liberar la textura de la GPU si se ha cargado.
+					glDeleteTextures(1, &texture->textureID);
+					texture->hasMap = false;
+				}
+			}
+
+			// En este punto, puedes también asegurarte de que todos los punteros inteligentes
+			// sean reseteados o cualquier otro recurso que requiera una limpieza específica.
+			material.reset();
+
+			//markForDeletion();
+		}
+
 		void setDafaultMaterial()
 		{
 			material->albedoMap.image = GLCore::Utils::ImageLoader::loadImage("assets/default/default_white.jpg");
@@ -51,11 +71,17 @@ namespace ECS {
 
         void draw() override 
         {
-            currentShaderName = entity->getComponent<MeshRenderer>().currentShaderName;
+			if (entity->hascomponent<MeshRenderer>())
+			{
 
-            GLCore::Render::ShaderManager::Get(currentShaderName)->use();
-			GLCore::Render::ShaderManager::Get(currentShaderName)->setVec2("repetitionFactor", repetitionFactor);
-            material->bindTextures(currentShaderName); 
+				currentShaderName = entity->getComponent<MeshRenderer>().currentShaderName;
+
+				GLCore::Render::ShaderManager::Get(currentShaderName)->use();
+				GLCore::Render::ShaderManager::Get(currentShaderName)->setVec2("repetitionFactor", repetitionFactor);
+				material->bindTextures(currentShaderName);
+
+			}
+			
         }
 
 
@@ -63,6 +89,11 @@ namespace ECS {
         void drawGUI_Inspector() override
         {
             ImGui::Text("Material");
+			if (ImGui::Button("Delete Material")) {
+				entity->removeComponent<Material>();
+				return;
+			}
+
 			ImGui::SliderFloat("HDR INTENSITY", &material->hdrIntensity, 0.0f, 1.0f, "%.3f");
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 			

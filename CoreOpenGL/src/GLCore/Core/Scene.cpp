@@ -227,7 +227,6 @@ namespace GLCore {
 		
 		if (usePostpro) 
 		{
-			//glBindFramebuffer(GL_FRAMEBUFFER, postprocessGameObject->getComponent<ECS::Bloom>().FBO);
 			glBindFramebuffer(GL_FRAMEBUFFER, postproManager->FBO);
 			glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
 			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
@@ -252,6 +251,7 @@ namespace GLCore {
 
 
 				glm::mat4 viewHDR = glm::mat4(glm::mat3(m_EditorCamera.GetCamera().GetViewMatrix()));
+				
 				// Escala la matriz de vista para hacer el skybox más grande
 				float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
 				viewHDR = glm::scale(viewHDR, glm::vec3(scale, scale, scale));
@@ -263,7 +263,7 @@ namespace GLCore {
 				//----------------------------------------------------------------------------------------------------
 			}
 
-			
+
 			//__2.-LIGHT PASS
 			rendererManager->passLights();
 
@@ -732,6 +732,7 @@ namespace GLCore {
     {
 		//-------------------------------------------HIERARCHY PANEL--------------------------------------
 		ImGui::Begin("Hierarchy", nullptr);
+
 		for (int i = 0; i < rendererManager->entitiesInScene.size(); i++)
 		{
 			if (rendererManager->entitiesInScene[i]->getComponent<ECS::Transform>().parent == nullptr) // Only root entities
@@ -755,6 +756,22 @@ namespace GLCore {
 					}
 					m_SelectedEntity = rendererManager->entitiesInScene[i];
 				}
+
+				if (m_SelectedEntity != nullptr)
+				{
+					if (ImGui::BeginPopupContextItem()) { // Click derecho en el elemento
+						if (ImGui::MenuItem("Delete"))
+						{
+							m_SelectedEntity->markedToDelete = true;
+							m_SelectedEntity = nullptr;
+						}
+						ImGui::EndPopup();
+					}
+				}
+
+
+
+
 
 				//--DRAG_DROP
 				// Si comienza a arrastrar el nodo
@@ -809,6 +826,33 @@ namespace GLCore {
 							}
 							m_SelectedEntity = child;
 						}
+
+						//--DRAG_DROP
+						// Si comienza a arrastrar el nodo
+						if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+						{
+							ImGui::SetDragDropPayload("DRAG_ENTITY", &i, sizeof(int)); // Podrías enviar más datos si lo necesitas
+							ImGui::Text("Drag %s", treeLabel.c_str());
+							ImGui::EndDragDropSource();
+						}
+
+						// Si un nodo es arrastrado sobre otro nodo
+						if (ImGui::BeginDragDropTarget())
+						{
+							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DRAG_ENTITY"))
+							{
+								int sourceEntityIndex = *(const int*)payload->Data;
+								auto& sourceEntity = rendererManager->entitiesInScene[sourceEntityIndex]; // Entidad que estás arrastrando
+								auto& targetEntity = rendererManager->entitiesInScene[i]; // Entidad sobre la cual se hace el "drop"
+
+								sourceEntity->getComponent<ECS::Transform>().parent = targetEntity;
+								targetEntity->getComponent<ECS::Transform>().children.push_back(sourceEntity);
+
+								//targetEntity->getComponent<ECS::Transform>().addChild(sourceEntity);
+							}
+							ImGui::EndDragDropTarget();
+						}
+						//--END DRAG_DROP
 					}
 					ImGui::TreePop();
 				}
@@ -839,8 +883,7 @@ namespace GLCore {
 			ImGui::Checkbox("Show SkyBox", &showSkybox);
 			if (showSkybox == true)
 			{
-				ImGui::SliderFloat("HDR EXPOSURE", &exposure, 0.0f, 10.0f, "%.5f");
-				ImGui::SliderFloat("HDR GAMMA", &gamma, 0.0f, 3.0f, "%.5f");
+				
 			}
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
@@ -853,11 +896,17 @@ namespace GLCore {
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
 			ImGui::Checkbox("PostPro", &usePostpro);
-			if (postproManager->isReady)
+			if (usePostpro == true)
 			{
-				for (int i = 0; i < 2; i++)
+				if (postproManager->isReady)
 				{
-					ImGui::Image((void*)(intptr_t)postproManager->colorBuffers[i], ImVec2(256, 256), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
+					ImGui::SliderFloat("HDR EXPOSURE", &exposure, 0.0f, 10.0f, "%.5f");
+					ImGui::SliderFloat("HDR GAMMA", &gamma, 0.0f, 3.0f, "%.5f");
+
+					for (int i = 0; i < 2; i++)
+					{
+						ImGui::Image((void*)(intptr_t)postproManager->colorBuffers[i], ImVec2(256, 256), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
+					}
 				}
 			}
 			
@@ -898,8 +947,11 @@ namespace GLCore {
 		if (m_SelectedEntity != nullptr)
 		{
 			const auto& comps = m_SelectedEntity->getComponents();
-			for (const auto& component : comps) {
-				component->drawGUI_Inspector();
+			for (const auto& component : comps) 
+			{
+				if (component) {
+					component->drawGUI_Inspector();
+				}
 			}
 		}
 		ImGui::End();

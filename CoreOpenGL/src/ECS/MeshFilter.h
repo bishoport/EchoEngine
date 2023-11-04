@@ -20,19 +20,35 @@ namespace ECS {
             this->meshData = meshData;
         }
 
-        void draw() override
+        void draw() override{}
+
+        void onDestroy() override
         {
 
+            //// Liberar VAO
+            //glDeleteVertexArrays(1, &meshData.VAO);
+
+            //// Liberar VBO
+            //if (meshData.VBO) {
+            //    glDeleteBuffers(1, &meshData.VBO);
+            //}
+
+            //// Liberar EBO
+            //if (meshData.EBO) {
+            //    glDeleteBuffers(1, &meshData.EBO);
+            //}
+
+            std::cout << "MeshFilter resources released." << std::endl;
+            //markForDeletion();
         }
 
-
         void drawGUI_Inspector() override
-        {
+        {            
+            //Common Delete
             ImGui::Text("MeshFilter");
+
             // Muestra los valores en la ventana usando etiquetas y valores
-            ImGui::Text("VAO: %u", meshData.VAO);
-            ImGui::Text("VBO: %u", meshData.VBO);
-            ImGui::Text("EBO: %u", meshData.EBO);
+
             ImGui::Text("Index Count: %u", meshData.indexCount);
             ImGui::Text("Number of Triangles: %u", meshData.indexCount / 3);
 

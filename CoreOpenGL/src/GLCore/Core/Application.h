@@ -7,22 +7,14 @@
 #include "Input/InputManager.h"  // Asegúrate de que la ruta es correcta
 #include "Input/keyCodes.h"  // Asegúrate de que la ruta es correcta
 
-
 namespace GLCore {
-
-    //enum class RenderPasses {
-    //    SHADOW_MAPPING,
-    //    RENDER_FORWARD
-    //};
-
-    //struct RenderPassData {
-    //    int x, y, width, height;
-    //};
 
     class Application {
     public:
         Application();
         ~Application();
+
+        static bool pauseLoop;
 
         bool initialize(const char* title, GLuint width, GLuint height);
         void run();

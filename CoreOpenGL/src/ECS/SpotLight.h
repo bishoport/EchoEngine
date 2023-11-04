@@ -8,7 +8,7 @@ namespace ECS
     {
     public:
 
-        unsigned int lightID = 0;
+        GLuint lightID = 0;
         bool active = true;
         bool debug = true;
 
@@ -33,7 +33,7 @@ namespace ECS
         glm::mat4 shadowMVP = glm::mat4(1.0f);
         int shadowMapResolution = 1024;
 
-        std::vector<GLuint*> textureBuffers;
+
         GLuint shadowFBO = 0;
         GLuint shadowTex = 0;
         GLuint shadowDepth = 0;
@@ -49,10 +49,28 @@ namespace ECS
             GLCore::Render::PrimitivesHelper::GenerateBuffers(sphereDebugMeshData);
             GLCore::Render::PrimitivesHelper::SetupMeshAttributes(sphereDebugMeshData);
 
-            textureBuffers.push_back(&shadowTex);
             prepareShadows();
         }
 
+
+        void onDestroy() override
+        {
+            // Liberar el mapa de sombras y los recursos asociados.
+            if (shadowTex != 0) {
+                glDeleteTextures(1, &shadowTex);
+                shadowTex = 0;
+            }
+
+            if (shadowDepth != 0) {
+                glDeleteTextures(1, &shadowDepth);
+                shadowDepth = 0;
+            }
+
+            if (shadowFBO != 0) {
+                glDeleteFramebuffers(1, &shadowFBO);
+                shadowFBO = 0;
+            }
+        }
 
         void prepareShadows()
         {
@@ -61,6 +79,8 @@ namespace ECS
 
         void shadowMappingProjection(std::vector<ECS::Entity*> entitiesInScene)
         {
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
             glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
             glViewport(0, 0, shadowMapResolution, shadowMapResolution);
             glClearColor(1, 1, 1, 1);
@@ -88,31 +108,33 @@ namespace ECS
                     }
                 }
             }
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
 
 
-        void setId(int _lightID)
+        void setId(GLuint _lightID)
         {
-            this->lightID = lightID;
+            this->lightID = _lightID;
 
             entity->name = "SpotLight_" + std::to_string(lightID);
 
             //GET LOCATIONS
-            activeL      << "spotLights[" << lightID << "].isActive";
-            ambientL     << "spotLights[" << lightID << "].ambient";
-            diffuseL     << "spotLights[" << lightID << "].diffuse";
-            specularL    << "spotLights[" << lightID << "].specular";
-            positionL    << "spotLights[" << lightID << "].position";
-            directionL   << "spotLights[" << lightID << "].direction";
-            constantL    << "spotLights[" << lightID << "].constant";
-            linearL      << "spotLights[" << lightID << "].linear";
-            quadraticL   << "spotLights[" << lightID << "].quadratic";
-            cutOffL      << "spotLights[" << lightID << "].cutOff";
-            outerCutOffL << "spotLights[" << lightID << "].outerCutOff";
+            activeL      << "spotLights[" << _lightID << "].isActive";
+            ambientL     << "spotLights[" << _lightID << "].ambient";
+            diffuseL     << "spotLights[" << _lightID << "].diffuse";
+            specularL    << "spotLights[" << _lightID << "].specular";
+            positionL    << "spotLights[" << _lightID << "].position";
+            directionL   << "spotLights[" << _lightID << "].direction";
+            constantL    << "spotLights[" << _lightID << "].constant";
+            linearL      << "spotLights[" << _lightID << "].linear";
+            quadraticL   << "spotLights[" << _lightID << "].quadratic";
+            cutOffL      << "spotLights[" << _lightID << "].cutOff";
+            outerCutOffL << "spotLights[" << _lightID << "].outerCutOff";
 
-            drawShadowsL << "spotLights[" << lightID << "].drawShadows";
-            shadowMapL   << "spotLights[" << lightID << "].shadowMap";
-            shadowMapBiasMVPL << "spotLights[" << lightID << "].shadowBiasMVP";
+            drawShadowsL << "spotLights[" << _lightID << "].drawShadows";
+            shadowMapL   << "spotLights[" << _lightID << "].shadowMap";
+            shadowMapBiasMVPL << "spotLights[" << _lightID << "].shadowBiasMVP";
         }
 
         void draw() override
@@ -145,6 +167,10 @@ namespace ECS
                     glBindTexture(GL_TEXTURE_2D, shadowTex);
                     GLCore::Render::ShaderManager::Get(name.c_str())->setInt(shadowMapL.str(), 10);
 
+                    //glActiveTexture(GL_TEXTURE10 + lightID);
+                    //glBindTexture(GL_TEXTURE_2D, shadowTex);
+                    //GLCore::Render::ShaderManager::Get(name.c_str())->setInt(shadowMapL.str(), 10 + lightID);
+
                     //MPV
                     GLCore::Render::ShaderManager::Get(name.c_str())->setMat4(shadowMapBiasMVPL.str(), shadowBias * shadowMVP);
                 }
@@ -163,7 +189,8 @@ namespace ECS
 
         void drawGUI_Inspector() override
         {
-            ImGui::Text("PointLight");
+            ImGui::Text("%s",entity->name.c_str());
+            ImGui::Text("Light Id: %i",lightID);
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
             ImGui::Checkbox("Active", &active);
             ImGui::Checkbox("Debug", &debug);
@@ -262,7 +289,6 @@ namespace ECS
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
         }
 
-        void onDestroy() override {}
 
     private:
         

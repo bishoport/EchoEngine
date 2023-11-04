@@ -11,6 +11,8 @@ namespace GLCore {
     GLuint Application::viewportWidth = 800;
     GLuint Application::viewportHeight = 600;
 
+    bool  Application::pauseLoop = false;
+
     Application* Application::s_Instance = nullptr;
 
     std::unique_ptr<GuiLayer> Application::guiLayer = nullptr;
@@ -100,6 +102,11 @@ namespace GLCore {
         //--------------------------------------------------------------------------------------------------
 
 
+        EventManager::getOnEndDeleteEntity().subscribe([this](const bool& result)
+        {
+                pauseLoop = false;
+        });
+
         return true;
     }
 
@@ -120,61 +127,67 @@ namespace GLCore {
 
         while (!glfwWindowShouldClose(window)) {
 
-            //IF PRESS ESC
-            if (InputManager::Instance().IsKeyJustPressed(GLFW_KEY_ESCAPE)) {
-                glfwSetWindowShouldClose(this->window, true);
+            if (pauseLoop == false)
+            {
+                //IF PRESS ESC
+                if (InputManager::Instance().IsKeyJustPressed(GLFW_KEY_ESCAPE)) {
+                    glfwSetWindowShouldClose(this->window, true);
+                }
+
+                //DELTA TIME
+                Timestep currentFrameTime = glfwGetTime();
+                Timestep deltaTime = currentFrameTime - lastFrameTime;
+                lastFrameTime = currentFrameTime;
+
+                //RENDER PASS DATA
+                viewportWidth = s_WindowWidth - guiLayer->width_dock_Inspector - guiLayer->width_dock_AssetScene;
+                viewportHeight = s_WindowHeight;
+
+                //-------------------------------------------------------------------------------------------------------
+                //std::cout << currentRenderPassData.Width << std::endl;
+
+                InputManager::Instance().Update();
+
+                if (scene) {
+                    scene->update(deltaTime);
+                }
+
+                guiLayer->begin();
+
+
+                //glViewport(currentRenderPassData.x, currentRenderPassData.y, viewportWidth, viewportHeight);
+                //glViewport(currentRenderPassData.X, currentRenderPassData.Y, currentRenderPassData.Width, currentRenderPassData.Height);
+
+                if (scene) {
+                    scene->render();
+                }
+
+                //--ImGUI
+                guiLayer->renderDockers();
+
+                if (scene) {
+                    scene->checkGizmo();
+                }
+                guiLayer->renderMainMenuBar();
+
+                if (scene) {
+                    scene->renderGUI();
+                }
+
+                guiLayer->dockersDimensions();
+
+                guiLayer->end();
+                //------------------------------------------
+
+                // Actualizar el InputManager para el próximo frame
+                InputManager::Instance().EndFrame();
+
+                glfwSwapBuffers(window);
+                glfwPollEvents();
             }
 
-            //DELTA TIME
-            Timestep currentFrameTime = glfwGetTime();
-            Timestep deltaTime = currentFrameTime - lastFrameTime;
-            lastFrameTime = currentFrameTime;
 
-            //RENDER PASS DATA
-            viewportWidth = s_WindowWidth - guiLayer->width_dock_Inspector - guiLayer->width_dock_AssetScene;
-            viewportHeight = s_WindowHeight;
             
-            //-------------------------------------------------------------------------------------------------------
-            //std::cout << currentRenderPassData.Width << std::endl;
-
-            InputManager::Instance().Update();
-            
-            if (scene) {
-                scene->update(deltaTime);
-            }
-
-            guiLayer->begin();
-
-
-            //glViewport(currentRenderPassData.x, currentRenderPassData.y, viewportWidth, viewportHeight);
-            //glViewport(currentRenderPassData.X, currentRenderPassData.Y, currentRenderPassData.Width, currentRenderPassData.Height);
-
-            if (scene) {
-                scene->render();
-            }
-
-            //--ImGUI
-            guiLayer->renderDockers();
-
-            if (scene) {
-                scene->checkGizmo();
-            }
-            guiLayer->renderMainMenuBar();
-
-            if (scene) {
-                scene->renderGUI();
-            }
-
-            guiLayer->dockersDimensions();
-
-            guiLayer->end();
-            //------------------------------------------
-
-            // Actualizar el InputManager para el próximo frame
-            InputManager::Instance().EndFrame();
-
-            glfwSwapBuffers(window);
-            glfwPollEvents();
         }
         glfwTerminate();
     }

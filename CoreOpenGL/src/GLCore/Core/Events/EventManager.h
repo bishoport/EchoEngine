@@ -45,4 +45,10 @@ public:
         return event;
     }
 
+
+    static Event<const bool&>& getOnEndDeleteEntity() {
+        static Event<const bool&> event;
+        return event;
+    }
+
 };

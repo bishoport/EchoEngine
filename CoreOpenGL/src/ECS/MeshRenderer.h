@@ -20,6 +20,16 @@ namespace ECS {
         MeshRenderer() {}
 
 
+        void onDestroy() override
+        {
+            // Liberar VAO
+            glDeleteVertexArrays(1, &meshData.VAO);
+            // Si hay otros VBOs, también deberías liberarlos aquí.
+            glDeleteBuffers(1, &meshData.VBO);  // Si tienes un VBO
+            glDeleteBuffers(1, &meshData.EBO);  // Si tienes un EBO
+
+        }
+
         void init() override 
         {
             this->meshData = entity->getComponent<MeshFilter>().meshData;
@@ -92,7 +102,13 @@ namespace ECS {
 
         void drawGUI_Inspector() override
         {
+            //Common Delete
             ImGui::Text("MeshRenderer");
+            if (ImGui::Button("Delete Mesh Renderer")) {
+                entity->removeComponent<MeshRenderer>();
+                return;
+            }
+
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
             ImGui::Checkbox("Visible Model", &visibleModel);
             ImGui::Checkbox("Draw Local Bounding Box", &drawLocalBB);
