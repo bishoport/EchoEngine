@@ -196,7 +196,7 @@ namespace ECS
 
 
 		// Función para obtener los ángulos de Euler
-		glm::vec3 GetVec() const
+		glm::vec3 GetEuler() const
 		{
 			return glm::eulerAngles(rotation);
 		}

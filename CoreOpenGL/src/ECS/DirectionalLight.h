@@ -298,7 +298,7 @@ namespace ECS
             GLCore::Render::ShaderManager::Get("debug")->use();
             GLCore::Render::ShaderManager::Get("debug")->setMat4("model", glm::mat4(1.0f));
             GLCore::Render::ShaderManager::Get("debug")->setVec4("u_Color", glm::vec4(ambient.r, ambient.g, ambient.b, 1.0));
-            glLineWidth(5);
+            glLineWidth(2);
 
             glBindVertexArray(lineVAO);
             glDrawArrays(GL_LINES, 0, 2);

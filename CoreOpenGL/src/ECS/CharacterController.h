@@ -23,5 +23,4 @@ namespace ECS
             entity->getComponent<Transform>().position += velocity * speed;
         }
     };
-
 } // namespace ECS

@@ -208,6 +208,11 @@ namespace GLCore {
                     {
                         UsarDelegado(MainMenuAction::AddCharacterController);
                     }
+
+                    if (ImGui::MenuItem("Camera"))
+                    {
+                        UsarDelegado(MainMenuAction::AddCamera);
+                    }
                     
                     ImGui::EndMenu(); // Fin del menú OTROS
                 }

@@ -5,6 +5,7 @@
 #include "../../ECS/PointLight.h"
 #include "../../ECS/SpotLight.h"
 #include "../../ECS/DirectionalLight.h"
+#include "../../ECS/Camera.h"
 
 
 namespace GLCore::Render
@@ -82,6 +83,12 @@ namespace GLCore::Render
 	{
 		for (int i = 0; i < entitiesInScene.size(); i++)
 		{
+			//-MATERIALS
+			if (entitiesInScene[i]->hascomponent<ECS::Camera>()) // Only root entities
+			{
+				entitiesInScene[i]->getComponent<ECS::Camera>().draw();
+			}
+
 			//-MATERIALS
 			if (entitiesInScene[i]->hascomponent<ECS::Material>()) // Only root entities
 			{

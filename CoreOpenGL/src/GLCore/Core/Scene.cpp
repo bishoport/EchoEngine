@@ -15,6 +15,7 @@
 
 
 #include "../Util/ModelLoader.h"
+#include "../../ECS/Camera.h"
 
 
 
@@ -191,7 +192,6 @@ namespace GLCore {
 			GLCore::Render::ShaderManager::Get(name.c_str())->setBool("useDirLight", useDirectionalLight);
 			GLCore::Render::ShaderManager::Get(name.c_str())->setInt("numPointLights", totalPointLight);
 			GLCore::Render::ShaderManager::Get(name.c_str())->setInt("numSpotLights", totalSpotLight);
-
 
 			GLCore::Render::ShaderManager::Get(name.c_str())->setVec3("globalAmbient", globalAmbient);
 
@@ -1076,11 +1076,17 @@ namespace GLCore {
 			
 			GLCore::MeshData segCube = GLCore::Render::PrimitivesHelper::CreateSegmentedCube(1);
 
-			gameObject->name = "SegCube_" + std::to_string(rendererManager->entitiesInScene.size());
+			gameObject->name = "CharacterController_" + std::to_string(rendererManager->entitiesInScene.size());
 			gameObject->addComponent<ECS::MeshFilter>().initMesh(segCube);
 			gameObject->addComponent<ECS::MeshRenderer>();
 			gameObject->addComponent<ECS::Material>();
 			gameObject->getComponent<ECS::Material>().setDafaultMaterial();
+		}
+		else if (action == MainMenuAction::AddCamera)
+		{
+			gameObject = &manager.addEntity();
+			gameObject->addComponent<ECS::Camera>();
+			gameObject->name = "Camera_" + std::to_string(rendererManager->entitiesInScene.size());
 		}
 
 
