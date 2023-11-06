@@ -296,8 +296,6 @@
     <None Include="assets\shaders\shadows\pointLight_shadow_mapping_depth_shader.gs" />
     <None Include="assets\shaders\skybox\dynamicSkybox.vs" />
     <None Include="assets\shaders\skybox\dynamicSkybox.fs" />
-    <None Include="assets\shaders\postpro\hdr.vs" />
-    <None Include="assets\shaders\postpro\hdr.fs" />
     <None Include="assets\shaders\main_output_FBO.vs" />
     <None Include="assets\shaders\main_output_FBO.fs" />
     <None Include="assets\shaders\postpro\blur.fs" />
@@ -305,5 +303,7 @@
     <None Include="assets\shaders\postpro\bloom.vs" />
     <None Include="assets\shaders\postpro\bloom.fs" />
     <None Include="assets\shaders\pbr_ibl.fs" />
+    <None Include="assets\shaders\postpro\postprocessing.fs" />
+    <None Include="assets\shaders\postpro\postprocessing.vs" />
   </ItemGroup>
 </Project>

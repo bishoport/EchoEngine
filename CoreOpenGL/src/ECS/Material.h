@@ -68,7 +68,6 @@ namespace ECS {
 			material->prepare_PBRMaterials();
 		}
 
-
         void draw() override 
         {
 			if (entity->hascomponent<MeshRenderer>())
@@ -83,8 +82,6 @@ namespace ECS {
 			}
 			
         }
-
-
 
         void drawGUI_Inspector() override
         {
@@ -202,7 +199,6 @@ namespace ECS {
 				ImGui::EndDragDropTarget();
 			}
 		}
-
     };
 
 }  // namespace ECS

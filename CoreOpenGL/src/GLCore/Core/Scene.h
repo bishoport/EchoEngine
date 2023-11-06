@@ -64,8 +64,8 @@ namespace GLCore {
         //--POST_PROCESSING
         Utils::PostProcessingManager* postproManager = nullptr;
         bool usePostpro = false;
-        float exposure = 1.0f;
-        float gamma = 2.2f;
+        //float exposure = 1.0f;
+        //float gamma = 2.2f;
         unsigned int quadVAO = 0;
         unsigned int quadVBO;
         void renderQuad();

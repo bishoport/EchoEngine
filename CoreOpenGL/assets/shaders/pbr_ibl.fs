@@ -158,14 +158,14 @@ void main()
 
     //COMBINAMOS TODO
     vec3 ambient = (((kD * diffuse * globalAmbient) + specular) * ao);
-    
+     
     vec3 color = ambient + Lo;
 
-    // Ajustar la exposición antes del tonemapping
+    //// Ajustar la exposición antes del tonemapping
     color *= pow(2.0, material.exposure);
-    // HDR tonemapping
-    color = color / (color + vec3(1.0));
-    // Aplicar la corrección gamma
+    //// HDR tonemapping
+    //color = color / (color + vec3(1.0));
+    //// Aplicar la corrección gamma
     color = pow(color, vec3(1.0 / material.gamma));
 
     FragColor = vec4(color, 1.0);

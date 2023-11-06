@@ -226,8 +226,8 @@
     <None Include="assets\shaders\postpro\bloom.vs" />
     <None Include="assets\shaders\postpro\blur.fs" />
     <None Include="assets\shaders\postpro\blur.vs" />
-    <None Include="assets\shaders\postpro\hdr.fs" />
-    <None Include="assets\shaders\postpro\hdr.vs" />
+    <None Include="assets\shaders\postpro\postprocessing.fs" />
+    <None Include="assets\shaders\postpro\postprocessing.vs" />
     <None Include="assets\shaders\shadows\directLight_shadow_mapping_depth_shader.fs" />
     <None Include="assets\shaders\shadows\directLight_shadow_mapping_depth_shader.vs" />
     <None Include="assets\shaders\shadows\pointLight_shadow_mapping_depth_shader.fs" />

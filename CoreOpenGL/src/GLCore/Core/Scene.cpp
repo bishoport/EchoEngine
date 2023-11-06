@@ -61,8 +61,10 @@ namespace GLCore {
 											"assets/shaders/shadows/pointLight_shadow_mapping_depth_shader.fs",
 											"assets/shaders/shadows/pointLight_shadow_mapping_depth_shader.gs");
 
-		GLCore::Render::ShaderManager::Load("hdr", "assets/shaders/postpro/hdr.vs", "assets/shaders/postpro/hdr.fs");
-		GLCore::Render::ShaderManager::Load("main_output_FBO", "assets/shaders/main_output_FBO.vs", "assets/shaders/main_output_FBO.fs");
+		GLCore::Render::ShaderManager::Load("postprocessing", "assets/shaders/postpro/postprocessing.vs", "assets/shaders/postpro/postprocessing.fs");
+		//GLCore::Render::ShaderManager::Load("hdr", "assets/shaders/postpro/hdr.vs", "assets/shaders/postpro/hdr.fs");
+
+		//GLCore::Render::ShaderManager::Load("main_output_FBO", "assets/shaders/main_output_FBO.vs", "assets/shaders/main_output_FBO.fs");
 
 		//--IBL
 		GLCore::Render::ShaderManager::Load("equirectangularToCubemap", 
@@ -115,7 +117,7 @@ namespace GLCore {
 
 		//--POST-PROCESS
 		postproManager = new Utils::PostProcessingManager();
-		postproManager->PrepareFBO(800,600);
+		postproManager->Init(800,600);
 		//--------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -277,18 +279,7 @@ namespace GLCore {
 			glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			GLCore::Render::ShaderManager::Get("main_output_FBO")->use();
-
-			int textureIndex = 5;
-			for (size_t i = 0; i < 2; i++)
-			{
-				glActiveTexture(GL_TEXTURE0 + textureIndex);
-				//glBindTexture(GL_TEXTURE_2D, postprocessGameObject->getComponent<ECS::Bloom>().colorBuffers[i]);
-				glBindTexture(GL_TEXTURE_2D, postproManager->colorBuffers[i]);
-				std::string uniformName = "colorBuffer_" + std::to_string(i);
-				GLCore::Render::ShaderManager::Get("main_output_FBO")->setInt(uniformName.c_str(), textureIndex);
-				textureIndex++;
-			}
+			postproManager->RenderWithPostProcess();
 
 			renderQuad();
 			//-------------------------------------------------------------------------------------------------------------------------------------------
@@ -331,10 +322,10 @@ namespace GLCore {
 		//-------------------------------------------------------------------------------------------------------------------------------------------
 
 
-		GLenum err;
-		while ((err = glGetError()) != GL_NO_ERROR) {
-			std::cerr << "OpenGL error: " << err << std::endl;
-		}
+		//GLenum err;
+		//while ((err = glGetError()) != GL_NO_ERROR) {
+		//	std::cerr << "OpenGL error: " << err << std::endl;
+		//}
 
     }
 
@@ -896,18 +887,10 @@ namespace GLCore {
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
 			ImGui::Checkbox("PostPro", &usePostpro);
+
 			if (usePostpro == true)
 			{
-				if (postproManager->isReady)
-				{
-					ImGui::SliderFloat("HDR EXPOSURE", &exposure, 0.0f, 10.0f, "%.5f");
-					ImGui::SliderFloat("HDR GAMMA", &gamma, 0.0f, 3.0f, "%.5f");
-
-					for (int i = 0; i < 2; i++)
-					{
-						ImGui::Image((void*)(intptr_t)postproManager->colorBuffers[i], ImVec2(256, 256), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
-					}
-				}
+				postproManager->DrawGUI_Inspector();
 			}
 			
 

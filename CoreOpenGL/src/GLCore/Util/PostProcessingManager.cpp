@@ -1,97 +1,182 @@
 #include "PostProcessingManager.h"
 #include "../Render/FBOManager.h"
-
+#include "IMGLoader.h"
 
 namespace GLCore::Utils
 {
     PostProcessingManager::PostProcessingManager(){}
     PostProcessingManager::~PostProcessingManager(){}
 
-    void PostProcessingManager::RenderWithPostProcess()
+
+    void PostProcessingManager::Init(GLuint SCR_WIDTH, GLuint SCR_HEIGHT) 
     {
-        
-    }
-
-    void PostProcessingManager::PrepareFBO(GLuint SCR_WIDTH, GLuint SCR_HEIGHT) {
-
-        // 1. Generar y configurar el framebuffer
-        glGenFramebuffers(1, &FBO);
-        glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-
-        // 2. Crear múltiples color attachments
-        glGenTextures(2, colorBuffers);
-
-        for (GLuint i = 0; i < 2; i++) {
-            glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            // Vincular la textura al framebuffer
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorBuffers[i], 0);
-        }
-
-        // 3. Crear y adjuntar un renderbuffer de profundidad (depth buffer)
-        glGenRenderbuffers(1, &depthBuffer);
-        glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
-
-        // 4. Especificar a qué color attachments se escribirá
-        GLuint attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-        glDrawBuffers(2, attachments);
-
-        // 5. Comprobar si el framebuffer es completo
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-            std::cout << "Framebuffer no está completo!" << std::endl;
-
-        // 6. Desvincular el framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        colorBuffers = GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&FBO, &depthBuffer, 2, SCR_WIDTH, SCR_HEIGHT);
 
         //--RESIZE WINDOW EVENT
         EventManager::getWindowResizeEvent().subscribe([this](GLuint width, GLuint height) {
-            UpdateFBO_size(width, height);
+            GLCore::Render::FBOManager::UpdateFBO_Color_RGBA16F(&FBO, &depthBuffer, colorBuffers, width, height);
         });
         // ---------------------------------------
+        lookupTableTexture0 = GLCore::Utils::ImageLoader::load2DLUTTexture("assets/default/LUT/lookup-table-0.png");
+        lookupTableTexture1 = GLCore::Utils::ImageLoader::load2DLUTTexture("assets/default/LUT/lookup-table-1.png");
+        
 
         isReady = true;
     }
 
+    void PostProcessingManager::RenderWithPostProcess() 
+    {
+        if (isReady)
+        {
+            GLCore::Render::ShaderManager::Get("postprocessing")->use();
 
-    void PostProcessingManager::UpdateFBO_size(GLuint SCR_WIDTH, GLuint SCR_HEIGHT) {
-        // Vincular el framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+            //--HDR
+            GLCore::Render::ShaderManager::Get("postprocessing")->setBool("hdr", hdr);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("exposure", exposure);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("gamma", gamma);
 
-        // Actualizar las texturas de los color buffers
-        for (int i = 0; i < 2; i++) {
-            glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+            //--BLOM
+            GLCore::Render::ShaderManager::Get("postprocessing")->setBool("bloom", bloom);
+
+            //--Color Curve LUT
+            GLCore::Render::ShaderManager::Get("postprocessing")->setBool("colorCurvesLUT", colorCurveLUT);
+            glActiveTexture(GL_TEXTURE0 + 8);
+            glBindTexture(GL_TEXTURE_2D, lookupTableTexture0);
+            glActiveTexture(GL_TEXTURE0 + 9);
+            glBindTexture(GL_TEXTURE_2D, lookupTableTexture1);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setInt("lookupTableTexture0", 8);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setInt("lookupTableTexture1", 9);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("sunPosition", sunPosition);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("lutGamma", lutGamma);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("lutIntensity", lutIntensity);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("shadowIntensity", shadowIntensity);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("midtoneIntensity", midtoneIntensity);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("highlightIntensity", highlightIntensity);
+            //----------------------------------------------------------------------------------------------------------------
+
+            //--ACES
+            GLCore::Render::ShaderManager::Get("postprocessing")->setBool("ACES", ACES);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("ACES_a", currentParameters.ACES_a);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("ACES_b", currentParameters.ACES_b);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("ACES_c", currentParameters.ACES_c);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("ACES_d", currentParameters.ACES_d);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("ACES_e", currentParameters.ACES_e);
+
+            int textureIndex = 5;
+            for (size_t i = 0; i < 2; i++)
+            {
+                glActiveTexture(GL_TEXTURE0 + textureIndex);
+                glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
+                std::string uniformName = "colorBuffer_" + std::to_string(i);
+                GLCore::Render::ShaderManager::Get("postprocessing")->setInt(uniformName.c_str(), textureIndex);
+
+                textureIndex++;
+            }
+
+            //--SATURATION
+            GLCore::Render::ShaderManager::Get("postprocessing")->setBool("SATURATION", SATURATION);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setVec3("whiteBalanceColor", whiteBalanceColor);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("saturationRed", saturationRed);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("saturationGreen", saturationGreen);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("saturationBlue", saturationBlue);
         }
-
-        // Actualizar el renderbuffer de profundidad
-        glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
-
-        // Desvincular el framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
-
-
 
     void PostProcessingManager::DrawGUI_Inspector()
     {
-        ImGui::Text("Bloom");
-
-        ImGui::Dummy(ImVec2(0.0f, 5.0f));
-
-        for (size_t i = 0; i < 2; i++)
+        if (isReady)
         {
-            ImGui::Image((void*)(intptr_t)colorBuffers[i], ImVec2(256, 256), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
+            //--HDR
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+            ImGui::Checkbox("HDR", &hdr);
+            if (hdr)
+            {
+                ImGui::SliderFloat("HDR EXPOSURE", &exposure, 0.0f, 10.0f, "%.5f");
+                ImGui::SliderFloat("HDR GAMMA", &gamma, 0.0f, 3.0f, "%.5f");
+            }
+            ImGui::Separator();
+            //-----------------------------------------------------------------------------
+
+            //--BLOOM
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+            ImGui::Checkbox("BLOOM", &bloom);
+            if (bloom)
+            {
+            }
+            ImGui::Separator();
+            //------------------------------------------------------------------------------
+
+            //--COLOR CURVES LUT
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+            ImGui::Checkbox("COLOR CURVES LUT", &colorCurveLUT);
+            if (colorCurveLUT)
+            {
+                ImGui::SliderFloat("Intensity", &lutIntensity, 0.0f, 1.0f, "%.3f");
+                ImGui::SliderFloat("lut Gamma", &lutGamma, 0.0f, 1.0f, "%.3f");
+
+
+                ImGui::SliderFloat("Shadow", &shadowIntensity, -1.0f, 1.0f, "%.3f");
+                ImGui::SliderFloat("Midtone", &midtoneIntensity, -1.0f, 1.0f, "%.3f");
+                ImGui::SliderFloat("Highlight", &highlightIntensity, -1.0f, 1.0f, "%.3f");
+
+                ImGui::SliderFloat("Evolution Light", &sunPosition, -1.0f, 1.0f, "%.3f");
+
+                ImGui::Image((void*)(intptr_t)lookupTableTexture0, ImVec2(256, 16), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
+                ImGui::Image((void*)(intptr_t)lookupTableTexture1, ImVec2(256, 16), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
+            }
+            ImGui::Separator();
+            //------------------------------------------------------------------------------
+
+
+            //--ACES
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+            ImGui::Checkbox("ACES", &ACES);
+
+            if (ACES)
+            {
+
+                for (int i = 0; i < sizeof(presets) / sizeof(presets[0]); ++i) {
+                    std::string buttonLabel = presets[i].name;
+                    if (ImGui::Button(buttonLabel.c_str())) {
+                        currentParameters = presets[i];
+                        // Aquí aplicarías el preset seleccionado a tu shader.
+                    }
+                }
+                // Opcionalmente, podrías mostrar y editar los valores actuales.
+                ImGui::SliderFloat("Intensidad de las luces", &currentParameters.ACES_a, 1.0f, 3.0f);
+                ImGui::SliderFloat("Offset de las luces altas", &currentParameters.ACES_b, 0.0f, 0.1f);
+                ImGui::SliderFloat("Contraste general", &currentParameters.ACES_c, 1.0f, 3.0f);
+                ImGui::SliderFloat("Contraste en sombras/midtones", &currentParameters.ACES_d, 0.5f, 1.0f);
+                ImGui::SliderFloat("Normalizacion para negros", &currentParameters.ACES_e, 0.0f, 0.2f);
+
+            }
+
+            ImGui::Separator();
+            //------------------------------------------------------------------------------
+
+
+            //--SATURATION
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+            ImGui::Checkbox("SATURATION", &SATURATION);
+
+            if (SATURATION)
+            {
+                ImGui::ColorEdit3("White Balance", glm::value_ptr(whiteBalanceColor));
+                ImGui::SliderFloat("Red Saturation", &saturationRed, 0.0f, 5.0f, "%.4f");
+                ImGui::SliderFloat("Green Saturation", &saturationGreen, 0.0f, 5.0f, "%.4f");
+                ImGui::SliderFloat("Blue Saturation", &saturationBlue, 0.0f, 5.0f, "%.4f");
+            }
+            ImGui::Separator();
+
+            
+            /*ImGui::Dummy(ImVec2(0.0f, 5.0f));
+            for (int i = 0; i < 2; i++)
+            {
+                ImGui::Image((void*)(intptr_t)colorBuffers[i], ImVec2(256, 256), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
+            }
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));*/
+            
+
         }
-
-
-        ImGui::Separator();
-        ImGui::Dummy(ImVec2(0.0f, 5.0f));
     }
 }
