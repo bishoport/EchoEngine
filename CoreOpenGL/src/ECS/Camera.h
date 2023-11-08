@@ -7,13 +7,16 @@ namespace ECS
     {
 
     public:
+        glm::vec3 m_Position;
         unsigned int m_camID = 0;
         bool m_active = true;
         bool m_debug = true;
 
-    public:
+        GLuint FBO = 0;
+        GLuint depthBuffer = 0;
+        std::vector<GLuint> colorBuffers;
 
-        //glm::vec3 direction = glm::vec3(0.0f, -10.0f, 0.0f);
+    public:
 
         void init() override
         {
@@ -31,6 +34,21 @@ namespace ECS
 
             SetProjection(m_Fov, m_AspectRatio, m_NearClip, m_FarClip);
             RecalculateViewMatrix();
+
+            //--FBO SCENE
+            colorBuffers = GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&FBO, &depthBuffer, 1, 800, 600);
+            // ---------------------------------------
+
+
+            //--RESIZE SCENE PANEL EVENT
+            EventManager::getOnPanelResizedEvent().subscribe([this](const std::string name, const ImVec2& size, const ImVec2& position)
+            {
+                if (name == "GAME")
+                {
+                    GLCore::Render::FBOManager::UpdateFBO_Color_RGBA16F(&FBO, &depthBuffer, colorBuffers, size.x, size.y);
+                }
+            });
+            //---------------------------------------------------
         }
 
         void setCamId(unsigned int camID)
@@ -45,26 +63,46 @@ namespace ECS
             m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
         }
 
-        void update() override 
+        void update() override
         {
-            // Recuperamos el componente Transform de la entidad
+            // Aquí solo necesitamos asegurarnos de que la escala de la entidad es la correcta.
+            // Asumiendo que esto es necesario en cada frame. Si no, esto podría ir en la función init.
             Transform& transform = entity->getComponent<Transform>();
+            transform.scale = glm::vec3(1.0f);  // Esto establece la escala a 1 en todas las direcciones.
 
-            transform.scale.x = 1.0f;
-            transform.scale.y = 1.0f;
-            transform.scale.z = 1.0f;
+            // Obtiene la posición local de la cámara y la matriz de modelo local.
+            // La posición global y la rotación se manejarán en RecalculateViewMatrix.
 
-            // Ahora, directamente podemos obtener la matriz de transformación del objeto
             model_transform_matrix = transform.getLocalModelMatrix();
-
-            // Si hay un padre, combinamos nuestras transformaciones con las de él.
             if (entity->getComponent<Transform>().parent != nullptr) {
-                model_transform_matrix = entity->getComponent<Transform>().parent->getComponent<Transform>().getLocalModelMatrix() * model_transform_matrix;
+               model_transform_matrix = entity->getComponent<Transform>().parent->getComponent<Transform>().getLocalModelMatrix() * model_transform_matrix;
             }
 
-            SetPosition(transform.getLocalPosition());
-            SetRotation(transform.GetEuler());
+            // Recalcular la matriz de vista ahora también manejará la posición y rotación del padre.
+            RecalculateViewMatrix();
         }
+
+        //void update() override 
+        //{
+        //    entity->getComponent<Transform>().scale.x = 1.0f;
+        //    entity->getComponent<Transform>().scale.y = 1.0f;
+        //    entity->getComponent<Transform>().scale.z = 1.0f;
+
+        //    m_Position = entity->getComponent<Transform>().getLocalPosition();
+
+        //    model_transform_matrix = entity->getComponent<Transform>().getLocalModelMatrix();
+
+        //    //Check if has parent
+        //    if (entity->getComponent<Transform>().parent != nullptr) {
+        //       model_transform_matrix = entity->getComponent<Transform>().parent->getComponent<Transform>().getLocalModelMatrix() * model_transform_matrix;
+        //       m_Position = entity->getComponent<Transform>().parent->getComponent<Transform>().position + m_Position;
+        //    }
+
+        //    RecalculateViewMatrix();
+        //}
+
+
+
 
         void draw() override
         {
@@ -73,23 +111,7 @@ namespace ECS
                 drawDebug();
             }
         }
-
-        void SetPosition(const glm::vec3& position)
-        {
-            m_Position = position;
-            RecalculateViewMatrix();
-        }
-        void SetRotation(const glm::vec2& rotation)
-        {
-            m_Rotation = rotation;
-            RecalculateViewMatrix();
-        }
-        void SetFov(float fov)
-        {
-            m_Fov = fov;
-            // Reconfigura la proyección con el nuevo FOV
-            SetProjection(m_Fov, 16.0f / 9.0f, 0.1f, 100.0f);
-        }
+       
 
         void drawGUI_Inspector() override
         {
@@ -119,10 +141,16 @@ namespace ECS
             }
         }
 
+        float GetFov()
+        {
+            return m_Fov;
+        }
+
         const glm::mat4& GetProjectionMatrix() const { return m_ProjectionMatrix; }
         const glm::mat4& GetViewMatrix() const { return m_ViewMatrix; }
         const glm::mat4& GetViewProjectionMatrix() const { return m_ViewProjectionMatrix; }
-    
+
+
 
     private:
         glm::mat4 model_transform_matrix{ glm::mat4(1.0f) };
@@ -131,7 +159,7 @@ namespace ECS
         glm::mat4 m_ViewMatrix;
         glm::mat4 m_ViewProjectionMatrix;
 
-        glm::vec3 m_Position;
+        
         glm::vec3 m_Front;
         glm::vec3 m_Up;
         glm::vec3 m_Right;
@@ -149,20 +177,93 @@ namespace ECS
 
 
     private:
-        void RecalculateViewMatrix()
-        {
-            glm::vec3 front;
-            front.x = cos(glm::radians(m_Rotation.y)) * cos(glm::radians(m_Rotation.x));
-            front.y = sin(glm::radians(m_Rotation.x));
-            front.z = sin(glm::radians(m_Rotation.y)) * cos(glm::radians(m_Rotation.x));
-            m_Front = glm::normalize(front);
 
-            m_Right = glm::normalize(glm::cross(m_Front, m_WorldUp));
-            m_Up = glm::normalize(glm::cross(m_Right, m_Front));
+        void RecalculateViewMatrix() {
+            Transform& cameraTransform = entity->getComponent<Transform>();
+            glm::quat cameraRotation = cameraTransform.rotation;
+            glm::vec3 cameraPosition; // Inicializada más adelante
 
-            m_ViewMatrix = glm::lookAt(m_Position, m_Position + m_Front, m_Up);
+            // Usar la matriz de modelo global para obtener la posición y rotación correctas
+            glm::mat4 globalModelMatrix = cameraTransform.computeGlobalModelMatrix();
+            cameraPosition = glm::vec3(globalModelMatrix[3]); // Extraer la posición global de la matriz de modelo
+            cameraRotation = glm::quat_cast(globalModelMatrix); // Extraer la rotación global de la matriz de modelo
+
+            // Actualizar los vectores de dirección de la cámara usando la rotación global
+            m_Front = glm::rotate(cameraRotation, glm::vec3(0, 0, -1));
+            m_Right = glm::rotate(cameraRotation, glm::vec3(1, 0, 0));
+            m_Up = glm::rotate(cameraRotation, glm::vec3(0, 1, 0));
+
+            // Utilizar glm::lookAt para crear la matriz de vista con los nuevos vectores de dirección y posición
+            m_ViewMatrix = glm::lookAt(cameraPosition, cameraPosition + m_Front, m_Up);
             m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
         }
+
+        //void RecalculateViewMatrix()
+        //{
+        //    Transform& cameraTransform = entity->getComponent<Transform>();
+        //    glm::quat cameraRotation = cameraTransform.rotation;
+        //    glm::vec3 cameraPosition = cameraTransform.position;
+
+        //    if (cameraTransform.parent != nullptr) {
+        //        Transform& parentTransform = cameraTransform.parent->getComponent<Transform>();
+        //        glm::quat parentRotation = parentTransform.rotation;
+        //        glm::vec3 parentPosition = parentTransform.position;
+
+        //        // Rotar la posición de la cámara alrededor del centro del padre
+        //        glm::vec3 relativePosition = cameraPosition - parentPosition; // Posición relativa a la del padre
+        //        relativePosition = glm::rotate(parentRotation, relativePosition); // Rotar la posición relativa
+        //        cameraPosition = parentPosition + relativePosition; // Volver a aplicar la posición del padre
+
+        //        // La rotación de la cámara debería ser la rotación del padre
+        //        cameraRotation = parentRotation;
+        //    }
+
+        //    // Actualizar los vectores de dirección de la cámara usando la rotación combinada
+        //    m_Front = glm::rotate(cameraRotation, glm::vec3(0, 0, -1));
+        //    m_Right = glm::rotate(cameraRotation, glm::vec3(1, 0, 0));
+        //    m_Up = glm::rotate(cameraRotation, glm::vec3(0, 1, 0));
+
+        //    // Utilizar glm::lookAt para crear la matriz de vista con los nuevos vectores de dirección y posición
+        //    m_ViewMatrix = glm::lookAt(cameraPosition, cameraPosition + m_Front, m_Up);
+        //    m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
+        //}
+        //void RecalculateViewMatrix()
+        //{
+        //    Transform& cameraTransform = entity->getComponent<Transform>();
+        //    glm::quat cameraRotation = cameraTransform.rotation;
+        //    glm::vec3 cameraPosition = cameraTransform.position;
+
+        //    // Verificar si la entidad tiene padre y ajustar la posición y rotación en consecuencia
+        //    if (cameraTransform.parent != nullptr) {
+        //        // Obtener la transformación del padre
+        //        Transform& parentTransform = cameraTransform.parent->getComponent<Transform>();
+        //        glm::quat parentRotation = parentTransform.rotation;
+        //        glm::vec3 parentPosition = parentTransform.position;
+
+        //        // Combinar la posición: posición del padre + posición de la cámara
+        //        cameraPosition = parentPosition + cameraPosition; // Esto es en el espacio local del padre
+
+        //        // Combinar la rotación: rotación del padre * rotación de la cámara
+        //        cameraRotation = parentRotation * cameraRotation; // Orden de multiplicación es importante
+        //    }
+
+        //    // Actualizar los vectores de dirección de la cámara usando la rotación combinada
+        //    m_Front = glm::rotate(cameraRotation, glm::vec3(0, 0, -1));
+        //    m_Right = glm::rotate(cameraRotation, glm::vec3(1, 0, 0));
+        //    m_Up = glm::rotate(cameraRotation, glm::vec3(0, 1, 0));
+
+        //    // Actualizar la posición de la cámara
+        //    m_Position = cameraPosition;
+
+        //    // Utilizar glm::lookAt para crear la matriz de vista con los nuevos vectores de dirección y posición
+        //    m_ViewMatrix = glm::lookAt(m_Position, m_Position + m_Front, m_Up);
+        //    m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
+        //}
+
+
+
+
+
         void drawDebug()
         {
             GLCore::Render::ShaderManager::Get("debug")->use();
@@ -267,8 +368,6 @@ namespace ECS
 
             return frustumEdges;
         }
-
-    
     };
 } // namespace ECS
 

@@ -180,11 +180,18 @@ namespace GLCore {
 		//----------------------------------------------------------------------------------------------------------------------------
 
 
-        //--CAMERA
+        //--EDITOR CAMERA
         aspectRatio = static_cast<float>(sceneSize.x) / static_cast<float>(sceneSize.y);
+
         m_EditorCamera.GetCamera().SetProjection(m_EditorCamera.GetCamera().GetFov(), aspectRatio, 0.1f, 100.0f);
         m_EditorCamera.OnUpdate(deltaTime);
         //----------------------------------------------------------------------------------------------------------------------------
+
+		//--GAME CAMERAS
+		for (int i = 0; i < cameras.size(); i++)
+		{
+			cameras[i]->SetProjection(cameras[i]->GetFov(), gameSize.x / gameSize.y, 0.1f, 100.0f);
+		}
     }
 
 
@@ -192,6 +199,55 @@ namespace GLCore {
 
     void Scene::render()
     {
+		//--EDITOR CAMERA
+		glm::mat4 cameraEditorProjectionMatrix = m_EditorCamera.GetCamera().GetProjectionMatrix();
+		glm::mat4 cameraEditorViewMatrix       = m_EditorCamera.GetCamera().GetViewMatrix();
+		glm::vec3 cameraEditorPosition         = m_EditorCamera.GetCamera().GetPosition();
+		SetGenericsUniforms(cameraEditorProjectionMatrix, cameraEditorViewMatrix, cameraEditorPosition);
+
+
+		FBO_Data fboDataEditor;
+		fboDataEditor.FBO = &scene_FBO;
+		fboDataEditor.depthBuffer = &scene_depthBuffer;
+		fboDataEditor.colorBuffers = scene_colorBuffers;
+		fboDataEditor.drawSize = sceneSize;
+		fboDataEditor.drawPos = scenePos;
+		RenderPipeline(cameraEditorProjectionMatrix, cameraEditorViewMatrix, cameraEditorPosition, fboDataEditor);
+		//----------------------------------------------------------------------------------------
+
+
+
+		//--GAME CAMERAS
+		for (int i = 0; i < cameras.size(); i++)
+		{
+			glm::mat4 cameraProjectionMatrix = cameras[i]->GetProjectionMatrix();
+			glm::mat4 cameraViewMatrix = cameras[i]->GetViewMatrix();
+			glm::vec3 cameraPosition = cameras[i]->m_Position;
+			SetGenericsUniforms(cameraProjectionMatrix, cameraViewMatrix, cameraPosition);
+
+			FBO_Data fboData;
+			fboData.FBO = &cameras[i]->FBO;
+			fboData.depthBuffer = &cameras[i]->depthBuffer;
+			fboData.colorBuffers = cameras[i]->colorBuffers;
+			fboData.drawSize = gameSize;
+			fboData.drawPos = gamePos;
+			RenderPipeline(cameraProjectionMatrix, cameraViewMatrix, cameraPosition, fboData);
+		}
+
+
+		//-ACTIVE SELECTED ENTITY
+		if (m_SelectedEntity != nullptr && m_SelectedEntity->hascomponent<ECS::MeshRenderer>())
+		{
+			m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = true;
+		}
+		CheckIfPointerIsOverObject();
+		//-------------------------------------------------------------------------------------------------------------------------------------------
+    }
+
+
+
+	void GLCore::Scene::SetGenericsUniforms(glm::mat4 cameraProjectionMatrix, glm::mat4 cameraViewMatrix, glm::vec3 cameraPosition)
+	{
 		//-GENERICS TO ALL SHADER
 		for (const auto& [name, shader] : GLCore::Render::ShaderManager::GetAllShaders())
 		{
@@ -203,48 +259,33 @@ namespace GLCore {
 
 			GLCore::Render::ShaderManager::Get(name.c_str())->setVec3("globalAmbient", globalAmbient);
 
-			GLCore::Render::ShaderManager::Get(name.c_str())->setMat4("projection", m_EditorCamera.GetCamera().GetProjectionMatrix());
-			GLCore::Render::ShaderManager::Get(name.c_str())->setMat4("view", m_EditorCamera.GetCamera().GetViewMatrix());
-			GLCore::Render::ShaderManager::Get(name.c_str())->setVec3("viewPos", m_EditorCamera.GetCamera().GetPosition());
-		}
-
-
-		if (showSkybox == true)
-		{
-			//--------------------------------------------IBL
-			//glDepthFunc(GL_LEQUAL);
-
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
-			glActiveTexture(GL_TEXTURE1);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap); // display irradiance map
-			glActiveTexture(GL_TEXTURE2);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);  // display prefilter map
-
-			GLCore::Render::ShaderManager::Get("pbr_ibl")->use();
-			GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("irradianceMap", 0);
-			GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("prefilterMap", 1);
-			GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("brdfLUT", 2);
+			GLCore::Render::ShaderManager::Get(name.c_str())->setMat4("projection", cameraProjectionMatrix);
+			GLCore::Render::ShaderManager::Get(name.c_str())->setMat4("view", cameraViewMatrix);
+			GLCore::Render::ShaderManager::Get(name.c_str())->setVec3("viewPos", cameraPosition);
 		}
 		//-------------------------------------------------------------------------------------------------------------------------------------------
+	}
 
 
+	void GLCore::Scene::RenderPipeline(glm::mat4 cameraProjectionMatrix, glm::mat4 cameraViewMatrix, glm::vec3 cameraPosition, FBO_Data fboData)
+	{
 		//--RENDER-PIPELINE
-		
+
 		//__1.-SHADOW PASS
 		rendererManager->passShadow();
 
-		
+		//clear
 		glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
+
 		if (usePostprocessing)
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, postproManager->FBO);
-			glViewport(0, 0, sceneSize.x, sceneSize.y);
+			glViewport(0, 0, fboData.drawSize.x, fboData.drawSize.y);
 			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+			//--------------------------------------------SHOW_HDR-IRRADIANCE_BOX-----------------------------------------------------------------------------
 			if (showSkybox == true)
 			{
 				//--------------------------------------------IBL
@@ -263,18 +304,19 @@ namespace GLCore {
 				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("brdfLUT", 2);
 
 
-				glm::mat4 viewHDR = glm::mat4(glm::mat3(m_EditorCamera.GetCamera().GetViewMatrix()));
-				
+				glm::mat4 viewHDR = glm::mat4(glm::mat3(cameraViewMatrix));
+
 				// Escala la matriz de vista para hacer el skybox más grande
 				float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
 				viewHDR = glm::scale(viewHDR, glm::vec3(scale, scale, scale));
 				GLCore::Render::ShaderManager::Get("background")->use();
 				GLCore::Render::ShaderManager::Get("background")->setMat4("view", viewHDR);
-				GLCore::Render::ShaderManager::Get("background")->setMat4("projection", m_EditorCamera.GetCamera().GetProjectionMatrix());
+				GLCore::Render::ShaderManager::Get("background")->setMat4("projection", cameraProjectionMatrix);
 				GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 0);
 				renderCube();
 				//----------------------------------------------------------------------------------------------------
 			}
+			//-------------------------------------------------------------------------------------------------------------------------------------------
 
 			//__2.-LIGHT PASS
 			rendererManager->passLights();
@@ -288,32 +330,32 @@ namespace GLCore {
 			//-------------------------------------------------------------------------------------------------------------------------------------------
 
 			//__5.-DRAW POSTPROCESED IMAGE TO TEXTURE IN QUAD & DRAW IN SCENE_FBO
-			glBindFramebuffer(GL_FRAMEBUFFER, scene_FBO);
-			glViewport(0, 0, sceneSize.x, sceneSize.y);
+			glBindFramebuffer(GL_FRAMEBUFFER, *fboData.FBO);
+			glViewport(0, 0, fboData.drawSize.x, fboData.drawSize.y);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			renderQuad();
 			//-------------------------------------------------------------------------------------------------------------------------------------------
-			
+
 			//__6.-BACK TO DEFAULT FBO AND CONTINUE DRAWING OTHER STUFF´s
 			glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
 			//-------------------------------------------------------------------------------------------------------------------------------------------
 		}
 		else
 		{
-			glBindFramebuffer(GL_FRAMEBUFFER, scene_FBO);
-			glViewport(0, 0, sceneSize.x, sceneSize.y);
+			glBindFramebuffer(GL_FRAMEBUFFER, *fboData.FBO);
+			glViewport(0, 0, fboData.drawSize.x, fboData.drawSize.y);
 			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			if (showSkybox == true)
 			{
-				glm::mat4 viewHDR = glm::mat4(glm::mat3(m_EditorCamera.GetCamera().GetViewMatrix()));
+				glm::mat4 viewHDR = glm::mat4(glm::mat3(cameraViewMatrix));
 				// Escala la matriz de vista para hacer el skybox más grande
 				float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
 				viewHDR = glm::scale(viewHDR, glm::vec3(scale, scale, scale));
 				GLCore::Render::ShaderManager::Get("background")->use();
 				GLCore::Render::ShaderManager::Get("background")->setMat4("view", viewHDR);
-				GLCore::Render::ShaderManager::Get("background")->setMat4("projection", m_EditorCamera.GetCamera().GetProjectionMatrix());
+				GLCore::Render::ShaderManager::Get("background")->setMat4("projection", cameraProjectionMatrix);
 				GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 0);
 				renderCube();
 			}
@@ -324,63 +366,31 @@ namespace GLCore {
 			rendererManager->passGeometry();
 
 			glActiveTexture(GL_TEXTURE5);
-			glBindTexture(GL_TEXTURE_2D, scene_colorBuffers[0]);
+			glBindTexture(GL_TEXTURE_2D, fboData.colorBuffers[0]);
 
 			GLCore::Render::ShaderManager::Get("main_output_FBO")->use();
 			GLCore::Render::ShaderManager::Get("main_output_FBO")->setInt("colorBuffer_0", 5);
 
-			
+
 			glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
-			glViewport(0, 0, sceneSize.x, sceneSize.y);
+			glViewport(0, 0, fboData.drawSize.x, fboData.drawSize.y);
 			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			renderQuad();
 		}
 		//-------------------------------------------------------------------------------------------------------------------------------------------
-		
 
-		//RENDER IN DEFAULT FBO
-		//glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
-		//glViewport(0, 0, sceneSize.x, sceneSize.y);
-		//glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
-		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
 
-		//if (showSkybox == true)
-		//{
-		//	glm::mat4 viewHDR = glm::mat4(glm::mat3(m_EditorCamera.GetCamera().GetViewMatrix()));
-		//	// Escala la matriz de vista para hacer el skybox más grande
-		//	float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
-		//	viewHDR = glm::scale(viewHDR, glm::vec3(scale, scale, scale));
-		//	GLCore::Render::ShaderManager::Get("background")->use();
-		//	GLCore::Render::ShaderManager::Get("background")->setMat4("view", viewHDR);
-		//	GLCore::Render::ShaderManager::Get("background")->setMat4("projection", m_EditorCamera.GetCamera().GetProjectionMatrix());
-		//	GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 0);
-		//	renderCube();
-		//}
-
-		////RenderPipeline
-		//rendererManager->passLights();
-		//gridWorldRef->Render();
-		//rendererManager->passGeometry();
-
-
-
-		//-ACTIVE SELECTED ENTITY
-		if (m_SelectedEntity != nullptr && m_SelectedEntity->hascomponent<ECS::MeshRenderer>())
-		{
-			m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = true;
-		}
-		CheckIfPointerIsOverObject();
-		//-------------------------------------------------------------------------------------------------------------------------------------------
-
-
-		//GLenum err;
-		//while ((err = glGetError()) != GL_NO_ERROR) {
-		//	std::cerr << "OpenGL error: " << err << std::endl;
-		//}
-
-    }
+	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 
@@ -1003,8 +1013,9 @@ namespace GLCore {
 
 		//-------------------------------------------SCENE PANEL--------------------------------------------
 		ImGui::Begin("SCENE", nullptr);
-		scenePos = ImGui::GetWindowPos();
 		sceneSize = ImGui::GetWindowSize();
+		scenePos = ImGui::GetWindowPos();
+		
 
 		EventManager::getOnPanelResizedEvent().trigger("SCENE", sceneSize, scenePos);
 
@@ -1013,11 +1024,48 @@ namespace GLCore {
 
 		if (ImGui::IsWindowHovered())
 		{
+			currentPanelSize = sceneSize;
+			currentPanelPos = scenePos;
+			
 			mouseInScene = true;
 			checkGizmo();
 		}
 		ImGui::End();
 		//---------------------------------------------------------------------------------------------------
+
+
+
+		//-------------------------------------------GAME PANEL--------------------------------------------
+		ImGui::Begin("GAME", nullptr);
+		gameSize = ImGui::GetWindowSize();
+		gamePos  = ImGui::GetWindowPos();
+		
+		EventManager::getOnPanelResizedEvent().trigger("GAME", gameSize, gamePos);
+
+		if (cameras.size() > 0)
+		{
+			ImGui::Image((void*)(intptr_t)cameras[0]->colorBuffers[0], ImVec2(gameSize.x, gameSize.y), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
+		}
+		else
+		{
+			ImGui::Text("No camera/s added in scene");
+		}
+		
+		
+		mouseInGame = false;
+		if (ImGui::IsWindowHovered())
+		{
+			currentPanelSize = gameSize;
+			currentPanelPos = gamePos;
+
+			mouseInGame = true;
+			checkGizmo();
+		}
+
+		ImGui::End();
+		//---------------------------------------------------------------------------------------------------
+
+
 
 
 		//-------------------------------------------------DIALOGS--------------------------------------
@@ -1158,6 +1206,8 @@ namespace GLCore {
 			gameObject = &manager.addEntity();
 			gameObject->addComponent<ECS::Camera>();
 			gameObject->name = "Camera_" + std::to_string(rendererManager->entitiesInScene.size());
+
+			cameras.push_back(&gameObject->getComponent<ECS::Camera>());
 		}
 
 
@@ -1251,8 +1301,8 @@ namespace GLCore {
 			m_SelectedEntity = nullptr; //Reset de la variable que almacena la entity seleccioanda preparandola para recibit o no una nueva selección
 
 			//llevamos un punto 2D a un espacio 3D (mouse position -> escene)
-			float normalizedX = (2.0f * mouseX) / sceneSize.x - 1.0f;
-			float normalizedY = ((2.0f * mouseY) / sceneSize.y - 1.0f) * -1.0f;
+			float normalizedX = (2.0f * mouseX) / currentPanelSize.x - 1.0f;
+			float normalizedY = ((2.0f * mouseY) / currentPanelSize.y - 1.0f) * -1.0f;
 			glm::vec3 clipSpaceCoordinates(normalizedX, normalizedY, 1.0);
 
 			glm::vec4 homogenousCoordinates = glm::inverse(m_EditorCamera.GetCamera().GetProjectionMatrix() *

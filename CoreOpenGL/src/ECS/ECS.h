@@ -207,6 +207,19 @@ namespace ECS
 			m_isDirty = false;
 		}
 
+
+		glm::mat4 computeGlobalModelMatrix() const {
+			if (parent != nullptr) {
+				// Si hay un padre, pre-multiplicamos la matriz de modelo local por la del padre
+				return parent->getComponent<Transform>().computeGlobalModelMatrix() * getLocalModelMatrix();
+			}
+			else {
+				// Si no hay un padre, la matriz global es simplemente la local
+				return getLocalModelMatrix();
+			}
+		}
+
+
 		void computeModelMatrix(const glm::mat4& parentGlobalModelMatrix)
 		{
 			m_modelMatrix = parentGlobalModelMatrix * getLocalModelMatrix();

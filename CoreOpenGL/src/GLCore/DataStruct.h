@@ -11,6 +11,14 @@ namespace GLCore
         AO
     };
 
+    struct FBO_Data {
+        GLuint* FBO = nullptr;
+        GLuint* depthBuffer = nullptr;
+        std::vector<GLuint> colorBuffers;
+        ImVec2 drawPos = ImVec2(0.0f, 0.0f);
+        ImVec2 drawSize = ImVec2(640.0f, 480.0f);
+    };
+
     // Definir un struct para las opciones de importación
     struct ImportOptions {
         std::string filePath;

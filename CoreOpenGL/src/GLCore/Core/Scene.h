@@ -13,6 +13,7 @@
 #include "../Util/Skybox.h"
 #include "../Util/DynamicSkybox.h"
 #include "../Util/GridWorldReference.h"
+#include "../../ECS/Camera.h"
 
 
 
@@ -63,10 +64,22 @@ namespace GLCore {
         //---------------------------------------------------
 
         
+        //--GENERICS_ALL_PANELS
+        ImVec2 currentPanelPos = ImVec2(0.0f, 0.0f);
+        ImVec2 currentPanelSize = ImVec2(640.0f, 480.0f);
+        //---------------------------------------------------
+
         //--SCENE_PANEL
         ImVec2 scenePos = ImVec2(0.0f, 0.0f);
         ImVec2 sceneSize = ImVec2(640.0f, 480.0f);
         bool mouseInScene = false;
+        //---------------------------------------------------
+
+        //--GAME_PANEL
+        std::vector<ECS::Camera*> cameras;
+        ImVec2 gamePos = ImVec2(0.0f, 0.0f);
+        ImVec2 gameSize = ImVec2(640.0f, 480.0f);
+        bool mouseInGame = false;
         //---------------------------------------------------
 
         //--FBO SCENE
@@ -74,6 +87,9 @@ namespace GLCore {
         GLuint scene_FBO = 0;
         GLuint scene_depthBuffer = 0;
         std::vector<GLuint> scene_colorBuffers;
+
+        void SetGenericsUniforms(glm::mat4 cameraProjectionMatrix, glm::mat4 cameraViewMatrix, glm::vec3 cameraPosition);
+        void RenderPipeline(glm::mat4 cameraProjectionMatrix, glm::mat4 cameraViewMatrix, glm::vec3 cameraPosition, FBO_Data fboData);
         //---------------------------------------------------
 
         //--POST_PROCESSING
