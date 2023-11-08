@@ -40,8 +40,8 @@ public:
         return event;
     }
 
-    static Event<const std::string&, const ImVec2&>& getOnPanelResizedEvent() {
-        static Event<const std::string&, const ImVec2&> event;
+    static Event<const std::string&, const ImVec2&, const ImVec2&>& getOnPanelResizedEvent() {
+        static Event<const std::string&, const ImVec2&, const ImVec2&> event;
         return event;
     }
 

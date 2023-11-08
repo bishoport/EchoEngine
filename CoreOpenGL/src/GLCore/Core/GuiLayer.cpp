@@ -110,14 +110,16 @@ namespace GLCore {
             ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetIO().DisplaySize);
 
             ImGuiID dock_main = dockspace_id;
-            dock_id_Inspector = ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Right, 0.2f, nullptr, &dock_main);
-            dock_id_AssetScene = ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Right, 0.2f, nullptr, &dock_main);
-            dock_id_toolbar = ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Up, 0.065f, nullptr, &dock_main);
 
+            inspectorPanel.m_id = ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Right, 0.2f, nullptr, &dock_main);
+            assetsPanel.m_id = ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Right, 0.2f, nullptr, &dock_main);
+            scenePanel.m_id = ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Left, 100.0f, nullptr, &dock_main);
+            toolbar.m_id = ImGui::DockBuilderSplitNode(dock_main, ImGuiDir_Up, 0.065f, nullptr, &dock_main);
 
-            ImGui::DockBuilderDockWindow("Dock_INSPECTOR", dock_id_Inspector);
-            ImGui::DockBuilderDockWindow("Dock_ASSETS_SCENE", dock_id_AssetScene);
-            ImGui::DockBuilderDockWindow("Dock_Top", dock_id_toolbar);
+            ImGui::DockBuilderDockWindow("Dock_INSPECTOR", inspectorPanel.m_id);
+            ImGui::DockBuilderDockWindow("Dock_ASSETS_SCENE", assetsPanel.m_id);
+            ImGui::DockBuilderDockWindow("Dock_SCENE", scenePanel.m_id);
+            ImGui::DockBuilderDockWindow("Dock_TOOLBAR", toolbar.m_id);
 
             ImGui::DockBuilderFinish(dockspace_id);
         }
@@ -245,53 +247,48 @@ namespace GLCore {
         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
     }
 
-
+    //No la estoy usando por ahora pero puede ser util en el futuro
     void GuiLayer::dockersDimensions()
     {
-        dock_id_Inspector = 0x00000004;
-        // Recuperar el nodo de docking usando el ImGuiID
-        ImGuiDockNode* node_dock_id_inspector = ImGui::DockBuilderGetNode(dock_id_Inspector);
-
+        inspectorPanel.m_id = 0x00000004;
+        ImGuiDockNode* node_dock_id_inspector = ImGui::DockBuilderGetNode(inspectorPanel.m_id);
         if (node_dock_id_inspector) {
-            // Ahora puedes obtener la información del nodo de docking
+
             ImVec2 size = node_dock_id_inspector->Size;
-            if (size.x != width_dock_Inspector ) { //|| size.y != height_dock_Inspector
-                OnPanelResized("Inspector", size);
-                width_dock_Inspector = size.x;
-               // height_dock_Inspector = size.y;
-            }
+            ImVec2 position = node_dock_id_inspector->Pos; // Aquí obtenemos la posición
+
+            inspectorPanel.m_posX = position.x;
+            inspectorPanel.m_posY = position.y;
+            inspectorPanel.m_width = size.x;
+            inspectorPanel.m_height = size.y;
         }
 
-        dock_id_AssetScene = 0x00000007;
-        // Recuperar el nodo de docking usando el ImGuiID
-        ImGuiDockNode* node_dock_id_AssetScene = ImGui::DockBuilderGetNode(dock_id_AssetScene);
-
+        assetsPanel.m_id = 0x00000007;
+        ImGuiDockNode* node_dock_id_AssetScene = ImGui::DockBuilderGetNode(assetsPanel.m_id);
+        
         if (node_dock_id_AssetScene) {
-            // Ahora puedes obtener la información del nodo de docking
             ImVec2 size = node_dock_id_AssetScene->Size;
-            if (size.x != width_dock_AssetScene ) { //|| size.y != height_dock_AssetScene
-                OnPanelResized("AssetScene", size);
-                width_dock_AssetScene = size.x;
-                //height_dock_AssetScene = size.y;
-            }
+            ImVec2 position = node_dock_id_AssetScene->Pos; // Aquí obtenemos la posición
+
+            assetsPanel.m_posX = position.x;
+            assetsPanel.m_posY = position.y;
+            assetsPanel.m_width = size.x;
+            assetsPanel.m_height = size.y;
+        }
+
+        scenePanel.m_id = 0x00000010;
+        ImGuiDockNode* node_dock_id_Scene = ImGui::DockBuilderGetNode(scenePanel.m_id);
+        if (node_dock_id_Scene)
+        {
+            ImVec2 size = node_dock_id_Scene->Size;
+            ImVec2 position = node_dock_id_Scene->Pos; // Aquí obtenemos la posición
+
+            scenePanel.m_posX = position.x;
+            scenePanel.m_posY = position.y;
+            scenePanel.m_width = size.x;
+            scenePanel.m_height = size.y;
         }
     }
-
-
-    void GuiLayer::OnPanelResized(const std::string& panelName, const ImVec2& newSize)
-    {
-        EventManager::getOnPanelResizedEvent().trigger(panelName, newSize);
-    }
-
-
-
-
-
-
-
-
-
-
     void GuiLayer::end() {
 
         ImGuiIO& io = ImGui::GetIO();

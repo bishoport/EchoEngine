@@ -8,15 +8,11 @@ namespace GLCore {
     GLuint Application::s_WindowWidth = 1920;
     GLuint Application::s_WindowHeight = 1080;
 
-    GLuint Application::viewportWidth = 800;
-    GLuint Application::viewportHeight = 600;
-
     bool  Application::pauseLoop = false;
 
     Application* Application::s_Instance = nullptr;
 
     std::unique_ptr<GuiLayer> Application::guiLayer = nullptr;
-
     std::unique_ptr<Scene> Application::scene = nullptr; 
 
     Application::Application() : window(nullptr) {
@@ -71,12 +67,9 @@ namespace GLCore {
         guiLayer = std::make_unique<GuiLayer>(window);
         guiLayer->SetDelegate([this](const MainMenuAction& action) {
             this->acctionPresedFromTopMenu(action);
-            });
+        });
         //--------------------------------------------------------------------------------------------------
 
-
-
-        //--------------------------------------------------------------------------------------------------
 
         //--DEFAULT SCENE
         Application::scene = std::make_unique<Scene>();
@@ -86,26 +79,15 @@ namespace GLCore {
         }
         //--------------------------------------------------------------------------------------------------
 
+
+        //--SUBSCRIPCION A EVENTOS
         InputManager::Instance().subscribe();
-
-        //--Subscriptions events
-        // Suscribir una función al evento de redimensionamiento de los paneles de la gui
-        EventManager::getOnPanelResizedEvent().subscribe([this](const std::string& panelName, const ImVec2& newSize) 
-        {
-            viewportWidth = s_WindowWidth - guiLayer->width_dock_Inspector - guiLayer->width_dock_AssetScene;
-            viewportHeight = s_WindowHeight;
-
-            //InputManager::Instance().SetViewportSize(viewportWidth, viewportHeight);  // Agregar esta línea
-            EventManager::getWindowResizeEvent().trigger(viewportWidth, viewportHeight);
-        });
-
-        //--------------------------------------------------------------------------------------------------
-
 
         EventManager::getOnEndDeleteEntity().subscribe([this](const bool& result)
         {
-                pauseLoop = false;
+            pauseLoop = false;
         });
+        //--------------------------------------------------------------------------------------------------
 
         return true;
     }
@@ -119,75 +101,46 @@ namespace GLCore {
 
 
 
-
-
     void Application::run() {
 
         Timestep lastFrameTime = glfwGetTime();
 
         while (!glfwWindowShouldClose(window)) {
 
-            if (pauseLoop == false)
-            {
-                //IF PRESS ESC
-                if (InputManager::Instance().IsKeyJustPressed(GLFW_KEY_ESCAPE)) {
-                    glfwSetWindowShouldClose(this->window, true);
-                }
-
-                //DELTA TIME
-                Timestep currentFrameTime = glfwGetTime();
-                Timestep deltaTime = currentFrameTime - lastFrameTime;
-                lastFrameTime = currentFrameTime;
-
-                //RENDER PASS DATA
-                viewportWidth = s_WindowWidth - guiLayer->width_dock_Inspector - guiLayer->width_dock_AssetScene;
-                viewportHeight = s_WindowHeight;
-
-                //-------------------------------------------------------------------------------------------------------
-                //std::cout << currentRenderPassData.Width << std::endl;
-
-                InputManager::Instance().Update();
-
-                if (scene) {
-                    scene->update(deltaTime);
-                }
-
-                guiLayer->begin();
-
-
-                //glViewport(currentRenderPassData.x, currentRenderPassData.y, viewportWidth, viewportHeight);
-                //glViewport(currentRenderPassData.X, currentRenderPassData.Y, currentRenderPassData.Width, currentRenderPassData.Height);
-
-                if (scene) {
-                    scene->render();
-                }
-
-                //--ImGUI
-                guiLayer->renderDockers();
-
-                if (scene) {
-                    scene->checkGizmo();
-                }
-                guiLayer->renderMainMenuBar();
-
-                if (scene) {
-                    scene->renderGUI();
-                }
-
-                guiLayer->dockersDimensions();
-
-                guiLayer->end();
-                //------------------------------------------
-
-                // Actualizar el InputManager para el próximo frame
-                InputManager::Instance().EndFrame();
-
-                glfwSwapBuffers(window);
-                glfwPollEvents();
+            //IF PRESS ESC
+            if (InputManager::Instance().IsKeyJustPressed(GLFW_KEY_ESCAPE)) {
+                glfwSetWindowShouldClose(this->window, true);
             }
 
+            //DELTA TIME
+            Timestep currentFrameTime = glfwGetTime();
+            Timestep deltaTime = currentFrameTime - lastFrameTime;
+            lastFrameTime = currentFrameTime;
 
-            
+            InputManager::Instance().Update();
+
+            if (scene) {
+                scene->update(deltaTime);
+                scene->render();
+            }
+
+            //--ImGUI
+            guiLayer->begin();
+            guiLayer->renderDockers();
+            guiLayer->renderMainMenuBar();
+
+            if (scene) {
+                scene->renderGUI();
+            }
+            guiLayer->end();
+            //------------------------------------------
+
+
+            // Actualizar el InputManager para el próximo frame
+            InputManager::Instance().EndFrame();
+
+            glfwSwapBuffers(window);
+            glfwPollEvents();
         }
         glfwTerminate();
     }
@@ -204,27 +157,11 @@ namespace GLCore {
         return s_WindowHeight;
     }
 
-    GLuint Application::GetViewportWidth()
+    void Application::framebuffer_size_callback(GLFWwindow* window, int width, int height) 
     {
-        return viewportWidth;
-    }
-
-    GLuint Application::GetViewportHeight()
-    {
-        return viewportHeight;
-    }
-
-    void Application::framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-
         s_WindowWidth = width;
         s_WindowHeight = height;
-
-        viewportWidth = s_WindowWidth - guiLayer->width_dock_Inspector - guiLayer->width_dock_AssetScene;
-        viewportHeight = s_WindowHeight;
-
-        //InputManager::Instance().SetViewportSize(viewportWidth, viewportHeight);  // Agregar esta línea
-
-        EventManager::getWindowResizeEvent().trigger(viewportWidth, viewportHeight);
+        EventManager::getWindowResizeEvent().trigger(s_WindowWidth, s_WindowHeight);
     }
 
     void Application::shutdown() {
@@ -238,9 +175,9 @@ namespace GLCore {
     {
         glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
             // Primeramente, permitir que ImGui procese la entrada
-            if (ImGui::GetIO().WantCaptureKeyboard) {
+            /*if (ImGui::GetIO().WantCaptureKeyboard) {
                 return;
-            }
+            }*/
 
             if (action == GLFW_PRESS) {
                 InputManager::Instance().SetKeyPressed(key, true);

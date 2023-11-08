@@ -13,10 +13,20 @@ namespace GLCore::Utils
         colorBuffers = GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&FBO, &depthBuffer, 2, SCR_WIDTH, SCR_HEIGHT);
 
         //--RESIZE WINDOW EVENT
-        EventManager::getWindowResizeEvent().subscribe([this](GLuint width, GLuint height) {
-            GLCore::Render::FBOManager::UpdateFBO_Color_RGBA16F(&FBO, &depthBuffer, colorBuffers, width, height);
-        });
+        //EventManager::getWindowResizeEvent().subscribe([this](GLuint width, GLuint height) {
+        //    GLCore::Render::FBOManager::UpdateFBO_Color_RGBA16F(&FBO, &depthBuffer, colorBuffers, width, height);
+        //});
         // ---------------------------------------
+
+        EventManager::getOnPanelResizedEvent().subscribe([this](const std::string name, const ImVec2& size, const ImVec2& position)
+            {
+                if (name == "SCENE")
+                {
+                    GLCore::Render::FBOManager::UpdateFBO_Color_RGBA16F(&FBO, &depthBuffer, colorBuffers, size.x, size.y);
+                }
+            });
+
+
         lookupTableTexture0 = GLCore::Utils::ImageLoader::load2DLUTTexture("assets/default/LUT/lookup-table-0.png");
         lookupTableTexture1 = GLCore::Utils::ImageLoader::load2DLUTTexture("assets/default/LUT/lookup-table-1.png");
         
@@ -34,10 +44,14 @@ namespace GLCore::Utils
             GLCore::Render::ShaderManager::Get("postprocessing")->setBool("hdr", hdr);
             GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("exposure", exposure);
             GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("gamma", gamma);
+            //----------------------------------------------------------------------------------------------------------------
+
 
             //--BLOM
             GLCore::Render::ShaderManager::Get("postprocessing")->setBool("bloom", bloom);
-
+            //----------------------------------------------------------------------------------------------------------------
+       
+            
             //--Color Curve LUT
             GLCore::Render::ShaderManager::Get("postprocessing")->setBool("colorCurvesLUT", colorCurveLUT);
             glActiveTexture(GL_TEXTURE0 + 8);
@@ -61,6 +75,15 @@ namespace GLCore::Utils
             GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("ACES_c", currentParameters.ACES_c);
             GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("ACES_d", currentParameters.ACES_d);
             GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("ACES_e", currentParameters.ACES_e);
+            //----------------------------------------------------------------------------------------------------------------
+
+            //--SATURATION
+            GLCore::Render::ShaderManager::Get("postprocessing")->setBool("SATURATION", SATURATION);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setVec3("whiteBalanceColor", whiteBalanceColor);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("saturationRed", saturationRed);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("saturationGreen", saturationGreen);
+            GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("saturationBlue", saturationBlue);
+
 
             int textureIndex = 5;
             for (size_t i = 0; i < 2; i++)
@@ -72,13 +95,6 @@ namespace GLCore::Utils
 
                 textureIndex++;
             }
-
-            //--SATURATION
-            GLCore::Render::ShaderManager::Get("postprocessing")->setBool("SATURATION", SATURATION);
-            GLCore::Render::ShaderManager::Get("postprocessing")->setVec3("whiteBalanceColor", whiteBalanceColor);
-            GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("saturationRed", saturationRed);
-            GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("saturationGreen", saturationGreen);
-            GLCore::Render::ShaderManager::Get("postprocessing")->setFloat("saturationBlue", saturationBlue);
         }
     }
 

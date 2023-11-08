@@ -27,10 +27,6 @@ namespace GLCore {
         static GLuint GetWindowWidth();
         static GLuint GetWindowHeight();
 
-        static GLuint GetViewportWidth();
-        static GLuint GetViewportHeight();
-
-
         inline GLFWwindow& GetWindow() { return *window; }
         inline static Application& Get() { return *s_Instance; }
 
@@ -38,19 +34,13 @@ namespace GLCore {
         static Application* s_Instance;
 
         GLFWwindow* window;
+
         static GLuint s_WindowWidth;
         static GLuint s_WindowHeight;
 
-        static GLuint viewportWidth;
-        static GLuint viewportHeight;
-
-
         static std::unique_ptr<Scene> scene;
-
         static std::unique_ptr<GuiLayer> guiLayer;
 
-        void acctionPresedFromTopMenu(const MainMenuAction& action);
-
-        
+        void acctionPresedFromTopMenu(const MainMenuAction& action); 
     };
 }

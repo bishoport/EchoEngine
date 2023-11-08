@@ -7,6 +7,16 @@ namespace GLCore {
 
     class GuiLayer {
     public:
+
+        struct dockPanel
+        {
+            ImGuiID m_id;
+            int m_posX;
+            int m_posY;
+            int m_width;
+            int m_height;
+            dockPanel(ImGuiID id, int posX, int posY, int width, int height) : m_id(id), m_posX(posX), m_posY(posY), m_width(width), m_height(height) {}
+        };
         GuiLayer(GLFWwindow* window);
         ~GuiLayer();
 
@@ -16,23 +26,18 @@ namespace GLCore {
         void renderMainMenuBar();
         void dockersDimensions();
 
-        float width_dock_Inspector = 0;
-        float width_dock_AssetScene = 0;
+        dockPanel inspectorPanel = dockPanel(0, 0, 0, 0, 0);
+        dockPanel assetsPanel = dockPanel(0, 0, 0, 0, 0);
+        dockPanel toolbar = dockPanel(0, 0, 0, 0, 0);
+        dockPanel scenePanel = dockPanel(0, 0, 0, 0, 0);
 
         // Función para establecer el delegado
         void SetDelegate(std::function<void(const MainMenuAction&)> delegado) {
             acctionPresedFromTopMenuDelegate = delegado;
         }
 
-
-
     private:
         bool ini_file_exists;
-        ImGuiID dock_id_Inspector;
-        ImGuiID dock_id_AssetScene;
-        ImGuiID dock_id_toolbar;
-
-        void OnPanelResized(const std::string& panelName, const ImVec2& newSize);
 
         //callbacks:
         std::function<void(const MainMenuAction&)> acctionPresedFromTopMenuDelegate;

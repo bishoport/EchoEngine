@@ -65,7 +65,7 @@ namespace GLCore {
 		GLCore::Render::ShaderManager::Load("postprocessing", "assets/shaders/postpro/postprocessing.vs", "assets/shaders/postpro/postprocessing.fs");
 		//GLCore::Render::ShaderManager::Load("hdr", "assets/shaders/postpro/hdr.vs", "assets/shaders/postpro/hdr.fs");
 
-		//GLCore::Render::ShaderManager::Load("main_output_FBO", "assets/shaders/main_output_FBO.vs", "assets/shaders/main_output_FBO.fs");
+		GLCore::Render::ShaderManager::Load("main_output_FBO", "assets/shaders/main_output_FBO.vs", "assets/shaders/main_output_FBO.fs");
 
 		//--IBL
 		GLCore::Render::ShaderManager::Load("equirectangularToCubemap", 
@@ -121,20 +121,28 @@ namespace GLCore {
 		postproManager->Init(800,600);
 		//--------------------------------------------------------------------------------------------------------------------------------
 
-
-
-		//--RESIZE WINDOW EVENT
-		//EventManager::getWindowResizeEvent().subscribe([this](GLuint width, GLuint height) {
-		//	});
+		//--FBO SCENE
+		scene_colorBuffers = GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&scene_FBO, &scene_depthBuffer, 1, 800, 600);
 		// ---------------------------------------
 
 
+		//--RESIZE SCENE PANEL EVENT
+		EventManager::getOnPanelResizedEvent().subscribe([this](const std::string name, const ImVec2& size, const ImVec2& position)
+		{
+			if (name == "SCENE")
+			{
+				GLCore::Render::FBOManager::UpdateFBO_Color_RGBA16F(&scene_FBO, &scene_depthBuffer, scene_colorBuffers, size.x, size.y);
+			}
+		});
+		//---------------------------------------------------
 
 
 		assetsPanel.SetDelegate([this](ImportOptions importOptions) {
 			this->getModelPathFromAssets(importOptions);
 		});
 
+
+		createGameObject(MainMenuAction::AddCube);
 
         return true;
     }
@@ -173,7 +181,7 @@ namespace GLCore {
 
 
         //--CAMERA
-        aspectRatio = static_cast<float>(GLCore::Application::GetViewportWidth()) / static_cast<float>(GLCore::Application::GetViewportHeight());
+        aspectRatio = static_cast<float>(sceneSize.x) / static_cast<float>(sceneSize.y);
         m_EditorCamera.GetCamera().SetProjection(m_EditorCamera.GetCamera().GetFov(), aspectRatio, 0.1f, 100.0f);
         m_EditorCamera.OnUpdate(deltaTime);
         //----------------------------------------------------------------------------------------------------------------------------
@@ -227,10 +235,13 @@ namespace GLCore {
 		rendererManager->passShadow();
 
 		
-		if (usePostpro) 
+		glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		if (usePostprocessing)
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, postproManager->FBO);
-			glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
+			glViewport(0, 0, sceneSize.x, sceneSize.y);
 			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -265,29 +276,32 @@ namespace GLCore {
 				//----------------------------------------------------------------------------------------------------
 			}
 
-
 			//__2.-LIGHT PASS
 			rendererManager->passLights();
 
 			//__3.-GEOMETRY PASS
 			gridWorldRef->Render();
 			rendererManager->passGeometry();
+
+			//__4.-POSTPROCESING
+			postproManager->RenderWithPostProcess();
 			//-------------------------------------------------------------------------------------------------------------------------------------------
 
-			//__4.-DRAW FINAL RENDER TO TEXTURE IN QUAD
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
+			//__5.-DRAW POSTPROCESED IMAGE TO TEXTURE IN QUAD & DRAW IN SCENE_FBO
+			glBindFramebuffer(GL_FRAMEBUFFER, scene_FBO);
+			glViewport(0, 0, sceneSize.x, sceneSize.y);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-			postproManager->RenderWithPostProcess();
-
 			renderQuad();
+			//-------------------------------------------------------------------------------------------------------------------------------------------
+			
+			//__6.-BACK TO DEFAULT FBO AND CONTINUE DRAWING OTHER STUFF´s
+			glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
 			//-------------------------------------------------------------------------------------------------------------------------------------------
 		}
 		else
 		{
-			glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
-			glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
+			glBindFramebuffer(GL_FRAMEBUFFER, scene_FBO);
+			glViewport(0, 0, sceneSize.x, sceneSize.y);
 			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -308,9 +322,48 @@ namespace GLCore {
 			rendererManager->passLights();
 			gridWorldRef->Render();
 			rendererManager->passGeometry();
+
+			glActiveTexture(GL_TEXTURE5);
+			glBindTexture(GL_TEXTURE_2D, scene_colorBuffers[0]);
+
+			GLCore::Render::ShaderManager::Get("main_output_FBO")->use();
+			GLCore::Render::ShaderManager::Get("main_output_FBO")->setInt("colorBuffer_0", 5);
+
+			
+			glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
+			glViewport(0, 0, sceneSize.x, sceneSize.y);
+			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			renderQuad();
 		}
 		//-------------------------------------------------------------------------------------------------------------------------------------------
 		
+
+		//RENDER IN DEFAULT FBO
+		//glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
+		//glViewport(0, 0, sceneSize.x, sceneSize.y);
+		//glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		//if (showSkybox == true)
+		//{
+		//	glm::mat4 viewHDR = glm::mat4(glm::mat3(m_EditorCamera.GetCamera().GetViewMatrix()));
+		//	// Escala la matriz de vista para hacer el skybox más grande
+		//	float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
+		//	viewHDR = glm::scale(viewHDR, glm::vec3(scale, scale, scale));
+		//	GLCore::Render::ShaderManager::Get("background")->use();
+		//	GLCore::Render::ShaderManager::Get("background")->setMat4("view", viewHDR);
+		//	GLCore::Render::ShaderManager::Get("background")->setMat4("projection", m_EditorCamera.GetCamera().GetProjectionMatrix());
+		//	GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 0);
+		//	renderCube();
+		//}
+
+		////RenderPipeline
+		//rendererManager->passLights();
+		//gridWorldRef->Render();
+		//rendererManager->passGeometry();
+
 
 
 		//-ACTIVE SELECTED ENTITY
@@ -506,7 +559,7 @@ namespace GLCore {
 
 		// pre-allocate enough memory for the LUT texture.
 		glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, Application::GetViewportWidth(), Application::GetViewportHeight(), 0, GL_RG, GL_FLOAT, 0);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, sceneSize.x, sceneSize.y, 0, GL_RG, GL_FLOAT, 0);
 		// be sure to set wrapping mode to GL_CLAMP_TO_EDGE
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -516,10 +569,10 @@ namespace GLCore {
 		// then re-configure capture framebuffer object and render screen-space quad with BRDF shader.
 		glBindFramebuffer(GL_FRAMEBUFFER, IBL_FBO);
 		glBindRenderbuffer(GL_RENDERBUFFER, IBL_RBO);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, Application::GetViewportWidth(), Application::GetViewportHeight());
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, sceneSize.x, sceneSize.y);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, brdfLUTTexture, 0);
 
-		glViewport(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
+		glViewport(0, 0, sceneSize.x, sceneSize.y);
 		GLCore::Render::ShaderManager::Get("brdf")->use();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		renderQuad();
@@ -668,7 +721,7 @@ namespace GLCore {
 			{
 				ImGuizmo::SetOrthographic(false);
 				ImGuizmo::SetDrawlist();
-				ImGuizmo::SetRect(0, 0, Application::GetViewportWidth(), Application::GetViewportHeight());
+				ImGuizmo::SetRect(scenePos.x, scenePos.y, sceneSize.x, sceneSize.y);
 
 				glm::mat4 camera_view = m_EditorCamera.GetCamera().GetViewMatrix();
 				glm::mat4 camera_projection = m_EditorCamera.GetCamera().GetProjectionMatrix();
@@ -886,9 +939,9 @@ namespace GLCore {
 			ImGui::ColorEdit3("Global Ambient", &globalAmbient[0]);
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
-			ImGui::Checkbox("PostPro", &usePostpro);
+			ImGui::Checkbox("PostPro", &usePostprocessing);
 
-			if (usePostpro == true)
+			if (usePostprocessing == true)
 			{
 				postproManager->DrawGUI_Inspector();
 			}
@@ -948,13 +1001,30 @@ namespace GLCore {
 		//------------------------------------------------------------------------------------------------
 
 
+		//-------------------------------------------SCENE PANEL--------------------------------------------
+		ImGui::Begin("SCENE", nullptr);
+		scenePos = ImGui::GetWindowPos();
+		sceneSize = ImGui::GetWindowSize();
+
+		EventManager::getOnPanelResizedEvent().trigger("SCENE", sceneSize, scenePos);
+
+		ImGui::Image((void*)(intptr_t)scene_colorBuffers[0], ImVec2(sceneSize.x, sceneSize.y), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
+		mouseInScene = false;
+
+		if (ImGui::IsWindowHovered())
+		{
+			mouseInScene = true;
+			checkGizmo();
+		}
+		ImGui::End();
+		//---------------------------------------------------------------------------------------------------
 
 
+		//-------------------------------------------------DIALOGS--------------------------------------
 		if (selectingEntity == true)
 		{
 			ImGui::OpenPopup("Seleccionar Entidad");
 		}
-
 		if (ImGui::BeginPopup("Seleccionar Entidad") && selectingEntity == true)
 		{
 			if (ImGui::IsWindowHovered())
@@ -978,6 +1048,7 @@ namespace GLCore {
 			}
 			ImGui::EndPopup();
 		}
+		//---------------------------------------------------------------------------------------------------
     }
 
 	void Scene::createGameObject(MainMenuAction action)
@@ -1148,26 +1219,12 @@ namespace GLCore {
 		float mouseX, mouseY;
 		std::tie(mouseX, mouseY) = InputManager::Instance().GetMousePosition();
 
+		mouseX += scenePos.x;
+		mouseY -= scenePos.y;
+
 		if (ImGuizmo::IsOver() || ImGuizmo::IsUsing())
 		{
 			return;
-		}
-
-		float viewportX = 0.0f;
-		float viewportY = 0.0f;
-		float viewportWidth = Application::GetViewportWidth();
-		float viewportHeight = Application::GetViewportHeight();
-
-		bool mouseInViewport = false;
-
-		if (mouseX >= viewportX && mouseX <= viewportX + viewportWidth &&
-			mouseY >= viewportY && mouseY <= viewportY + viewportHeight)
-		{
-			mouseInViewport = true;
-		}
-		else
-		{
-			mouseInViewport = false;
 		}
 
 		if (selectingEntity == true)
@@ -1178,13 +1235,13 @@ namespace GLCore {
 		selectingEntity = false;
 
 
-		if (InputManager::Instance().IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_LEFT) && mouseInViewport)
+		if (InputManager::Instance().IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_LEFT) && mouseInScene)
 		{
 			pickingObj = false;
 		}
 
 		// Aquí empieza el raycasting
-		if (InputManager::Instance().IsMouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) && mouseInViewport)
+		if (InputManager::Instance().IsMouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) && mouseInScene)
 		{
 			if (pickingObj) return; //Si esta bool está a true, retornará, y significa que hemos pulsado ya el mouse y hasta que no soltemos el boton, no se devuelve a false
 
@@ -1194,8 +1251,8 @@ namespace GLCore {
 			m_SelectedEntity = nullptr; //Reset de la variable que almacena la entity seleccioanda preparandola para recibit o no una nueva selección
 
 			//llevamos un punto 2D a un espacio 3D (mouse position -> escene)
-			float normalizedX = (2.0f * mouseX) / Application::GetViewportWidth() - 1.0f;
-			float normalizedY = ((2.0f * mouseY) / Application::GetViewportHeight() - 1.0f) * -1.0f;
+			float normalizedX = (2.0f * mouseX) / sceneSize.x - 1.0f;
+			float normalizedY = ((2.0f * mouseY) / sceneSize.y - 1.0f) * -1.0f;
 			glm::vec3 clipSpaceCoordinates(normalizedX, normalizedY, 1.0);
 
 			glm::vec4 homogenousCoordinates = glm::inverse(m_EditorCamera.GetCamera().GetProjectionMatrix() *

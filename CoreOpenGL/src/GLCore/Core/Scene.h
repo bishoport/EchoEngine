@@ -20,6 +20,10 @@ namespace GLCore {
 
     class Scene {
     public:
+
+        
+
+
         Scene();
         ~Scene();
 
@@ -46,11 +50,9 @@ namespace GLCore {
 
         //--ENTITIES
         ECS::Manager manager;
-        //std::vector<ECS::Entity*> entitiesInScene;
         ECS::Entity* m_SelectedEntity = nullptr;
         ECS::Entity* gridWorldReference = nullptr;
-        
-        //std::pair<glm::vec3, float> CalcSceneBundle();
+
         void CalcSceneBundle();
         //---------------------------------------------------
 
@@ -60,18 +62,29 @@ namespace GLCore {
         Utils::GridWorldReference* gridWorldRef = nullptr;
         //---------------------------------------------------
 
+        
+        //--SCENE_PANEL
+        ImVec2 scenePos = ImVec2(0.0f, 0.0f);
+        ImVec2 sceneSize = ImVec2(640.0f, 480.0f);
+        bool mouseInScene = false;
+        //---------------------------------------------------
+
+        //--FBO SCENE
+        bool useSceneFBO = true;
+        GLuint scene_FBO = 0;
+        GLuint scene_depthBuffer = 0;
+        std::vector<GLuint> scene_colorBuffers;
+        //---------------------------------------------------
 
         //--POST_PROCESSING
         Utils::PostProcessingManager* postproManager = nullptr;
-        bool usePostpro = false;
-        //float exposure = 1.0f;
-        //float gamma = 2.2f;
+        bool usePostprocessing = true;
         unsigned int quadVAO = 0;
         unsigned int quadVBO;
         void renderQuad();
+        void useShader(const ImDrawList* asd, const ImDrawCmd* command);
         //---------------------------------------------------
         
-
 
         //IBL
         bool showSkybox = false;
