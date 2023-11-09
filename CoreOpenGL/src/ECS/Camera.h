@@ -18,6 +18,9 @@ namespace ECS
 
     public:
 
+
+
+
         void init() override
         {
             m_Position = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -50,6 +53,8 @@ namespace ECS
             });
             //---------------------------------------------------
         }
+
+
 
         void setCamId(unsigned int camID)
         {

@@ -5,8 +5,6 @@
 
 #include "../../ECS/ECS.h"
 
-
-
 #include "../Util/PerspectiveCameraController.h"
 #include "../Util/PostProcessingManager.h"
 #include "AssetsPanel.h"
