@@ -272,10 +272,9 @@ namespace GLCore {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-
+			//--------------------------------------------IBL
 			if (useIBL == true)
 			{
-				//--------------------------------------------IBL
 				glDepthFunc(GL_LEQUAL);
 
 				glActiveTexture(GL_TEXTURE0);
@@ -289,26 +288,33 @@ namespace GLCore {
 				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("irradianceMap", 0);
 				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("prefilterMap", 1);
 				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("brdfLUT", 2);
+
+				if (showIBLSkybox == true)
+				{
+					glm::mat4 viewHDR = glm::mat4(glm::mat3(cameraViewMatrix));
+
+					// Escala la matriz de vista para hacer el skybox más grande
+					float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
+					viewHDR = glm::scale(viewHDR, glm::vec3(scale, scale, scale));
+					GLCore::Render::ShaderManager::Get("background")->use();
+					GLCore::Render::ShaderManager::Get("background")->setMat4("view", viewHDR);
+					GLCore::Render::ShaderManager::Get("background")->setMat4("projection", cameraProjectionMatrix);
+					GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 0);
+					renderCube();
+				}
 			}
-
-
-
-			//--------------------------------------------SHOW_HDR-IRRADIANCE_BOX-----------------------------------------------------------------------------
-			if (showSkybox == true)
+			else
 			{
-				glm::mat4 viewHDR = glm::mat4(glm::mat3(cameraViewMatrix));
-
-				// Escala la matriz de vista para hacer el skybox más grande
-				float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
-				viewHDR = glm::scale(viewHDR, glm::vec3(scale, scale, scale));
-				GLCore::Render::ShaderManager::Get("background")->use();
-				GLCore::Render::ShaderManager::Get("background")->setMat4("view", viewHDR);
-				GLCore::Render::ShaderManager::Get("background")->setMat4("projection", cameraProjectionMatrix);
-				GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 0);
-				renderCube();
-				//----------------------------------------------------------------------------------------------------
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+				glActiveTexture(GL_TEXTURE2);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 			}
-			//-------------------------------------------------------------------------------------------------------------------------------------------
+			//------------------------------------------------------------------------------------------------------------------------------
+
+			
 
 
 
@@ -341,18 +347,47 @@ namespace GLCore {
 			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			if (showSkybox == true)
+			//--------------------------------------------IBL
+			if (useIBL == true)
 			{
-				glm::mat4 viewHDR = glm::mat4(glm::mat3(cameraViewMatrix));
-				// Escala la matriz de vista para hacer el skybox más grande
-				float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
-				viewHDR = glm::scale(viewHDR, glm::vec3(scale, scale, scale));
-				GLCore::Render::ShaderManager::Get("background")->use();
-				GLCore::Render::ShaderManager::Get("background")->setMat4("view", viewHDR);
-				GLCore::Render::ShaderManager::Get("background")->setMat4("projection", cameraProjectionMatrix);
-				GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 0);
-				renderCube();
+				glDepthFunc(GL_LEQUAL);
+
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.envCubemap);
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.irradianceMap); // display irradiance map
+				glActiveTexture(GL_TEXTURE2);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.prefilterMap);  // display prefilter map
+
+				GLCore::Render::ShaderManager::Get("pbr_ibl")->use();
+				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("irradianceMap", 0);
+				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("prefilterMap", 1);
+				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("brdfLUT", 2);
+
+				if (showIBLSkybox == true)
+				{
+					glm::mat4 viewHDR = glm::mat4(glm::mat3(cameraViewMatrix));
+
+					// Escala la matriz de vista para hacer el skybox más grande
+					float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
+					viewHDR = glm::scale(viewHDR, glm::vec3(scale, scale, scale));
+					GLCore::Render::ShaderManager::Get("background")->use();
+					GLCore::Render::ShaderManager::Get("background")->setMat4("view", viewHDR);
+					GLCore::Render::ShaderManager::Get("background")->setMat4("projection", cameraProjectionMatrix);
+					GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 0);
+					renderCube();
+				}
 			}
+			else
+			{
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+				glActiveTexture(GL_TEXTURE2);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+			}
+			//------------------------------------------------------------------------------------------------------------------------------
 
 			//RenderPipeline
 			rendererManager->passLights();
@@ -713,6 +748,7 @@ namespace GLCore {
 		//-------------------------------------------EVIROMENT LIGHT PANEL--------------------------------------
 		if (ImGui::Begin("Enviroment Panel"))
 		{
+			//--WIRE-FRAME
 			if (ImGui::Checkbox("Wireframe Mode", &isWireframe))
 			{
 				if (isWireframe)
@@ -724,41 +760,42 @@ namespace GLCore {
 					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Vuelve al modo normal
 				}
 			}
+			ImGui::Separator();
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
-
+			//----------------------------------------------------------------
 			
-
+			//--IBL
 			ImGui::Checkbox("Use IBL", &useIBL);
 			if (useIBL == true)
 			{
-
+				ImGui::Checkbox("Show HDR SkyBox", &showIBLSkybox);
 			}
+			ImGui::Separator();
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
+			//----------------------------------------------------------------
 
-
-			
-			ImGui::Checkbox("Show SkyBox", &showSkybox);
-			if (showSkybox == true)
-			{
-				
-			}
-			ImGui::Dummy(ImVec2(0.0f, 5.0f));
-
-
+			//--CLEAR COLOR
 			ImGui::ColorEdit3("Clear color", (float*)&clearColor);
+			ImGui::Separator();
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
+			//----------------------------------------------------------------
 
-
+			//--AMBIENT COLOR
 			ImGui::ColorEdit3("Global Ambient", &globalAmbient[0]);
+			ImGui::Separator();
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
+			//----------------------------------------------------------------
 
+			//--POST-PROCESSING
 			ImGui::Checkbox("PostPro", &usePostprocessing);
 
 			if (usePostprocessing == true)
 			{
 				postproManager->DrawGUI_Inspector();
 			}
-			
+			ImGui::Separator();
+			ImGui::Dummy(ImVec2(0.0f, 5.0f));
+			//----------------------------------------------------------------
 
 
 			//ImGui::Checkbox("Skybox", &skybox->isActive);

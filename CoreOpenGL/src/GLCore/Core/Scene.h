@@ -22,10 +22,6 @@ namespace GLCore {
 
     class Scene {
     public:
-
-        
-
-
         Scene();
         ~Scene();
 
@@ -33,8 +29,6 @@ namespace GLCore {
         void update(Timestep deltaTime);
         void render();
 
-        void drawAllEntities();
-        
 
         void checkGizmo();
         void renderGUI();
@@ -54,9 +48,9 @@ namespace GLCore {
         ECS::Manager manager;
         ECS::Entity* m_SelectedEntity = nullptr;
         ECS::Entity* gridWorldReference = nullptr;
-
         void CalcSceneBundle();
         //---------------------------------------------------
+
 
         //OTHER NOT GAMEOBJECTS 
         Utils::Skybox* skybox = nullptr;
@@ -83,52 +77,41 @@ namespace GLCore {
         bool mouseInGame = false;
         //---------------------------------------------------
 
-        //--FBO SCENE
+
+        //--FBO SCENE RENDER
         bool useSceneFBO = true;
         GLuint scene_FBO = 0;
         GLuint scene_depthBuffer = 0;
         std::vector<GLuint> scene_colorBuffers;
-
         void SetGenericsUniforms(glm::mat4 cameraProjectionMatrix, glm::mat4 cameraViewMatrix, glm::vec3 cameraPosition);
         void RenderPipeline(glm::mat4 cameraProjectionMatrix, glm::mat4 cameraViewMatrix, glm::vec3 cameraPosition, FBO_Data fboData);
         //---------------------------------------------------
 
-        //--POST_PROCESSING
-        Utils::PostProcessingManager* postproManager = nullptr;
-        bool usePostprocessing = true;
+
         unsigned int quadVAO = 0;
         unsigned int quadVBO;
         void renderQuad();
-        void useShader(const ImDrawList* asd, const ImDrawCmd* command);
+
+        unsigned int cubeVAO = 0;
+        unsigned int cubeVBO = 0;
+        void renderCube();
+        
+
+        //--POST_PROCESSING
+        Utils::PostProcessingManager* postproManager = nullptr;
+        bool usePostprocessing = false;
         //---------------------------------------------------
         
 
         //IBL
         GLCore::Utils::IBLManager iblManager;
         bool useIBL = false;
-        bool showSkybox = false;
-
-        //unsigned int IBL_FBO;
-        //unsigned int IBL_RBO;
-        //float mixFactor = 0.0f;
-        //unsigned int envCubemap;
-        //unsigned int irradianceMap = 0;
-        //unsigned int prefilterMap;
-        //unsigned int hdrTexture_daylight;
-        //unsigned int hdrTexture_nightlight;
-        //unsigned int brdfLUTTexture;
-
-        unsigned int cubeVAO = 0;
-        unsigned int cubeVBO = 0;
-        void renderCube();
-        //void prepare_PBR_IBL();
+        bool showIBLSkybox = false;
         //----------------------------------------------------
 
 
-        
 
-
-        //--Illumination
+        //--Lights
         glm::vec3 globalAmbient = glm::vec3(0.055f, 0.055f, 0.055f);
         ImVec4 clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
         bool useDirectionalLight = false;
@@ -136,12 +119,12 @@ namespace GLCore {
         int totalSpotLight = 0;
         //---------------------------------------------------
 
-        
 
         //--CAMERA EDITOR
         GLCore::Utils::PerspectiveCameraController m_EditorCamera;
         float aspectRatio;
         //---------------------------------------------------
+
 
         //--GUI
         AssetsPanel assetsPanel;
