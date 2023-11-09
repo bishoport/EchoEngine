@@ -151,8 +151,6 @@ namespace ECS
 			// Actualizar el 'componentArray' y 'componentBitSet'
 			componentArray[typeID] = nullptr;
 			componentBitSet[typeID] = false;
-
-			// Si necesitas realizar alguna limpieza específica del componente, puedes hacerlo aquí
 		}
 	};
 

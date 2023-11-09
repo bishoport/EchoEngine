@@ -14,6 +14,7 @@
 #include "../Util/DynamicSkybox.h"
 #include "../Util/GridWorldReference.h"
 #include "../../ECS/Camera.h"
+#include "../Util/IBLManager.h"
 
 
 
@@ -103,23 +104,24 @@ namespace GLCore {
         
 
         //IBL
+        GLCore::Utils::IBLManager iblManager;
+        bool useIBL = false;
         bool showSkybox = false;
-        unsigned int IBL_FBO;
-        unsigned int IBL_RBO;
 
-        float mixFactor = 0.0f;
-
-        unsigned int envCubemap;
-        unsigned int irradianceMap = 0;
-        unsigned int prefilterMap;
-        unsigned int hdrTexture_daylight;
-        unsigned int hdrTexture_nightlight;
-        unsigned int brdfLUTTexture;
+        //unsigned int IBL_FBO;
+        //unsigned int IBL_RBO;
+        //float mixFactor = 0.0f;
+        //unsigned int envCubemap;
+        //unsigned int irradianceMap = 0;
+        //unsigned int prefilterMap;
+        //unsigned int hdrTexture_daylight;
+        //unsigned int hdrTexture_nightlight;
+        //unsigned int brdfLUTTexture;
 
         unsigned int cubeVAO = 0;
         unsigned int cubeVBO = 0;
         void renderCube();
-        void prepare_PBR_IBL();
+        //void prepare_PBR_IBL();
         //----------------------------------------------------
 
 

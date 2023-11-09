@@ -144,6 +144,7 @@
     <ClCompile Include="src\GLCore\Render\RendererManager.cpp" />
     <ClCompile Include="src\GLCore\Util\DynamicSkybox.cpp" />
     <ClCompile Include="src\GLCore\Util\GridWorldReference.cpp" />
+    <ClCompile Include="src\GLCore\Util\IBLManager.cpp" />
     <ClCompile Include="src\GLCore\Util\IMGLoader.cpp" />
     <ClCompile Include="src\GLCore\Util\ModelLoader.cpp" />
     <ClCompile Include="src\GLCore\Util\PerspectiveCamera.cpp" />
@@ -188,6 +189,7 @@
     <ClInclude Include="src\GLCore\Render\RendererManager.h" />
     <ClInclude Include="src\GLCore\Util\DynamicSkybox.h" />
     <ClInclude Include="src\GLCore\Util\GridWorldReference.h" />
+    <ClInclude Include="src\GLCore\Util\IBLManager.h" />
     <ClInclude Include="src\GLCore\Util\IMGLoader.h" />
     <ClInclude Include="src\GLCore\Util\ModelLoader.h" />
     <ClInclude Include="src\GLCore\Util\PerspectiveCamera.h" />

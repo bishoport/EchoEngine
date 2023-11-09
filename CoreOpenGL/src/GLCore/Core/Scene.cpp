@@ -44,10 +44,11 @@ namespace GLCore {
 
         //--LOAD SHADERS
         GLCore::Render::ShaderManager::Load("pbr",           "assets/shaders/Default.vert",		       "assets/shaders/pbr.fs");
-		GLCore::Render::ShaderManager::Load("pbr_ibl", "assets/shaders/Default.vert", "assets/shaders/pbr_ibl.fs");
+		GLCore::Render::ShaderManager::Load("pbr_ibl",       "assets/shaders/Default.vert",            "assets/shaders/pbr_ibl.fs");
         GLCore::Render::ShaderManager::Load("debug",         "assets/shaders/Debug.vert",              "assets/shaders/Debug.frag");
         GLCore::Render::ShaderManager::Load("skybox",        "assets/shaders/skybox/skybox.vs",        "assets/shaders/skybox/skybox.fs");
         GLCore::Render::ShaderManager::Load("dynamicSkybox", "assets/shaders/skybox/dynamicSkybox.vs", "assets/shaders/skybox/dynamicSkybox.fs");
+
 
         GLCore::Render::ShaderManager::Load("direct_light_depth_shadows",      
 											"assets/shaders/shadows/directLight_shadow_mapping_depth_shader.vs", 
@@ -63,31 +64,17 @@ namespace GLCore {
 											"assets/shaders/shadows/pointLight_shadow_mapping_depth_shader.gs");
 
 		GLCore::Render::ShaderManager::Load("postprocessing", "assets/shaders/postpro/postprocessing.vs", "assets/shaders/postpro/postprocessing.fs");
-		//GLCore::Render::ShaderManager::Load("hdr", "assets/shaders/postpro/hdr.vs", "assets/shaders/postpro/hdr.fs");
-
 		GLCore::Render::ShaderManager::Load("main_output_FBO", "assets/shaders/main_output_FBO.vs", "assets/shaders/main_output_FBO.fs");
 
+
 		//--IBL
-		GLCore::Render::ShaderManager::Load("equirectangularToCubemap", 
-										    "assets/shaders/IBL/cubemap.vs", 
-											"assets/shaders/IBL/equirectangular_to_cubemap.fs");
-
-		GLCore::Render::ShaderManager::Load("irradiance",
-											"assets/shaders/IBL/cubemap.vs",
-											"assets/shaders/IBL/irradiance_convolution.fs");
-
-		GLCore::Render::ShaderManager::Load("prefilter",
-											"assets/shaders/IBL/cubemap.vs",
-											"assets/shaders/IBL/prefilter.fs");
-
-		GLCore::Render::ShaderManager::Load("brdf",
-											"assets/shaders/IBL/brdf.vs",
-											"assets/shaders/IBL/brdf.fs");
-
-		GLCore::Render::ShaderManager::Load("background",
-											"assets/shaders/IBL/background.vs",
-											"assets/shaders/IBL/background.fs");
+		GLCore::Render::ShaderManager::Load("equirectangularToCubemap","assets/shaders/IBL/cubemap.vs","assets/shaders/IBL/equirectangular_to_cubemap.fs");
+		GLCore::Render::ShaderManager::Load("irradiance","assets/shaders/IBL/cubemap.vs","assets/shaders/IBL/irradiance_convolution.fs");
+		GLCore::Render::ShaderManager::Load("prefilter","assets/shaders/IBL/cubemap.vs","assets/shaders/IBL/prefilter.fs");
+		GLCore::Render::ShaderManager::Load("brdf","assets/shaders/IBL/brdf.vs","assets/shaders/IBL/brdf.fs");
+		GLCore::Render::ShaderManager::Load("background","assets/shaders/IBL/background.vs","assets/shaders/IBL/background.fs");
         //----------------------------------------------------------------------------------------------------------------------------
+
 
 
 		//--SKYBOX
@@ -101,25 +88,23 @@ namespace GLCore {
 			"assets/default/Skybox/back.jpg"
 		};
 		skybox = new Utils::Skybox(faces);
-
 		dynamicSkybox = new Utils::DynamicSkybox(faces);
 		//----------------------------------------------------------------------------------------------------------------------------
-
 
 		//--GRID WORLD REFENRENCE
 		gridWorldRef = new Utils::GridWorldReference();
 		//----------------------------------------------------------------------------------------------------------------------------
 
-
 		//--IBL
-		hdrTexture_daylight = GLCore::Utils::ImageLoader::loadHDR("assets/default/HDR/newport_loft.hdr");
-		prepare_PBR_IBL();
+		iblManager.prepare_PBR_IBL(800, 600);
 		//--------------------------------------------------------------------------------------------------------------------------------
+
 
 		//--POST-PROCESS
 		postproManager = new Utils::PostProcessingManager();
 		postproManager->Init(800,600);
 		//--------------------------------------------------------------------------------------------------------------------------------
+
 
 		//--FBO SCENE
 		scene_colorBuffers = GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&scene_FBO, &scene_depthBuffer, 1, 800, 600);
@@ -151,8 +136,7 @@ namespace GLCore {
 
     void Scene::update(Timestep deltaTime)
     {
-
-		//--INPUTS
+		//--INPUTS TOOLS
 		if (InputManager::Instance().IsKeyJustPressed(GLFW_KEY_1)) 
 		{
 			m_GizmoOperation = GizmoOperation::Translate;
@@ -166,6 +150,8 @@ namespace GLCore {
 			m_GizmoOperation = GizmoOperation::Scale;
 		}
 		//------------------------------------------------------------------------------
+
+
 
 		//--ENTITIES
         manager.refresh();
@@ -285,25 +271,31 @@ namespace GLCore {
 			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			//--------------------------------------------SHOW_HDR-IRRADIANCE_BOX-----------------------------------------------------------------------------
-			if (showSkybox == true)
+
+
+			if (useIBL == true)
 			{
 				//--------------------------------------------IBL
 				glDepthFunc(GL_LEQUAL);
 
 				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.envCubemap);
 				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap); // display irradiance map
+				glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.irradianceMap); // display irradiance map
 				glActiveTexture(GL_TEXTURE2);
-				glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);  // display prefilter map
+				glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.prefilterMap);  // display prefilter map
 
 				GLCore::Render::ShaderManager::Get("pbr_ibl")->use();
 				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("irradianceMap", 0);
 				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("prefilterMap", 1);
 				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("brdfLUT", 2);
+			}
 
 
+
+			//--------------------------------------------SHOW_HDR-IRRADIANCE_BOX-----------------------------------------------------------------------------
+			if (showSkybox == true)
+			{
 				glm::mat4 viewHDR = glm::mat4(glm::mat3(cameraViewMatrix));
 
 				// Escala la matriz de vista para hacer el skybox más grande
@@ -317,6 +309,8 @@ namespace GLCore {
 				//----------------------------------------------------------------------------------------------------
 			}
 			//-------------------------------------------------------------------------------------------------------------------------------------------
+
+
 
 			//__2.-LIGHT PASS
 			rendererManager->passLights();
@@ -385,210 +379,8 @@ namespace GLCore {
 
 	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
 	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-
-	void Scene::prepare_PBR_IBL()
-	{
-		glGenFramebuffers(1, &IBL_FBO);
-		glGenRenderbuffers(1, &IBL_RBO);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, IBL_FBO);
-		glBindRenderbuffer(GL_RENDERBUFFER, IBL_RBO);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, IBL_RBO);
-
-
-		// pbr: setup cubemap to render to and attach to framebuffer
-		// ---------------------------------------------------------
-		glGenTextures(1, &envCubemap);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
-
-		for (unsigned int i = 0; i < 6; ++i)
-		{
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 512, 512, 0, GL_RGB, GL_FLOAT, nullptr);
-		}
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-
-
-		// pbr: set up projection and view matrices for capturing data onto the 6 cubemap face directions
-		// ----------------------------------------------------------------------------------------------
-		glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
-		glm::mat4 captureViews[] =
-		{
-			glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-			glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-			glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
-			glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
-			glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-			glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
-		};
-
-
-
-
-		// pbr: convert HDR equirectangular environment map to cubemap equivalent
-		// ----------------------------------------------------------------------
-		GLCore::Render::ShaderManager::Get("equirectangularToCubemap")->use();
-		GLCore::Render::ShaderManager::Get("equirectangularToCubemap")->setInt("equirectangularDayLightMap", 0);
-		GLCore::Render::ShaderManager::Get("equirectangularToCubemap")->setFloat("mixFactor", mixFactor);
-		GLCore::Render::ShaderManager::Get("equirectangularToCubemap")->setMat4("projection", captureProjection);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, hdrTexture_daylight);
-
-		glViewport(0, 0, 512, 512); // don't forget to configure the viewport to the capture dimensions.
-		glBindFramebuffer(GL_FRAMEBUFFER, IBL_FBO);
-		for (unsigned int i = 0; i < 6; ++i)
-		{
-			GLCore::Render::ShaderManager::Get("equirectangularToCubemap")->setMat4("view", captureViews[i]);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemap, 0);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-			renderCube();
-		}
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		// then let OpenGL generate mipmaps from first mip face (combatting visible dots artifact)
-		glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
-		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-
-
-
-
-
-
-
-		// pbr: create an irradiance cubemap, and re-scale capture FBO to irradiance scale.
-		// --------------------------------------------------------------------------------
-		glGenTextures(1, &irradianceMap);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
-		for (unsigned int i = 0; i < 6; ++i)
-		{
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 32, 32, 0, GL_RGB, GL_FLOAT, nullptr);
-		}
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, IBL_FBO);
-		glBindRenderbuffer(GL_RENDERBUFFER, IBL_RBO);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
-
-
-		// pbr: solve diffuse integral by convolution to create an irradiance (cube)map.
-		// -----------------------------------------------------------------------------
-		GLCore::Render::ShaderManager::Get("irradiance")->use();
-		GLCore::Render::ShaderManager::Get("irradiance")->setInt("environmentMap", 0);
-		GLCore::Render::ShaderManager::Get("irradiance")->setMat4("projection", captureProjection);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
-
-		glViewport(0, 0, 32, 32); // don't forget to configure the viewport to the capture dimensions.
-		glBindFramebuffer(GL_FRAMEBUFFER, IBL_FBO);
-		for (unsigned int i = 0; i < 6; ++i)
-		{
-			GLCore::Render::ShaderManager::Get("irradiance")->setMat4("view", captureViews[i]);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, irradianceMap, 0);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-			renderCube();
-		}
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
-
-		// pbr: create a pre-filter cubemap, and re-scale capture FBO to pre-filter scale.
-		// --------------------------------------------------------------------------------
-		glGenTextures(1, &prefilterMap);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
-		for (unsigned int i = 0; i < 6; ++i)
-		{
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 128, 128, 0, GL_RGB, GL_FLOAT, nullptr);
-		}
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // be sure to set minification filter to mip_linear 
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		// generate mipmaps for the cubemap so OpenGL automatically allocates the required memory.
-		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-
-
-
-
-		// pbr: run a quasi monte-carlo simulation on the environment lighting to create a prefilter (cube)map.
-		// ----------------------------------------------------------------------------------------------------
-		GLCore::Render::ShaderManager::Get("prefilter")->use();
-		GLCore::Render::ShaderManager::Get("prefilter")->setInt("environmentMap", 0);
-		GLCore::Render::ShaderManager::Get("prefilter")->setMat4("projection", captureProjection);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, IBL_FBO);
-		unsigned int maxMipLevels = 5;
-		for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
-		{
-			// reisze framebuffer according to mip-level size.
-			unsigned int mipWidth = static_cast<unsigned int>(128 * std::pow(0.5, mip));
-			unsigned int mipHeight = static_cast<unsigned int>(128 * std::pow(0.5, mip));
-			glBindRenderbuffer(GL_RENDERBUFFER, IBL_RBO);
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
-			glViewport(0, 0, mipWidth, mipHeight);
-
-			float roughness = (float)mip / (float)(maxMipLevels - 1);
-			GLCore::Render::ShaderManager::Get("prefilter")->setFloat("roughness", roughness);
-			for (unsigned int i = 0; i < 6; ++i)
-			{
-				GLCore::Render::ShaderManager::Get("prefilter")->setMat4("view", captureViews[i]);
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);
-
-				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-				renderCube();
-			}
-		}
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
-
-		// pbr: generate a 2D LUT from the BRDF equations used.
-		// ----------------------------------------------------
-		glGenTextures(1, &brdfLUTTexture);
-
-		// pre-allocate enough memory for the LUT texture.
-		glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, sceneSize.x, sceneSize.y, 0, GL_RG, GL_FLOAT, 0);
-		// be sure to set wrapping mode to GL_CLAMP_TO_EDGE
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		// then re-configure capture framebuffer object and render screen-space quad with BRDF shader.
-		glBindFramebuffer(GL_FRAMEBUFFER, IBL_FBO);
-		glBindRenderbuffer(GL_RENDERBUFFER, IBL_RBO);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, sceneSize.x, sceneSize.y);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, brdfLUTTexture, 0);
-
-		glViewport(0, 0, sceneSize.x, sceneSize.y);
-		GLCore::Render::ShaderManager::Get("brdf")->use();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		renderQuad();
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	}
 
 	void Scene::renderQuad()
 	{
@@ -934,6 +726,17 @@ namespace GLCore {
 			}
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
+			
+
+			ImGui::Checkbox("Use IBL", &useIBL);
+			if (useIBL == true)
+			{
+
+			}
+			ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+
+			
 			ImGui::Checkbox("Show SkyBox", &showSkybox);
 			if (showSkybox == true)
 			{

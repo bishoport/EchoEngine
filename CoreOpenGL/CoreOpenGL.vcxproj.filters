@@ -135,6 +135,9 @@
     <ClCompile Include="src\GLCore\Util\PostProcessingManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\GLCore\Util\IBLManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="vendor\Glad\glad.h">
@@ -279,6 +282,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\ECS\Camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Util\IBLManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

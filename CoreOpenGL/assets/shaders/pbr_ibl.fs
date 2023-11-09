@@ -154,7 +154,7 @@ void main()
     vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
     vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
     
-    
+
 
     //COMBINAMOS TODO
     vec3 ambient = (((kD * diffuse * globalAmbient) + specular) * ao);
