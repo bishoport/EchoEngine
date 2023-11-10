@@ -64,5 +64,6 @@ enum class MainMenuAction {
     AddQuad,                // Representa agregar un quad
     AddPlane,                // Representa agregar un plane
     AddCharacterController,
-    AddCamera
+    AddCamera,
+    SaveProject
 };

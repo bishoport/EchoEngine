@@ -3,10 +3,78 @@
 #include "../glpch.h"
 #include "../GLCore/DataStruct.h"
 
+#define YAML_CPP_STATIC_DEFINE
+#include "yaml-cpp/emitterstyle.h"
+#include "yaml-cpp/eventhandler.h"
+#include "yaml-cpp/yaml.h"  // IWYU pragma: keep
+
+
+namespace YAML {
+	template<>
+	struct convert<glm::vec3> {
+		static Node encode(const glm::vec3& rhs) {
+			Node node;
+			node.push_back(rhs.x);
+			node.push_back(rhs.y);
+			node.push_back(rhs.z);
+			return node;
+		}
+
+		static bool decode(const Node& node, glm::vec3& rhs) {
+			if (!node.IsSequence() || node.size() != 3) {
+				return false;
+			}
+			rhs.x = node[0].as<float>();
+			rhs.y = node[1].as<float>();
+			rhs.z = node[2].as<float>();
+			return true;
+		}
+	};
+
+	template<>
+	struct convert<glm::quat> {
+		static Node encode(const glm::quat& rhs) {
+			Node node;
+			node.push_back(rhs.w);
+			node.push_back(rhs.x);
+			node.push_back(rhs.y);
+			node.push_back(rhs.z);
+			return node;
+		}
+
+		static bool decode(const Node& node, glm::quat& rhs) {
+			if (!node.IsSequence() || node.size() != 4) {
+				return false;
+			}
+			rhs.w = node[0].as<float>();
+			rhs.x = node[1].as<float>();
+			rhs.y = node[2].as<float>();
+			rhs.z = node[3].as<float>();
+			return true;
+		}
+	};
+
+	inline Emitter& operator<<(Emitter& out, const glm::vec3& v) {
+		out << Flow;
+		out << BeginSeq << v.x << v.y << v.z << EndSeq;
+		return out;
+	}
+
+	inline Emitter& operator<<(Emitter& out, const glm::quat& q) {
+		out << Flow;
+		out << BeginSeq << q.w << q.x << q.y << q.z << EndSeq;
+		return out;
+	}
+} // Fin del espacio de nombres YAML
+
+
+
+
 namespace ECS
 {
 	class Component;
 	class Entity;
+	class Transform; // Forward declaration
 
 	using ComponentID = std::size_t;
 
@@ -41,8 +109,6 @@ namespace ECS
 	};
 	
 
-
-
 	class Entity
 	{
 	private:
@@ -56,6 +122,11 @@ namespace ECS
 		bool active = true;
 
 		bool markedToDelete = false;
+
+		// Declaración de métodos que dependen de Transform
+		YAML::Node serialize() const;
+		void deserialize(const YAML::Node& node);
+
 
 		Entity(int nextID) {
 			id = nextID;
@@ -83,7 +154,7 @@ namespace ECS
 		const std::vector<std::unique_ptr<Component>>& getComponents() const {
 			return components;
 		}
-		
+
 
 
 		bool isActive() const { return active; }
@@ -153,9 +224,6 @@ namespace ECS
 			componentBitSet[typeID] = false;
 		}
 	};
-
-
-	
 
 
 	class Transform : public Component
@@ -303,7 +371,63 @@ namespace ECS
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 		}
 
+		void serialize(YAML::Emitter& out) const {
+			out << YAML::BeginMap;
+			out << YAML::Key << "position" << YAML::Value << position;
+			out << YAML::Key << "rotation" << YAML::Value << rotation;
+			out << YAML::Key << "scale" << YAML::Value << scale;
+			out << YAML::EndMap;
+		}
+
+		void deserialize(const YAML::Node& node) {
+			position = node["position"].as<glm::vec3>();
+			rotation = node["rotation"].as<glm::quat>();
+			scale = node["scale"].as<glm::vec3>();
+		}
 	};
+
+	
+
+	//#include "ProjectManager.h"
+
+	inline YAML::Node Entity::serialize() const {
+		YAML::Emitter out;
+		out << YAML::BeginMap;
+		out << YAML::Key << "id" << YAML::Value << id;
+		out << YAML::Key << "name" << YAML::Value << name;
+		out << YAML::Key << "active" << YAML::Value << active;
+
+		// Asumiendo que cada entidad tiene un componente Transform
+		if (hascomponent<Transform>()) {
+			out << YAML::Key << "transform";
+			getComponent<Transform>().serialize(out); // Necesitamos pasar el Emitter por referencia
+		}
+
+		out << YAML::EndMap;
+
+		// El Emitter de YAML convierte todo a una cadena,
+		// así que necesitamos convertir esa cadena a un Node para devolverlo.
+		return YAML::Load(out.c_str());
+	}
+
+	inline void Entity::deserialize(const YAML::Node& node) {
+		id = node["id"].as<int>();
+		name = node["name"].as<std::string>();
+		active = node["active"].as<bool>();
+
+		// Deserializar el componente Transform si existe
+		if (node["transform"]) {
+			// Aquí necesitas asegurarte de que el componente Transform ya ha sido añadido a la entidad
+			// antes de intentar deserializarlo. Si no, necesitas crear uno nuevo.
+			if (!hascomponent<Transform>()) {
+				addComponent<Transform>();
+			}
+			getComponent<Transform>().deserialize(node["transform"]);
+		}
+	}
+
+
+	
 
 
 
@@ -405,6 +529,29 @@ namespace ECS
 					rawEntities.push_back(e.get());
 			}
 			return rawEntities;
+		}
+
+		void serializeEntities(const std::string& filename) {
+			YAML::Emitter out;
+			out << YAML::BeginSeq;
+			for (const auto& entity : entities) {
+				if (entity->isActive()) {
+					out << entity->serialize();
+				}
+			}
+			out << YAML::EndSeq;
+
+			std::ofstream fout(filename);
+			fout << out.c_str();
+		}
+
+		void deserializeEntities(const std::string& filename) {
+			std::ifstream fin(filename);
+			YAML::Node root = YAML::Load(fin);
+			for (const auto& node : root) {
+				Entity& entity = addEntity();
+				entity.deserialize(node);
+			}
 		}
 	};
 }

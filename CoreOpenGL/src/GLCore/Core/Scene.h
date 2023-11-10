@@ -143,5 +143,13 @@ namespace GLCore {
         std::vector<ECS::Entity*> entitiesInRay;
         void CheckIfPointerIsOverObject();
         bool rayIntersectsBoundingBox(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, glm::vec3 boxMin, glm::vec3 boxMax);
+
+
+
+
+        //--SERIALIZACIONES
+        void SaveSceneToFile(const std::string& filename);
+        void LoadSceneFromFile(const std::string& filename, std::vector<ECS::Entity*>& entitiesInScene, ECS::Manager& manager);
+
     };
 }

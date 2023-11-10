@@ -130,28 +130,31 @@ namespace GLCore {
         //--TOP MAIN MENU
         if (ImGui::BeginMenuBar())
         {
-            /*if (ImGui::BeginMenu("File"))
+            if (ImGui::BeginMenu("File"))
             {
-                ImGui::MenuItem("SANDBOX", NULL, false, false);
-                if (ImGui::MenuItem("New")){}
-                if (ImGui::MenuItem("Open", "Ctrl+O")){}
-                if (ImGui::MenuItem("Save", "Ctrl+S")){}
-                if (ImGui::MenuItem("Save As..")) {}
-
-                ImGui::Separator();
-
-                if (ImGui::BeginMenu("Options")){
-                    static bool b = true;
-                    ImGui::Checkbox("Auto Save", &b);
-                    ImGui::EndMenu();
+                ImGui::MenuItem("ECHO ENGINE", NULL, false, false);
+                //if (ImGui::MenuItem("New")){}
+                //if (ImGui::MenuItem("Open", "Ctrl+O")){}
+                //if (ImGui::MenuItem("Save", "Ctrl+S")){}
+                if (ImGui::MenuItem("Save Scene")) 
+                {
+                    UsarDelegado(MainMenuAction::SaveProject);
                 }
 
-                if (ImGui::MenuItem("Quit", "Alt+F4")) {}
+                //ImGui::Separator();
+
+                //if (ImGui::BeginMenu("Options")){
+                //    static bool b = true;
+                //    ImGui::Checkbox("Auto Save", &b);
+                //    ImGui::EndMenu();
+                //}
+
+                //if (ImGui::MenuItem("Quit", "Alt+F4")) {}
 
                 ImGui::EndMenu();
             }
 
-            if (ImGui::BeginMenu("Edit")) { ImGui::EndMenu(); }
+            /*if (ImGui::BeginMenu("Edit")) { ImGui::EndMenu(); }
             if (ImGui::BeginMenu("Project")) { ImGui::EndMenu(); }
             if (ImGui::BeginMenu("View")) { ImGui::EndMenu(); }*/
 

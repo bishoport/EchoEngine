@@ -18,16 +18,18 @@
 #include "../../ECS/Camera.h"
 
 
-
+#define YAML_CPP_STATIC_DEFINE
+#include "yaml-cpp/emitterstyle.h"
+#include "yaml-cpp/eventhandler.h"
+#include "yaml-cpp/yaml.h"  // IWYU pragma: keep
 
 
 namespace GLCore {
 
 	std::pair<glm::vec3, float> Scene::SceneBounds = { glm::vec3(0.0f), 0.0f };
-
+	
 	Render::RendererManager* rendererManager = new Render::RendererManager();
 	
-
     Scene::Scene() : m_EditorCamera(16.0f / 9.0f) {}
 
     Scene::~Scene(){shutdown();}
@@ -950,9 +952,10 @@ namespace GLCore {
 			gameObject = &manager.addEntity();
 			gameObject->name = "Cube_" + std::to_string(rendererManager->entitiesInScene.size());
 			gameObject->addComponent<ECS::MeshFilter>().initMesh(cube);
+			gameObject->getComponent<ECS::MeshFilter>().modelType = PRIMIVITE_CUBE;
 			gameObject->addComponent<ECS::MeshRenderer>();
 			gameObject->addComponent<ECS::Material>();
-			gameObject->getComponent<ECS::Material>().setDafaultMaterial();
+			gameObject->getComponent<ECS::Material>().setDafaultMaterial();	
 		}
 		else if (action == MainMenuAction::AddSegmentedCube)
 		{
@@ -961,6 +964,7 @@ namespace GLCore {
 			gameObject = &manager.addEntity();
 			gameObject->name = "SegCube_" + std::to_string(rendererManager->entitiesInScene.size());
 			gameObject->addComponent<ECS::MeshFilter>().initMesh(segCube);
+			gameObject->getComponent<ECS::MeshFilter>().modelType = PRIMIVITE_SEGMENTED_CUBE;
 			gameObject->addComponent<ECS::MeshRenderer>();
 			gameObject->addComponent<ECS::Material>();
 			gameObject->getComponent<ECS::Material>().setDafaultMaterial();
@@ -972,6 +976,7 @@ namespace GLCore {
 			gameObject = &manager.addEntity();
 			gameObject->name = "Sphere_" + std::to_string(rendererManager->entitiesInScene.size());
 			gameObject->addComponent<ECS::MeshFilter>().initMesh(sphere);
+			gameObject->getComponent<ECS::MeshFilter>().modelType = PRIMIVITE_SPHERE;
 			gameObject->addComponent<ECS::MeshRenderer>();
 			gameObject->addComponent<ECS::Material>();
 			gameObject->getComponent<ECS::Material>().setDafaultMaterial();
@@ -983,6 +988,7 @@ namespace GLCore {
 			gameObject = &manager.addEntity();
 			gameObject->name = "Quad_" + std::to_string(rendererManager->entitiesInScene.size());
 			gameObject->addComponent<ECS::MeshFilter>().initMesh(quad);
+			gameObject->getComponent<ECS::MeshFilter>().modelType = PRIMIVITE_QUAD;
 			gameObject->addComponent<ECS::MeshRenderer>();
 			gameObject->addComponent<ECS::Material>();
 			gameObject->getComponent<ECS::Material>().setDafaultMaterial();
@@ -994,6 +1000,7 @@ namespace GLCore {
 			gameObject = &manager.addEntity();
 			gameObject->name = "Plane_" + std::to_string(rendererManager->entitiesInScene.size());
 			gameObject->addComponent<ECS::MeshFilter>().initMesh(plane);
+			gameObject->getComponent<ECS::MeshFilter>().modelType = PRIMIVITE_PLANE;
 			gameObject->addComponent<ECS::MeshRenderer>();
 			gameObject->addComponent<ECS::Material>();
 			gameObject->getComponent<ECS::Material>().setDafaultMaterial();
@@ -1049,6 +1056,12 @@ namespace GLCore {
 
 			cameras.push_back(&gameObject->getComponent<ECS::Camera>());
 		}
+		else if (action == MainMenuAction::SaveProject)
+		{
+			std::cout << "GUARDANDO..." << std::endl;
+
+			SaveSceneToFile("scene.yaml");
+		}
 
 
 		//Autoselect in creating
@@ -1064,6 +1077,53 @@ namespace GLCore {
 		importOptions.modelID = rendererManager->entitiesInScene.size() + 1;
 
 		loadFileModel(importOptions);
+	}
+	
+
+
+	void Scene::SaveSceneToFile(const std::string& filename)
+	{
+		YAML::Emitter out;
+
+		out << YAML::BeginSeq; // Comienza una secuencia para todas las entidades
+		for (const auto& entity : rendererManager->entitiesInScene) {
+			if (entity->isActive()) { // Asegúrate de serializar solo entidades activas
+				out << entity->serialize(); // Serializa cada entidad y agrega al flujo de salida
+			}
+		}
+		out << YAML::EndSeq; // Finaliza la secuencia
+
+		// Escribe la cadena resultante del Emitter al archivo
+		std::ofstream fout(filename);
+		fout << out.c_str();
+	}
+
+
+	void Scene::LoadSceneFromFile(const std::string& filename, std::vector<ECS::Entity*>& entitiesInScene, ECS::Manager& manager) {
+		std::ifstream fin(filename);
+		if (!fin.is_open()) {
+			// Manejar error al abrir el archivo
+			std::cerr << "Error al abrir el archivo para cargar la escena" << std::endl;
+			return;
+		}
+
+		YAML::Node data = YAML::Load(fin); // Carga el archivo en un nodo de YAML
+
+		if (!data.IsSequence()) {
+			// Manejar error de formato incorrecto
+			std::cerr << "Formato de archivo de escena incorrecto" << std::endl;
+			return;
+		}
+
+		// Limpia las entidades actuales en la escena antes de cargar
+		entitiesInScene.clear();
+
+		for (const auto& node : data) {
+			// Aquí se asume que tienes una forma de crear entidades y que manager es accesible
+			ECS::Entity& newEntity = manager.addEntity();
+			newEntity.deserialize(node); // Deserializa la información de cada entidad
+			entitiesInScene.push_back(&newEntity); // Añade la entidad al vector de entidades de la escena
+		}
 	}
 
 	ModelParent Scene::loadFileModel(ImportOptions importOptions)
@@ -1083,6 +1143,8 @@ namespace GLCore {
 					ECS::Entity* entityChild = &manager.addEntity();
 					entityChild->name = modelParent.modelInfos[i].meshData.meshName + std::to_string(i);
 					entityChild->addComponent<ECS::MeshFilter>().initMesh(modelParent.modelInfos[i].meshData);
+					entityChild->getComponent<ECS::MeshFilter>().modelType = EXTERNAL_FILE;
+					entityChild->getComponent<ECS::MeshFilter>().modelPath = importOptions.filePath + importOptions.fileName;
 					entityChild->addComponent<ECS::MeshRenderer>();
 					entityChild->addComponent<ECS::Material>().setMaterial(modelParent.modelInfos[i].model_material);
 	
@@ -1093,6 +1155,8 @@ namespace GLCore {
 			else
 			{
 				entityParent->addComponent<ECS::MeshFilter>().initMesh(modelParent.modelInfos[0].meshData);
+				entityParent->getComponent<ECS::MeshFilter>().modelType = EXTERNAL_FILE;
+				entityParent->getComponent<ECS::MeshFilter>().modelPath = importOptions.filePath + importOptions.fileName;
 				entityParent->addComponent<ECS::MeshRenderer>();
 				entityParent->addComponent<ECS::Material>().setMaterial(modelParent.modelInfos[0].model_material);
 				entityParent->name = modelParent.modelInfos[0].meshData.meshName + std::to_string(0);

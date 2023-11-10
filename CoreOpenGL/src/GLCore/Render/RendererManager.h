@@ -17,14 +17,11 @@ namespace GLCore::Render
         void passShadow();
         void passGeometry();
 
-
         static std::pair<glm::vec3, float> SceneBounds;
         void CalcSceneBundle();
-
 
     private:
         GLuint SCR_WIDTH = 800;
         GLuint SCR_HEIGHT = 600;
-
     };
 }

@@ -3,6 +3,31 @@
 
 namespace GLCore 
 {
+    enum MODEL_TYPES
+    {
+        NONE,
+        PRIMIVITE_PLANE,
+        PRIMIVITE_CUBE,
+        PRIMIVITE_SEGMENTED_CUBE,
+        PRIMIVITE_SPHERE,
+        PRIMIVITE_QUAD,
+        EXTERNAL_FILE,
+    };
+
+    inline std::string ModelTypeToString(MODEL_TYPES type) {
+        switch (type) {
+        case NONE: return "NONE";
+        case PRIMIVITE_PLANE: return "PRIMIVITE_PLANE";
+        case PRIMIVITE_CUBE: return "PRIMIVITE_CUBE";
+        case PRIMIVITE_SEGMENTED_CUBE: return "PRIMIVITE_SEGMENTED_CUBE";
+        case PRIMIVITE_SPHERE: return "PRIMIVITE_SPHERE";
+        case PRIMIVITE_QUAD: return "PRIMIVITE_QUAD";
+        case EXTERNAL_FILE: return "EXTERNAL_FILE";
+        default: return "Unknown Type";
+        }
+    }
+
+
     enum TEXTURE_TYPES {
         ALBEDO,
         NORMAL,
@@ -172,7 +197,6 @@ namespace GLCore
         }
     };
 
-
     struct MeshData {
 
         // Constructor predeterminado
@@ -267,6 +291,8 @@ namespace GLCore
 
         MeshData meshData;
         Material model_material;
+
+        MODEL_TYPES modelType;
     };
 
     struct ModelParent

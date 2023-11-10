@@ -17,8 +17,8 @@ namespace ECS {
 
         glm::mat4 model_transform_matrix{ glm::mat4(1.0f) };
 
-        MeshRenderer() {}
 
+        MeshRenderer() {}
 
         void onDestroy() override
         {
@@ -27,7 +27,7 @@ namespace ECS {
             // Si hay otros VBOs, también deberías liberarlos aquí.
             glDeleteBuffers(1, &meshData.VBO);  // Si tienes un VBO
             glDeleteBuffers(1, &meshData.EBO);  // Si tienes un EBO
-
+            std::cout << "MeshRenderer resources released." << std::endl;
         }
 
         void init() override 
@@ -50,10 +50,6 @@ namespace ECS {
                 shaderNames.push_back(name.c_str());
             }
         }
-
-
-        
-
 
         void update() override
         {
@@ -99,7 +95,6 @@ namespace ECS {
             }
         }
 
-
         void drawGUI_Inspector() override
         {
             //Common Delete
@@ -141,9 +136,7 @@ namespace ECS {
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
         }
 
-
-    private: 
-        
+    private:
         //PARA LA GESTION DEL SHADER
         std::vector<const char*> shaderNames;
     };
