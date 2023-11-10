@@ -1,0 +1,3 @@
+[submodule "CoreOpenGL/vendor/yaml-cpp"]
+	path = CoreOpenGL/vendor/yaml-cpp
+	url = https://github.com/TheCherno/yaml-cpp.git
