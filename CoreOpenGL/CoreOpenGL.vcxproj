@@ -135,8 +135,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ECS\Entity.cpp" />
+    <ClCompile Include="src\ECS\Manager.cpp" />
+    <ClCompile Include="src\ECS\Transform.cpp" />
     <ClCompile Include="src\GLCore\Core\Application.cpp" />
     <ClCompile Include="src\GLCore\Core\AssetsPanel.cpp" />
+    <ClCompile Include="src\GLCore\Core\GameObjectManager.cpp" />
     <ClCompile Include="src\GLCore\Core\GuiLayer.cpp" />
     <ClCompile Include="src\GLCore\Core\Input\InputManager.cpp" />
     <ClCompile Include="src\GLCore\Core\Log.cpp" />
@@ -168,11 +172,16 @@
   <ItemGroup>
     <ClInclude Include="src\ECS\Camera.h" />
     <ClInclude Include="src\ECS\CharacterController.h" />
+    <ClInclude Include="src\ECS\Component.h" />
     <ClInclude Include="src\ECS\ComponentsIncludes.h" />
     <ClInclude Include="src\ECS\DirectionalLight.h" />
+    <ClInclude Include="src\GLCore\Core\GameObjectManager.h" />
+    <ClInclude Include="src\ECS\Entity.h" />
+    <ClInclude Include="src\ECS\Manager.h" />
     <ClInclude Include="src\ECS\Material.h" />
     <ClInclude Include="src\ECS\PointLight.h" />
     <ClInclude Include="src\ECS\SpotLight.h" />
+    <ClInclude Include="src\ECS\Transform.h" />
     <ClInclude Include="src\GLCore\Core\Application.h" />
     <ClInclude Include="src\ECS\ECS.h" />
     <ClInclude Include="src\ECS\MeshFilter.h" />

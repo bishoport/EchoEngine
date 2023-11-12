@@ -1,5 +1,11 @@
 #pragma once
-#include "ECS.h"
+
+#include "../glpch.h"
+#include "../GLCore/DataStruct.h"
+#include "Entity.h"
+#include "Component.h"
+#include "Transform.h"
+
 
 namespace ECS
 {
@@ -72,15 +78,15 @@ namespace ECS
         {
             // Aquí solo necesitamos asegurarnos de que la escala de la entidad es la correcta.
             // Asumiendo que esto es necesario en cada frame. Si no, esto podría ir en la función init.
-            Transform& transform = entity->getComponent<Transform>();
+            ECS::Transform& transform = entity->getComponent<ECS::Transform>();
             transform.scale = glm::vec3(1.0f);  // Esto establece la escala a 1 en todas las direcciones.
 
             // Obtiene la posición local de la cámara y la matriz de modelo local.
             // La posición global y la rotación se manejarán en RecalculateViewMatrix.
 
             model_transform_matrix = transform.getLocalModelMatrix();
-            if (entity->getComponent<Transform>().parent != nullptr) {
-               model_transform_matrix = entity->getComponent<Transform>().parent->getComponent<Transform>().getLocalModelMatrix() * model_transform_matrix;
+            if (entity->getComponent<ECS::Transform>().parent != nullptr) {
+               model_transform_matrix = entity->getComponent<ECS::Transform>().parent->getComponent<ECS::Transform>().getLocalModelMatrix() * model_transform_matrix;
             }
 
             // Recalcular la matriz de vista ahora también manejará la posición y rotación del padre.
@@ -89,18 +95,18 @@ namespace ECS
 
         //void update() override 
         //{
-        //    entity->getComponent<Transform>().scale.x = 1.0f;
-        //    entity->getComponent<Transform>().scale.y = 1.0f;
-        //    entity->getComponent<Transform>().scale.z = 1.0f;
+        //    entity->getComponent<ECS::Transform>().scale.x = 1.0f;
+        //    entity->getComponent<ECS::Transform>().scale.y = 1.0f;
+        //    entity->getComponent<ECS::Transform>().scale.z = 1.0f;
 
-        //    m_Position = entity->getComponent<Transform>().getLocalPosition();
+        //    m_Position = entity->getComponent<ECS::Transform>().getLocalPosition();
 
-        //    model_transform_matrix = entity->getComponent<Transform>().getLocalModelMatrix();
+        //    model_transform_matrix = entity->getComponent<ECS::Transform>().getLocalModelMatrix();
 
         //    //Check if has parent
-        //    if (entity->getComponent<Transform>().parent != nullptr) {
-        //       model_transform_matrix = entity->getComponent<Transform>().parent->getComponent<Transform>().getLocalModelMatrix() * model_transform_matrix;
-        //       m_Position = entity->getComponent<Transform>().parent->getComponent<Transform>().position + m_Position;
+        //    if (entity->getComponent<ECS::Transform>().parent != nullptr) {
+        //       model_transform_matrix = entity->getComponent<ECS::Transform>().parent->getComponent<ECS::Transform>().getLocalModelMatrix() * model_transform_matrix;
+        //       m_Position = entity->getComponent<ECS::Transform>().parent->getComponent<ECS::Transform>().position + m_Position;
         //    }
 
         //    RecalculateViewMatrix();
@@ -184,7 +190,7 @@ namespace ECS
     private:
 
         void RecalculateViewMatrix() {
-            Transform& cameraTransform = entity->getComponent<Transform>();
+            ECS::Transform& cameraTransform = entity->getComponent<ECS::Transform>();
             glm::quat cameraRotation = cameraTransform.rotation;
             glm::vec3 cameraPosition; // Inicializada más adelante
 
@@ -205,12 +211,12 @@ namespace ECS
 
         //void RecalculateViewMatrix()
         //{
-        //    Transform& cameraTransform = entity->getComponent<Transform>();
+        //    ECS::Transform& cameraTransform = entity->getComponent<ECS::Transform>();
         //    glm::quat cameraRotation = cameraTransform.rotation;
         //    glm::vec3 cameraPosition = cameraTransform.position;
 
         //    if (cameraTransform.parent != nullptr) {
-        //        Transform& parentTransform = cameraTransform.parent->getComponent<Transform>();
+        //        ECS::Transform& parentTransform = cameraTransform.parent->getComponent<ECS::Transform>();
         //        glm::quat parentRotation = parentTransform.rotation;
         //        glm::vec3 parentPosition = parentTransform.position;
 
@@ -234,14 +240,14 @@ namespace ECS
         //}
         //void RecalculateViewMatrix()
         //{
-        //    Transform& cameraTransform = entity->getComponent<Transform>();
+        //    ECS::Transform& cameraTransform = entity->getComponent<ECS::Transform>();
         //    glm::quat cameraRotation = cameraTransform.rotation;
         //    glm::vec3 cameraPosition = cameraTransform.position;
 
         //    // Verificar si la entidad tiene padre y ajustar la posición y rotación en consecuencia
         //    if (cameraTransform.parent != nullptr) {
         //        // Obtener la transformación del padre
-        //        Transform& parentTransform = cameraTransform.parent->getComponent<Transform>();
+        //        ECS::Transform& parentTransform = cameraTransform.parent->getComponent<ECS::Transform>();
         //        glm::quat parentRotation = parentTransform.rotation;
         //        glm::vec3 parentPosition = parentTransform.position;
 

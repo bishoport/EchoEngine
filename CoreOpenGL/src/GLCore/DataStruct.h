@@ -127,7 +127,6 @@ namespace GLCore
             }
         }
 
-
         void prepare_PBRMaterials()
         {
             if (textures.size() == 0)
@@ -196,6 +195,10 @@ namespace GLCore
             GLCore::Render::ShaderManager::Get(shaderName)->setFloat("material.gamma", gamma);
         }
     };
+
+
+
+
 
     struct MeshData {
 

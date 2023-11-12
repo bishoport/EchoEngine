@@ -14,6 +14,7 @@ namespace GLCore {
 
     std::unique_ptr<GuiLayer> Application::guiLayer = nullptr;
     std::unique_ptr<Scene> Application::scene = nullptr; 
+    std::unique_ptr<GameObjectManager> Application::gameObjectManager = nullptr;
 
     Application::Application() : window(nullptr) {
         if (!s_Instance)
@@ -70,6 +71,9 @@ namespace GLCore {
         });
         //--------------------------------------------------------------------------------------------------
 
+        //--GAMEOBJECT MANAGER
+        Application::gameObjectManager = std::make_unique<GameObjectManager>();
+        //--------------------------------------------------------------------------------------------------
 
         //--DEFAULT SCENE
         Application::scene = std::make_unique<Scene>();
@@ -78,6 +82,8 @@ namespace GLCore {
             return false;
         }
         //--------------------------------------------------------------------------------------------------
+
+        
 
 
         //--SUBSCRIPCION A EVENTOS
@@ -94,9 +100,7 @@ namespace GLCore {
 
     void Application::acctionPresedFromTopMenu(const MainMenuAction& action)
     {
-        if (scene) {
-            scene->createGameObject(action);
-        }
+        gameObjectManager->createGameObject(action);
     }
 
 

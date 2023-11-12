@@ -373,6 +373,7 @@ namespace GLCore::Utils
             material.aOMap = texture;
         }
 
+        material.shininess = 32.0f;
         return material;
     }
 

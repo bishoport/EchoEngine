@@ -1,5 +1,9 @@
 #pragma once
-#include "ECS.h"
+#include "../glpch.h"
+#include "../GLCore/DataStruct.h"
+#include "Entity.h"
+#include "Component.h"
+#include "MeshRenderer.h"
 #include "../GLCore/Util/IMGLoader.h"
 
 namespace ECS {
@@ -104,6 +108,54 @@ namespace ECS {
             
 			drawTextureProperties();
         }
+
+
+		// Método para serializar el MeshFilter a YAML
+		void serialize(YAML::Emitter& out) const {
+			out << YAML::BeginMap;
+
+			// Serializar propiedades simples
+			out << YAML::Key << "shininess" << YAML::Value << material->shininess;
+			out << YAML::Key << "hdrIntensity" << YAML::Value << material->hdrIntensity;
+			out << YAML::Key << "exposure" << YAML::Value << material->exposure;
+			out << YAML::Key << "gamma" << YAML::Value << material->gamma;
+			out << YAML::Key << "tiling" << YAML::Value << repetitionFactor;
+
+			//Albedo
+			out << YAML::Key << "albedoMap"   << YAML::Value << material->albedoMap.image.path;
+			out << YAML::Key << "color" << YAML::Flow << YAML::BeginSeq << material->color.r << material->color.g << material->color.b << YAML::EndSeq;
+			out << YAML::Key << "hdrMultiply" << YAML::Value << material->hdrMultiply;
+
+			//Normal
+			out << YAML::Key << "normalMap"   << YAML::Value << material->normalMap.image.path;
+			out << YAML::Key << "normalIntensiry"   << YAML::Value << material->normalIntensity;
+
+			//Metallic
+			out << YAML::Key << "metallicMap" << YAML::Value << material->metallicMap.image.path;
+			out << YAML::Key << "metallicValue" << YAML::Value << material->metallicValue;
+			out << YAML::Key << "reflectanceValue" << YAML::Value << material->reflectanceValue;
+
+			//Rougness
+			out << YAML::Key << "rougnessMap" << YAML::Value << material->rougnessMap.image.path;
+			out << YAML::Key << "rougnessValue" << YAML::Value << material->roughnessValue;
+
+			//AO
+			out << YAML::Key << "aOMap" << YAML::Value << material->aOMap.image.path;
+
+			out << YAML::EndMap;
+		}
+
+
+
+
+		// Método para deserializar el MeshFilter desde YAML
+		void deserialize(const YAML::Node& node) {
+			/*modelType = static_cast<GLCore::MODEL_TYPES>(node["modelType"].as<int>());
+			modelPath = node["modelPath"].as<std::string>();*/
+			// Agrega aquí la deserialización de cualquier otro miembro
+		}
+
+
 
     private:
         std::unique_ptr<GLCore::Material> material = nullptr;

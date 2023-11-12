@@ -1,5 +1,8 @@
 #pragma once
-#include "ECS.h"
+#include "../glpch.h"
+#include "../GLCore/DataStruct.h"
+#include "Entity.h"
+#include "Transform.h"
 
 
 namespace ECS {
@@ -106,7 +109,7 @@ namespace ECS {
         void shadowMappingProjection(std::vector<ECS::Entity*> entitiesInScene)
         {
             // move light position over time
-            //entity->getComponent<Transform>().position.z = static_cast<float>(sin(glfwGetTime() * 0.5) * 3.0);
+            //entity->getComponent<ECS::Transform>().position.z = static_cast<float>(sin(glfwGetTime() * 0.5) * 3.0);
 
             // render
             // ------
@@ -120,7 +123,7 @@ namespace ECS {
             glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), (float)shadowMapResolution / (float)shadowMapResolution, near_plane, far_plane);
             std::vector<glm::mat4> shadowTransforms;
 
-            glm::vec3 lightPos = entity->getComponent<Transform>().position;
+            glm::vec3 lightPos = entity->getComponent<ECS::Transform>().position;
 
             shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
             shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
@@ -168,7 +171,7 @@ namespace ECS {
             {
                 GLCore::Render::ShaderManager::Get(name.c_str())->use();
                 GLCore::Render::ShaderManager::Get(name.c_str())->setBool(activeL.str().c_str(), active);
-                GLCore::Render::ShaderManager::Get(name.c_str())->setVec3(positionL.str().c_str(), entity->getComponent<Transform>().position);
+                GLCore::Render::ShaderManager::Get(name.c_str())->setVec3(positionL.str().c_str(), entity->getComponent<ECS::Transform>().position);
                 GLCore::Render::ShaderManager::Get(name.c_str())->setVec3(ambientL.str().c_str(), ambient * hdrMultiply);
                 GLCore::Render::ShaderManager::Get(name.c_str())->setVec3(diffuseL.str().c_str(), diffuse);
                 GLCore::Render::ShaderManager::Get(name.c_str())->setVec3(specularL.str().c_str(), specular);
@@ -313,7 +316,7 @@ namespace ECS {
             //if (showRange) radiusValue = range;
 
             glm::vec3 size = glm::vec3(radiusValue, radiusValue, radiusValue);
-            modelMatrix = glm::translate(modelMatrix, entity->getComponent<Transform>().position) * glm::scale(glm::mat4(1), size);
+            modelMatrix = glm::translate(modelMatrix, entity->getComponent<ECS::Transform>().position) * glm::scale(glm::mat4(1), size);
 
             GLCore::Render::ShaderManager::Get("debug")->use();
             GLCore::Render::ShaderManager::Get("debug")->setMat4("model", modelMatrix);

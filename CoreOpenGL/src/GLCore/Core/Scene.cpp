@@ -5,23 +5,11 @@
 #include "../Render/RendererManager.h"
 #include <imGizmo/ImGuizmo.h>
 
-#include "../../ECS/MeshFilter.h"
-#include "../../ECS/MeshRenderer.h"
-#include "../../ECS/Material.h"
-#include "../../ECS/PointLight.h"
-#include "../../ECS/SpotLight.h"
-#include "../../ECS/DirectionalLight.h"
-#include "../../ECS/CharacterController.h"
-
 
 #include "../Util/ModelLoader.h"
+#include "../../ECS/Transform.h"
+#include "../../ECS/MeshRenderer.h"
 #include "../../ECS/Camera.h"
-
-
-#define YAML_CPP_STATIC_DEFINE
-#include "yaml-cpp/emitterstyle.h"
-#include "yaml-cpp/eventhandler.h"
-#include "yaml-cpp/yaml.h"  // IWYU pragma: keep
 
 
 namespace GLCore {
@@ -129,7 +117,7 @@ namespace GLCore {
 		});
 
 
-		createGameObject(MainMenuAction::AddCube);
+		Application::gameObjectManager->createGameObject(MainMenuAction::AddCube);
 
         return true;
     }
@@ -153,14 +141,11 @@ namespace GLCore {
 		}
 		//------------------------------------------------------------------------------
 
-
-
 		//--ENTITIES
-        manager.refresh();
-        manager.update();
+		Application::gameObjectManager->manager.refresh();
+		Application::gameObjectManager->manager.update();
+		rendererManager->entitiesInScene = Application::gameObjectManager->manager.getAllEntities();
 
-		rendererManager->entitiesInScene = manager.getAllEntities();
-		
 		if (rendererManager->entitiesInScene.size() > 0)
 		{
 			CalcSceneBundle();
@@ -176,9 +161,9 @@ namespace GLCore {
         //----------------------------------------------------------------------------------------------------------------------------
 
 		//--GAME CAMERAS
-		for (int i = 0; i < cameras.size(); i++)
+		for (int i = 0; i < Application::gameObjectManager->cameras.size(); i++)
 		{
-			cameras[i]->SetProjection(cameras[i]->GetFov(), gameSize.x / gameSize.y, 0.1f, 100.0f);
+			Application::gameObjectManager->cameras[i]->SetProjection(Application::gameObjectManager->cameras[i]->GetFov(), gameSize.x / gameSize.y, 0.1f, 100.0f);
 		}
     }
 
@@ -206,17 +191,17 @@ namespace GLCore {
 
 
 		//--GAME CAMERAS
-		for (int i = 0; i < cameras.size(); i++)
+		for (int i = 0; i < Application::gameObjectManager->cameras.size(); i++)
 		{
-			glm::mat4 cameraProjectionMatrix = cameras[i]->GetProjectionMatrix();
-			glm::mat4 cameraViewMatrix = cameras[i]->GetViewMatrix();
-			glm::vec3 cameraPosition = cameras[i]->m_Position;
+			glm::mat4 cameraProjectionMatrix = Application::gameObjectManager->cameras[i]->GetProjectionMatrix();
+			glm::mat4 cameraViewMatrix = Application::gameObjectManager->cameras[i]->GetViewMatrix();
+			glm::vec3 cameraPosition = Application::gameObjectManager->cameras[i]->m_Position;
 			SetGenericsUniforms(cameraProjectionMatrix, cameraViewMatrix, cameraPosition);
 
 			FBO_Data fboData;
-			fboData.FBO = &cameras[i]->FBO;
-			fboData.depthBuffer = &cameras[i]->depthBuffer;
-			fboData.colorBuffers = cameras[i]->colorBuffers;
+			fboData.FBO = &Application::gameObjectManager->cameras[i]->FBO;
+			fboData.depthBuffer = &Application::gameObjectManager->cameras[i]->depthBuffer;
+			fboData.colorBuffers = Application::gameObjectManager->cameras[i]->colorBuffers;
 			fboData.drawSize = gameSize;
 			fboData.drawPos = gamePos;
 			RenderPipeline(cameraProjectionMatrix, cameraViewMatrix, cameraPosition, fboData);
@@ -224,9 +209,9 @@ namespace GLCore {
 
 
 		//-ACTIVE SELECTED ENTITY
-		if (m_SelectedEntity != nullptr && m_SelectedEntity->hascomponent<ECS::MeshRenderer>())
+		if (Application::gameObjectManager->m_SelectedEntity != nullptr && Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>())
 		{
-			m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = true;
+			Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = true;
 		}
 		CheckIfPointerIsOverObject();
 		//-------------------------------------------------------------------------------------------------------------------------------------------
@@ -241,9 +226,9 @@ namespace GLCore {
 		{
 			GLCore::Render::ShaderManager::Get(name.c_str())->use();
 
-			GLCore::Render::ShaderManager::Get(name.c_str())->setBool("useDirLight", useDirectionalLight);
-			GLCore::Render::ShaderManager::Get(name.c_str())->setInt("numPointLights", totalPointLight);
-			GLCore::Render::ShaderManager::Get(name.c_str())->setInt("numSpotLights", totalSpotLight);
+			GLCore::Render::ShaderManager::Get(name.c_str())->setBool("useDirLight", Application::gameObjectManager->useDirectionalLight);
+			GLCore::Render::ShaderManager::Get(name.c_str())->setInt("numPointLights", Application::gameObjectManager->totalPointLight);
+			GLCore::Render::ShaderManager::Get(name.c_str())->setInt("numSpotLights", Application::gameObjectManager->totalSpotLight);
 
 			GLCore::Render::ShaderManager::Get(name.c_str())->setVec3("globalAmbient", globalAmbient);
 
@@ -554,9 +539,9 @@ namespace GLCore {
 	void Scene::checkGizmo()
 	{
 		//---------------------------ImGUIZMO------------------------------------------
-		if (m_SelectedEntity != nullptr)
+		if (Application::gameObjectManager->m_SelectedEntity != nullptr)
 		{
-			if (m_SelectedEntity->hascomponent<ECS::Transform>())
+			if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::Transform>())
 			{
 				ImGuizmo::SetOrthographic(false);
 				ImGuizmo::SetDrawlist();
@@ -565,11 +550,11 @@ namespace GLCore {
 				glm::mat4 camera_view = m_EditorCamera.GetCamera().GetViewMatrix();
 				glm::mat4 camera_projection = m_EditorCamera.GetCamera().GetProjectionMatrix();
 
-				glm::mat4 entity_transform = m_SelectedEntity->getComponent<ECS::Transform>().getLocalModelMatrix();
+				glm::mat4 entity_transform = Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().getLocalModelMatrix();
 
 				// Comprobación de parentesco
-				if (m_SelectedEntity->getComponent<ECS::Transform>().parent != nullptr) {
-					entity_transform = m_SelectedEntity->getComponent<ECS::Transform>().parent->getComponent<ECS::Transform>().getLocalModelMatrix() * entity_transform;
+				if (Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent != nullptr) {
+					entity_transform = Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent->getComponent<ECS::Transform>().getLocalModelMatrix() * entity_transform;
 				}
 
 				switch (m_GizmoOperation)
@@ -597,15 +582,15 @@ namespace GLCore {
 					glm::decompose(entity_transform, scale, orientation, translation, skew, perspective);
 
 					// Cálculo de la transformación local
-					if (m_SelectedEntity->getComponent<ECS::Transform>().parent != nullptr) {
-						glm::mat4 parent_transform = m_SelectedEntity->getComponent<ECS::Transform>().parent->getComponent<ECS::Transform>().getLocalModelMatrix();
+					if (Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent != nullptr) {
+						glm::mat4 parent_transform = Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent->getComponent<ECS::Transform>().getLocalModelMatrix();
 						glm::mat4 local_transform = glm::inverse(parent_transform) * entity_transform;
 						glm::decompose(local_transform, scale, orientation, translation, skew, perspective);
 					}
 
-					m_SelectedEntity->getComponent<ECS::Transform>().rotation = orientation;
-					m_SelectedEntity->getComponent<ECS::Transform>().position = translation;
-					m_SelectedEntity->getComponent<ECS::Transform>().scale = scale;
+					Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().rotation = orientation;
+					Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().position = translation;
+					Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().scale = scale;
 				}
 			}
 		}
@@ -613,141 +598,11 @@ namespace GLCore {
 
 	void Scene::renderGUI()
     {
-		//-------------------------------------------HIERARCHY PANEL--------------------------------------
-		ImGui::Begin("Hierarchy", nullptr);
-
-		for (int i = 0; i < rendererManager->entitiesInScene.size(); i++)
-		{
-			if (rendererManager->entitiesInScene[i]->getComponent<ECS::Transform>().parent == nullptr) // Only root entities
-			{
-				ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-				if (m_SelectedEntity == rendererManager->entitiesInScene[i])
-					node_flags |= ImGuiTreeNodeFlags_Selected;
-
-				std::string treeLabel = rendererManager->entitiesInScene[i]->name;
-
-				bool treeOpen = ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, treeLabel.c_str());
-				
-				if (ImGui::IsItemClicked()) // Select on (left) click
-				{
-					if (m_SelectedEntity != nullptr)
-					{
-						if (m_SelectedEntity->hascomponent<ECS::MeshRenderer>())
-						{
-							m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = false;
-						}
-					}
-					m_SelectedEntity = rendererManager->entitiesInScene[i];
-				}
-
-				if (m_SelectedEntity != nullptr)
-				{
-					if (ImGui::BeginPopupContextItem()) { // Click derecho en el elemento
-						if (ImGui::MenuItem("Delete"))
-						{
-							m_SelectedEntity->markedToDelete = true;
-							m_SelectedEntity = nullptr;
-						}
-						ImGui::EndPopup();
-					}
-				}
-
-
-
-
-
-				//--DRAG_DROP
-				// Si comienza a arrastrar el nodo
-				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
-				{
-					ImGui::SetDragDropPayload("DRAG_ENTITY", &i, sizeof(int)); // Podrías enviar más datos si lo necesitas
-					ImGui::Text("Drag %s", treeLabel.c_str());
-					ImGui::EndDragDropSource();
-				}
-
-				// Si un nodo es arrastrado sobre otro nodo
-				if (ImGui::BeginDragDropTarget())
-				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DRAG_ENTITY"))
-					{
-						int sourceEntityIndex = *(const int*)payload->Data;
-						auto& sourceEntity = rendererManager->entitiesInScene[sourceEntityIndex]; // Entidad que estás arrastrando
-						auto& targetEntity = rendererManager->entitiesInScene[i]; // Entidad sobre la cual se hace el "drop"
-
-						sourceEntity->getComponent<ECS::Transform>().parent = targetEntity;
-						targetEntity->getComponent<ECS::Transform>().children.push_back(sourceEntity);
-
-						//targetEntity->getComponent<ECS::Transform>().addChild(sourceEntity);
-					}
-					ImGui::EndDragDropTarget();
-				}
-				//--END DRAG_DROP
-
-
-
-				if (treeOpen)
-				{
-					for (int j = 0; j < rendererManager->entitiesInScene[i]->getComponent<ECS::Transform>().children.size(); j++)
-					{
-						auto& child = rendererManager->entitiesInScene[i]->getComponent<ECS::Transform>().children[j];
-
-						ImGuiTreeNodeFlags child_flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
-						if (m_SelectedEntity == child)
-							child_flags |= ImGuiTreeNodeFlags_Selected;
-
-						std::string childLabel = child->name;
-
-						ImGui::TreeNodeEx((void*)(intptr_t)(i * 1000 + j), child_flags, childLabel.c_str()); // Ensure the ID is unique
-						if (ImGui::IsItemClicked())
-						{
-							if (m_SelectedEntity)
-							{
-								if (m_SelectedEntity->hascomponent<ECS::MeshRenderer>())
-								{
-									m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = false;
-								}
-							}
-							m_SelectedEntity = child;
-						}
-
-						//--DRAG_DROP
-						// Si comienza a arrastrar el nodo
-						if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
-						{
-							ImGui::SetDragDropPayload("DRAG_ENTITY", &i, sizeof(int)); // Podrías enviar más datos si lo necesitas
-							ImGui::Text("Drag %s", treeLabel.c_str());
-							ImGui::EndDragDropSource();
-						}
-
-						// Si un nodo es arrastrado sobre otro nodo
-						if (ImGui::BeginDragDropTarget())
-						{
-							if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DRAG_ENTITY"))
-							{
-								int sourceEntityIndex = *(const int*)payload->Data;
-								auto& sourceEntity = rendererManager->entitiesInScene[sourceEntityIndex]; // Entidad que estás arrastrando
-								auto& targetEntity = rendererManager->entitiesInScene[i]; // Entidad sobre la cual se hace el "drop"
-
-								sourceEntity->getComponent<ECS::Transform>().parent = targetEntity;
-								targetEntity->getComponent<ECS::Transform>().children.push_back(sourceEntity);
-
-								//targetEntity->getComponent<ECS::Transform>().addChild(sourceEntity);
-							}
-							ImGui::EndDragDropTarget();
-						}
-						//--END DRAG_DROP
-					}
-					ImGui::TreePop();
-				}
-			}
-		}
-		ImGui::End();
+		//------------------------------------------HIERARCHY PANEL-----------------------------------------------------
+		Application::gameObjectManager->drawHierarchy();
 		//---------------------------------------------------------------------------------------------------------------
 
-
-
-
-		//-------------------------------------------EVIROMENT LIGHT PANEL--------------------------------------
+		//-------------------------------------------EVIROMENT LIGHT PANEL-----------------------------------------------
 		if (ImGui::Begin("Enviroment Panel"))
 		{
 			//--WIRE-FRAME
@@ -828,13 +683,11 @@ namespace GLCore {
 		//------------------------------------------------------------------------------------------------
 
 
-
-
 		//-------------------------------------------INSPECTOR PANEL--------------------------------------
 		ImGui::Begin("Inspector", nullptr);
-		if (m_SelectedEntity != nullptr)
+		if (Application::gameObjectManager->m_SelectedEntity != nullptr)
 		{
-			const auto& comps = m_SelectedEntity->getComponents();
+			const auto& comps = Application::gameObjectManager->m_SelectedEntity->getComponents();
 			for (const auto& component : comps) 
 			{
 				if (component) {
@@ -844,9 +697,6 @@ namespace GLCore {
 		}
 		ImGui::End();
 		//------------------------------------------------------------------------------------------------
-
-
-
 
 		//-------------------------------------------ASSETS PANEL--------------------------------------
 		assetsPanel.OnImGuiRender();
@@ -884,9 +734,9 @@ namespace GLCore {
 		
 		EventManager::getOnPanelResizedEvent().trigger("GAME", gameSize, gamePos);
 
-		if (cameras.size() > 0)
+		if (Application::gameObjectManager->cameras.size() > 0)
 		{
-			ImGui::Image((void*)(intptr_t)cameras[0]->colorBuffers[0], ImVec2(gameSize.x, gameSize.y), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
+			ImGui::Image((void*)(intptr_t)Application::gameObjectManager->cameras[0]->colorBuffers[0], ImVec2(gameSize.x, gameSize.y), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
 		}
 		else
 		{
@@ -930,10 +780,11 @@ namespace GLCore {
 			{
 				if (ImGui::Selectable(entitiesInRay[i]->name.c_str()))
 				{
-					m_SelectedEntity = entitiesInRay[i];
+					Application::gameObjectManager->m_SelectedEntity = entitiesInRay[i];
 					selectingEntity = false;
-					if (m_SelectedEntity) //Si hemos obtenido un objeto, revisamos si tiene posibilidad de drawable y en ese caso activamos su BB
-						if (m_SelectedEntity->hascomponent<ECS::MeshRenderer>()) m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = true;
+					if (Application::gameObjectManager->m_SelectedEntity) //Si hemos obtenido un objeto, revisamos si tiene posibilidad de drawable y en ese caso activamos su BB
+						if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>()) 
+							Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = true;
 				}
 			}
 			ImGui::EndPopup();
@@ -941,232 +792,17 @@ namespace GLCore {
 		//---------------------------------------------------------------------------------------------------
     }
 
-	void Scene::createGameObject(MainMenuAction action)
-	{
-		ECS::Entity* gameObject = nullptr;
-
-		if (action == MainMenuAction::AddCube)
-		{
-			GLCore::MeshData cube = GLCore::Render::PrimitivesHelper::CreateCube();
-
-			gameObject = &manager.addEntity();
-			gameObject->name = "Cube_" + std::to_string(rendererManager->entitiesInScene.size());
-			gameObject->addComponent<ECS::MeshFilter>().initMesh(cube);
-			gameObject->getComponent<ECS::MeshFilter>().modelType = PRIMIVITE_CUBE;
-			gameObject->addComponent<ECS::MeshRenderer>();
-			gameObject->addComponent<ECS::Material>();
-			gameObject->getComponent<ECS::Material>().setDafaultMaterial();	
-		}
-		else if (action == MainMenuAction::AddSegmentedCube)
-		{
-			GLCore::MeshData segCube = GLCore::Render::PrimitivesHelper::CreateSegmentedCube(1);
-
-			gameObject = &manager.addEntity();
-			gameObject->name = "SegCube_" + std::to_string(rendererManager->entitiesInScene.size());
-			gameObject->addComponent<ECS::MeshFilter>().initMesh(segCube);
-			gameObject->getComponent<ECS::MeshFilter>().modelType = PRIMIVITE_SEGMENTED_CUBE;
-			gameObject->addComponent<ECS::MeshRenderer>();
-			gameObject->addComponent<ECS::Material>();
-			gameObject->getComponent<ECS::Material>().setDafaultMaterial();
-		}
-		else if (action == MainMenuAction::AddSphere)
-		{
-			GLCore::MeshData sphere = GLCore::Render::PrimitivesHelper::CreateSphere(1, 20, 20);
-
-			gameObject = &manager.addEntity();
-			gameObject->name = "Sphere_" + std::to_string(rendererManager->entitiesInScene.size());
-			gameObject->addComponent<ECS::MeshFilter>().initMesh(sphere);
-			gameObject->getComponent<ECS::MeshFilter>().modelType = PRIMIVITE_SPHERE;
-			gameObject->addComponent<ECS::MeshRenderer>();
-			gameObject->addComponent<ECS::Material>();
-			gameObject->getComponent<ECS::Material>().setDafaultMaterial();
-		}
-		else if (action == MainMenuAction::AddQuad)
-		{
-			GLCore::MeshData quad = GLCore::Render::PrimitivesHelper::CreateQuad();
-
-			gameObject = &manager.addEntity();
-			gameObject->name = "Quad_" + std::to_string(rendererManager->entitiesInScene.size());
-			gameObject->addComponent<ECS::MeshFilter>().initMesh(quad);
-			gameObject->getComponent<ECS::MeshFilter>().modelType = PRIMIVITE_QUAD;
-			gameObject->addComponent<ECS::MeshRenderer>();
-			gameObject->addComponent<ECS::Material>();
-			gameObject->getComponent<ECS::Material>().setDafaultMaterial();
-		}
-		else if (action == MainMenuAction::AddPlane)
-		{
-			GLCore::MeshData plane = GLCore::Render::PrimitivesHelper::CreatePlane();
-
-			gameObject = &manager.addEntity();
-			gameObject->name = "Plane_" + std::to_string(rendererManager->entitiesInScene.size());
-			gameObject->addComponent<ECS::MeshFilter>().initMesh(plane);
-			gameObject->getComponent<ECS::MeshFilter>().modelType = PRIMIVITE_PLANE;
-			gameObject->addComponent<ECS::MeshRenderer>();
-			gameObject->addComponent<ECS::Material>();
-			gameObject->getComponent<ECS::Material>().setDafaultMaterial();
-		}
-		else if (action == MainMenuAction::AddPointLight)
-		{
-			gameObject = &manager.addEntity();
-			gameObject->addComponent<ECS::PointLight>();
-			gameObject->getComponent<ECS::PointLight>().setId(totalPointLight);
-			
-			totalPointLight += 1;
-		}
-		else if (action == MainMenuAction::AddSpotLight)
-		{
-			gameObject = &manager.addEntity();
-			gameObject->addComponent<ECS::SpotLight>();
-			gameObject->getComponent<ECS::SpotLight>().setId(totalSpotLight);
-
-			totalSpotLight += 1;
-		}
-		else if (action == MainMenuAction::AddDirectionalLight)
-		{
-			if (useDirectionalLight == false)
-			{
-				gameObject = &manager.addEntity();
-				gameObject->addComponent<ECS::DirectionalLight>();
-
-				useDirectionalLight = true;
-			}
-			else
-			{
-				std::cout << "Ya tienes una luz direccional en la escena" << std::endl;
-			}
-		}
-		else if (action == MainMenuAction::AddCharacterController)
-		{
-			gameObject = &manager.addEntity();
-			gameObject->addComponent<ECS::CharacterController>();
-			
-			GLCore::MeshData segCube = GLCore::Render::PrimitivesHelper::CreateSegmentedCube(1);
-
-			gameObject->name = "CharacterController_" + std::to_string(rendererManager->entitiesInScene.size());
-			gameObject->addComponent<ECS::MeshFilter>().initMesh(segCube);
-			gameObject->addComponent<ECS::MeshRenderer>();
-			gameObject->addComponent<ECS::Material>();
-			gameObject->getComponent<ECS::Material>().setDafaultMaterial();
-		}
-		else if (action == MainMenuAction::AddCamera)
-		{
-			gameObject = &manager.addEntity();
-			gameObject->addComponent<ECS::Camera>();
-			gameObject->name = "Camera_" + std::to_string(rendererManager->entitiesInScene.size());
-
-			cameras.push_back(&gameObject->getComponent<ECS::Camera>());
-		}
-		else if (action == MainMenuAction::SaveProject)
-		{
-			std::cout << "GUARDANDO..." << std::endl;
-
-			SaveSceneToFile("scene.yaml");
-		}
-
-
-		//Autoselect in creating
-		if (gameObject != nullptr)
-		{
-			m_SelectedEntity = gameObject;
-		}
-	}
 
 	void Scene::getModelPathFromAssets(ImportOptions importOptions)
 	{
-		
 		importOptions.modelID = rendererManager->entitiesInScene.size() + 1;
-
-		loadFileModel(importOptions);
+		Application::gameObjectManager->loadFileModel(importOptions);
 	}
 	
 
 
-	void Scene::SaveSceneToFile(const std::string& filename)
-	{
-		YAML::Emitter out;
-
-		out << YAML::BeginSeq; // Comienza una secuencia para todas las entidades
-		for (const auto& entity : rendererManager->entitiesInScene) {
-			if (entity->isActive()) { // Asegúrate de serializar solo entidades activas
-				out << entity->serialize(); // Serializa cada entidad y agrega al flujo de salida
-			}
-		}
-		out << YAML::EndSeq; // Finaliza la secuencia
-
-		// Escribe la cadena resultante del Emitter al archivo
-		std::ofstream fout(filename);
-		fout << out.c_str();
-	}
-
-
-	void Scene::LoadSceneFromFile(const std::string& filename, std::vector<ECS::Entity*>& entitiesInScene, ECS::Manager& manager) {
-		std::ifstream fin(filename);
-		if (!fin.is_open()) {
-			// Manejar error al abrir el archivo
-			std::cerr << "Error al abrir el archivo para cargar la escena" << std::endl;
-			return;
-		}
-
-		YAML::Node data = YAML::Load(fin); // Carga el archivo en un nodo de YAML
-
-		if (!data.IsSequence()) {
-			// Manejar error de formato incorrecto
-			std::cerr << "Formato de archivo de escena incorrecto" << std::endl;
-			return;
-		}
-
-		// Limpia las entidades actuales en la escena antes de cargar
-		entitiesInScene.clear();
-
-		for (const auto& node : data) {
-			// Aquí se asume que tienes una forma de crear entidades y que manager es accesible
-			ECS::Entity& newEntity = manager.addEntity();
-			newEntity.deserialize(node); // Deserializa la información de cada entidad
-			entitiesInScene.push_back(&newEntity); // Añade la entidad al vector de entidades de la escena
-		}
-	}
-
-	ModelParent Scene::loadFileModel(ImportOptions importOptions)
-	{
-		ModelParent modelParent = {};
-
-		try {
-			modelParent = GLCore::Utils::ModelLoader::LoadModel(importOptions);
-
-			ECS::Entity* entityParent = &manager.addEntity();
-			entityParent->name = modelParent.name;
-
-			if (modelParent.modelInfos.size() > 1)
-			{
-				for (int i = 0; i < modelParent.modelInfos.size(); i++)
-				{
-					ECS::Entity* entityChild = &manager.addEntity();
-					entityChild->name = modelParent.modelInfos[i].meshData.meshName + std::to_string(i);
-					entityChild->addComponent<ECS::MeshFilter>().initMesh(modelParent.modelInfos[i].meshData);
-					entityChild->getComponent<ECS::MeshFilter>().modelType = EXTERNAL_FILE;
-					entityChild->getComponent<ECS::MeshFilter>().modelPath = importOptions.filePath + importOptions.fileName;
-					entityChild->addComponent<ECS::MeshRenderer>();
-					entityChild->addComponent<ECS::Material>().setMaterial(modelParent.modelInfos[i].model_material);
 	
-					entityChild->getComponent<ECS::Transform>().parent = entityParent;
-					entityParent->getComponent<ECS::Transform>().children.push_back(entityChild);
-				}
-			}
-			else
-			{
-				entityParent->addComponent<ECS::MeshFilter>().initMesh(modelParent.modelInfos[0].meshData);
-				entityParent->getComponent<ECS::MeshFilter>().modelType = EXTERNAL_FILE;
-				entityParent->getComponent<ECS::MeshFilter>().modelPath = importOptions.filePath + importOptions.fileName;
-				entityParent->addComponent<ECS::MeshRenderer>();
-				entityParent->addComponent<ECS::Material>().setMaterial(modelParent.modelInfos[0].model_material);
-				entityParent->name = modelParent.modelInfos[0].meshData.meshName + std::to_string(0);
-			}
-		}
-		catch (std::runtime_error& e) {
-			std::cerr << "Error cargando el modelo: " << e.what() << std::endl;
-		}
-		return modelParent;
-	}
+
 
 	void Scene::CheckIfPointerIsOverObject()
 	{
@@ -1199,10 +835,10 @@ namespace GLCore {
 		{
 			if (pickingObj) return; //Si esta bool está a true, retornará, y significa que hemos pulsado ya el mouse y hasta que no soltemos el boton, no se devuelve a false
 
-			if (m_SelectedEntity != nullptr) //Si ya existe un objeto seleccionado y tiene drawable, desactivamos su BB
-				if (m_SelectedEntity->hascomponent<ECS::MeshRenderer>()) m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = false;
+			if (Application::gameObjectManager->m_SelectedEntity != nullptr) //Si ya existe un objeto seleccionado y tiene drawable, desactivamos su BB
+				if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>()) Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = false;
 
-			m_SelectedEntity = nullptr; //Reset de la variable que almacena la entity seleccioanda preparandola para recibit o no una nueva selección
+			Application::gameObjectManager->m_SelectedEntity = nullptr; //Reset de la variable que almacena la entity seleccioanda preparandola para recibit o no una nueva selección
 
 			//llevamos un punto 2D a un espacio 3D (mouse position -> escene)
 			float normalizedX = (2.0f * mouseX) / currentPanelSize.x - 1.0f;
@@ -1221,7 +857,7 @@ namespace GLCore {
 
 
 			//La lista de entidades actual que vamos a comprobar si atraviensan el rayo
-			std::vector<ECS::Entity*> entities = manager.getAllEntities();
+			std::vector<ECS::Entity*> entities = Application::gameObjectManager->manager.getAllEntities();
 
 
 			entitiesInRay.clear();
@@ -1252,10 +888,10 @@ namespace GLCore {
 			}
 			else if (entitiesInRay.size() > 0)
 			{
-				m_SelectedEntity = entitiesInRay[0];
+				Application::gameObjectManager->m_SelectedEntity = entitiesInRay[0];
 				entitiesInRay.clear();
-				if (m_SelectedEntity) //Si hemos obtenido un objeto, revisamos si tiene posibilidad de drawable y en ese caso activamos su BB
-					if (m_SelectedEntity->hascomponent<ECS::MeshRenderer>()) m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = true;
+				if (Application::gameObjectManager->m_SelectedEntity) //Si hemos obtenido un objeto, revisamos si tiene posibilidad de drawable y en ese caso activamos su BB
+					if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>()) Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = true;
 			}
 
 			//Flag para evitar que se vuelva a pasar por esta funcion hasta que se levante el dedo del boton del mouse

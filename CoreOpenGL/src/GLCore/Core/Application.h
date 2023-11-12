@@ -1,9 +1,11 @@
 #pragma once
 
 #include "../../glpch.h"
+
 #include "GuiLayer.h"
 #include "Scene.h"
-#include <memory>
+#include "GameObjectManager.h"
+
 #include "Input/InputManager.h"  // Asegúrate de que la ruta es correcta
 #include "Input/keyCodes.h"  // Asegúrate de que la ruta es correcta
 
@@ -30,6 +32,8 @@ namespace GLCore {
         inline GLFWwindow& GetWindow() { return *window; }
         inline static Application& Get() { return *s_Instance; }
 
+        static std::unique_ptr<GameObjectManager> gameObjectManager;
+
     private:
         static Application* s_Instance;
 
@@ -40,6 +44,7 @@ namespace GLCore {
 
         static std::unique_ptr<Scene> scene;
         static std::unique_ptr<GuiLayer> guiLayer;
+        
 
         void acctionPresedFromTopMenu(const MainMenuAction& action); 
     };

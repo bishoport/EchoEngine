@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../glpch.h"
-#include "../../ECS/ECS.h"
+#include "../../ECS/Entity.h"
 
 
 namespace GLCore::Render

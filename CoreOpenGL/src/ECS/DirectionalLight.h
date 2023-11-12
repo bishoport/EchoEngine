@@ -1,5 +1,11 @@
 #pragma once
-#include "ECS.h"
+
+#include "../glpch.h"
+#include "../GLCore/DataStruct.h"
+#include "Component.h"
+#include "Entity.h"
+#include "Transform.h"
+
 #include "../GLCore/Render/PrimitivesHelper.h"
 #include "../GLCore/Core/Scene.h"
 
@@ -50,7 +56,7 @@ namespace ECS
         void init() override
         {
             entity->name = "DirectionalLight";
-            entity->getComponent<Transform>().position = glm::vec3( - 2.0f, 4.0f, -1.0f);
+            entity->getComponent<ECS::Transform>().position = glm::vec3( - 2.0f, 4.0f, -1.0f);
 
             prepareShadows();
         } 
@@ -97,7 +103,7 @@ namespace ECS
 
 
             glm::mat4 shadowProjMat = glm::ortho(orthoLeft, orthoRight, orthoBottom, orthoTop, orthoNear, orthoFar);
-            glm::mat4 shadowViewMat = glm::lookAt(entity->getComponent<Transform>().position, direction, glm::vec3(0, 1, 0));
+            glm::mat4 shadowViewMat = glm::lookAt(entity->getComponent<ECS::Transform>().position, direction, glm::vec3(0, 1, 0));
             
             shadowMVP = shadowProjMat * shadowViewMat;
 
@@ -136,7 +142,7 @@ namespace ECS
                 orthoFar = (2 * sceneRadius) + orthoFarOffset;
 
                 // Calcula la posición de la luz basada en los ángulos y la distancia al centro de la escena
-                Transform& lightTransform = entity->getComponent<Transform>();
+                Transform& lightTransform = entity->getComponent<ECS::Transform>();
                 lightTransform.position.x = sceneCenter.x + sceneRadius * sin(angleX) * cos(angleY);
                 lightTransform.position.y = sceneCenter.y + sceneRadius * cos(angleX);
                 lightTransform.position.z = sceneCenter.z + sceneRadius * sin(angleX) * sin(angleY);
@@ -153,7 +159,7 @@ namespace ECS
                 GLCore::Render::ShaderManager::Get(name.c_str())->use();
                 GLCore::Render::ShaderManager::Get(name.c_str())->setBool("dirLight.isActive",  active);
                 GLCore::Render::ShaderManager::Get(name.c_str())->setVec3("dirLight.direction", direction);
-                GLCore::Render::ShaderManager::Get(name.c_str())->setVec3("dirLight.position",  entity->getComponent<Transform>().position);
+                GLCore::Render::ShaderManager::Get(name.c_str())->setVec3("dirLight.position",  entity->getComponent<ECS::Transform>().position);
                 GLCore::Render::ShaderManager::Get(name.c_str())->setVec3("dirLight.ambient",   ambient);
                 GLCore::Render::ShaderManager::Get(name.c_str())->setVec3("dirLight.diffuse",   diffuse);
                 GLCore::Render::ShaderManager::Get(name.c_str())->setVec3("dirLight.specular",  specular);
@@ -276,8 +282,8 @@ namespace ECS
             glm::vec3 rotationVector = direction;
 
             glm::vec3 linePoints[] = {
-                entity->getComponent<Transform>().position,
-                entity->getComponent<Transform>().position + rotationVector * 10.0f  // Aquí asumimos que la longitud de la línea es 10
+                entity->getComponent<ECS::Transform>().position,
+                entity->getComponent<ECS::Transform>().position + rotationVector * 10.0f  // Aquí asumimos que la longitud de la línea es 10
             };
 
             // Crea el VBO y el VAO para la línea

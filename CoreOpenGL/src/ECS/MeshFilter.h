@@ -1,7 +1,7 @@
 #pragma once
-#include "ECS.h"
+#include "../glpch.h"
 #include "../GLCore/DataStruct.h"
-
+#include "Component.h"
 
 
 namespace ECS {

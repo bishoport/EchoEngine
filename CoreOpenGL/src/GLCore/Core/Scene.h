@@ -1,9 +1,11 @@
 #pragma once
 //#include "../glpch.h"
-#include "../Render/PrimitivesHelper.h"
+//#include "../Render/PrimitivesHelper.h"
 #include "../Render/Shader.h"
 
-#include "../../ECS/ECS.h"
+#include "../../ECS/Entity.h"
+//#include "../../ECS/Manager.h"
+//#include "../../ECS/Camera.h"
 
 #include "../Util/PerspectiveCameraController.h"
 #include "../Util/PostProcessingManager.h"
@@ -11,7 +13,7 @@
 #include "../Util/Skybox.h"
 #include "../Util/DynamicSkybox.h"
 #include "../Util/GridWorldReference.h"
-#include "../../ECS/Camera.h"
+
 #include "../Util/IBLManager.h"
 
 
@@ -27,12 +29,9 @@ namespace GLCore {
         void update(Timestep deltaTime);
         void render();
 
-
         void checkGizmo();
         void renderGUI();
         void shutdown();
-
-        void createGameObject(MainMenuAction action);
 
         void getModelPathFromAssets(ImportOptions importOptions);
 
@@ -43,9 +42,8 @@ namespace GLCore {
         bool isWireframe = false;
 
         //--ENTITIES
-        ECS::Manager manager;
-        ECS::Entity* m_SelectedEntity = nullptr;
-        ECS::Entity* gridWorldReference = nullptr;
+        /*ECS::Entity* m_SelectedEntity = nullptr;*/
+        //ECS::Entity* gridWorldReference = nullptr;
         void CalcSceneBundle();
         //---------------------------------------------------
 
@@ -69,7 +67,7 @@ namespace GLCore {
         //---------------------------------------------------
 
         //--GAME_PANEL
-        std::vector<ECS::Camera*> cameras;
+       // std::vector<ECS::Camera*> cameras;
         ImVec2 gamePos = ImVec2(0.0f, 0.0f);
         ImVec2 gameSize = ImVec2(640.0f, 480.0f);
         bool mouseInGame = false;
@@ -112,9 +110,9 @@ namespace GLCore {
         //--Lights
         glm::vec3 globalAmbient = glm::vec3(0.055f, 0.055f, 0.055f);
         ImVec4 clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-        bool useDirectionalLight = false;
-        int totalPointLight = 0;
-        int totalSpotLight = 0;
+        /*bool useDirectionalLight = false;*/
+        /*int totalPointLight = 0;
+        int totalSpotLight = 0;*/
         //---------------------------------------------------
 
 
@@ -136,7 +134,7 @@ namespace GLCore {
         //---------------------------------------------------
 
 
-        ModelParent loadFileModel(ImportOptions importOptions);
+        //ModelParent loadFileModel(ImportOptions importOptions);
         bool pickingObj = false;
         bool selectingEntity = false;
         bool cursorOverSelectEntityDialog = false;
@@ -147,9 +145,7 @@ namespace GLCore {
 
 
 
-        //--SERIALIZACIONES
-        void SaveSceneToFile(const std::string& filename);
-        void LoadSceneFromFile(const std::string& filename, std::vector<ECS::Entity*>& entitiesInScene, ECS::Manager& manager);
+
 
     };
 }

@@ -1,7 +1,93 @@
-- id: 0
-  name: Cube_0
+- id: 4
+  name: Circle.001 id:20
   active: true
-  transform:
-    position: [0, 0, 0]
+  Transform:
+    position: [-3.86304855, 0, 0]
     rotation: [1, 0, 0, 0]
     scale: [1, 1, 1]
+  MeshFilter:
+    modelType: 6
+    modelPath: assets\meshes\Turbina\turbina.fbx
+  MeshRenderer:
+    ShaderName: pbr_ibl
+    visibleModel: true
+    dropShadow: true
+  Material:
+    shininess: 32
+    hdrIntensity: 0.300000012
+    exposure: 1
+    gamma: 2.20000005
+    tiling: [1, 1]
+    albedoMap: assets\meshes\Turbina\turbina.fbm\Material_BaseColor.jpg
+    color: [0.800000012, 0.800000012, 0.800000012]
+    hdrMultiply: 0
+    normalMap: assets\meshes\Turbina\turbina.fbm\Material_OpenGL_Normal.png
+    normalIntensiry: 0.5
+    metallicMap: assets\meshes\Turbina\turbina.fbm\Material_Metallic.png
+    metallicValue: 0
+    reflectanceValue: 0.0399999991
+    rougnessMap: assets\meshes\Turbina\turbina.fbm\Material_Roughness.jpg
+    rougnessValue: 0.0500000007
+    aOMap: assets/default/default_white.jpg
+- id: 3
+  name: SegCube_4
+  active: true
+  Transform:
+    position: [7.4505806e-09, 6.50426865, 0]
+    rotation: [1, 0, 0, 0]
+    scale: [1, 1, 1]
+  MeshFilter:
+    modelType: 3
+    modelPath: none
+  MeshRenderer:
+    ShaderName: pbr_ibl
+    visibleModel: true
+    dropShadow: true
+  Material:
+    shininess: 32
+    hdrIntensity: 0.300000012
+    exposure: 1
+    gamma: 2.20000005
+    tiling: [1, 1]
+    albedoMap: assets/default/default_white.jpg
+    color: [1, 1, 1]
+    hdrMultiply: 0
+    normalMap: assets/default/default_normal.jpg
+    normalIntensiry: 0.5
+    metallicMap: assets/default/default_black.jpg
+    metallicValue: 0
+    reflectanceValue: 0.0399999991
+    rougnessMap: assets/default/default_black.jpg
+    rougnessValue: 0.0500000007
+    aOMap: assets/default/default_white.jpg
+- id: 4
+  name: Circle.001 id:20
+  active: true
+  Transform:
+    position: [-3.86304855, 0, 0]
+    rotation: [1, 0, 0, 0]
+    scale: [1, 1, 1]
+  MeshFilter:
+    modelType: 6
+    modelPath: assets\meshes\Turbina\turbina.fbx
+  MeshRenderer:
+    ShaderName: pbr_ibl
+    visibleModel: true
+    dropShadow: true
+  Material:
+    shininess: 32
+    hdrIntensity: 0.300000012
+    exposure: 1
+    gamma: 2.20000005
+    tiling: [1, 1]
+    albedoMap: assets\meshes\Turbina\turbina.fbm\Material_BaseColor.jpg
+    color: [0.800000012, 0.800000012, 0.800000012]
+    hdrMultiply: 0
+    normalMap: assets\meshes\Turbina\turbina.fbm\Material_OpenGL_Normal.png
+    normalIntensiry: 0.5
+    metallicMap: assets\meshes\Turbina\turbina.fbm\Material_Metallic.png
+    metallicValue: 0
+    reflectanceValue: 0.0399999991
+    rougnessMap: assets\meshes\Turbina\turbina.fbm\Material_Roughness.jpg
+    rougnessValue: 0.0500000007
+    aOMap: assets/default/default_white.jpg

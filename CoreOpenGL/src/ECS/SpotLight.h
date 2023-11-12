@@ -1,5 +1,9 @@
 #pragma once
-#include "ECS.h"
+#include "../glpch.h"
+#include "../GLCore/DataStruct.h"
+#include "Entity.h"
+#include "Transform.h"
+
 #include "../GLCore/Render/PrimitivesHelper.h"
 
 namespace ECS
@@ -89,7 +93,7 @@ namespace ECS
             glm::mat4 shadowProjMat = glm::perspective(glm::radians(outerCutOff * 2.0f), 1.0f, near_plane, far_plane);
             //glm::mat4 shadowProjMat = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
 
-            glm::mat4 shadowViewMat = glm::lookAt(entity->getComponent<Transform>().position, direction, glm::vec3(0.0f, 1.0f, 0.0f));
+            glm::mat4 shadowViewMat = glm::lookAt(entity->getComponent<ECS::Transform>().position, direction, glm::vec3(0.0f, 1.0f, 0.0f));
 
             shadowMVP = shadowProjMat * shadowViewMat;
 
@@ -145,7 +149,7 @@ namespace ECS
             {
                 GLCore::Render::ShaderManager::Get(name.c_str())->use();
                 GLCore::Render::ShaderManager::Get(name.c_str())->setBool(activeL.str().c_str(), active);
-                GLCore::Render::ShaderManager::Get(name.c_str())->setVec3(positionL.str().c_str(), entity->getComponent<Transform>().position);
+                GLCore::Render::ShaderManager::Get(name.c_str())->setVec3(positionL.str().c_str(), entity->getComponent<ECS::Transform>().position);
                 GLCore::Render::ShaderManager::Get(name.c_str())->setVec3(ambientL.str().c_str(), ambient);
                 GLCore::Render::ShaderManager::Get(name.c_str())->setVec3(diffuseL.str().c_str(), diffuse);
                 GLCore::Render::ShaderManager::Get(name.c_str())->setVec3(specularL.str().c_str(), specular);
@@ -333,7 +337,7 @@ namespace ECS
             //if (showRange) radiusValue = range;
 
             glm::vec3 size = glm::vec3(radiusValue, radiusValue, radiusValue);
-            modelMatrix = glm::translate(modelMatrix, entity->getComponent<Transform>().position) * glm::scale(glm::mat4(1), size);
+            modelMatrix = glm::translate(modelMatrix, entity->getComponent<ECS::Transform>().position) * glm::scale(glm::mat4(1), size);
 
             GLCore::Render::ShaderManager::Get("debug")->use();
             GLCore::Render::ShaderManager::Get("debug")->setMat4("model", modelMatrix);
@@ -353,8 +357,8 @@ namespace ECS
             glm::vec3 rotationVector = direction;
 
             glm::vec3 linePoints[] = {
-                entity->getComponent<Transform>().position,
-                entity->getComponent<Transform>().position + rotationVector * 10.0f  // Aquí asumimos que la longitud de la línea es 10
+                entity->getComponent<ECS::Transform>().position,
+                entity->getComponent<ECS::Transform>().position + rotationVector * 10.0f  // Aquí asumimos que la longitud de la línea es 10
             };
 
             // Crea el VBO y el VAO para la línea

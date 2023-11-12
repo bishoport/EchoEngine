@@ -1,10 +1,16 @@
 #pragma once
-#include "Entity.h"
+#define YAML_CPP_STATIC_DEFINE
+#include "yaml-cpp/emitterstyle.h"
+#include "yaml-cpp/eventhandler.h"
+#include "yaml-cpp/yaml.h"  // IWYU pragma: keep
+
 
 namespace ECS {
+    class Entity;
+
     class Component {
     public:
-        Entity* entity;
+        ECS::Entity* entity;
         virtual void init() {}
         virtual void update() {}
         virtual void draw() {}

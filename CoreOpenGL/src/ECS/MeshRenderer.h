@@ -1,5 +1,10 @@
 #pragma once
-#include "ECS.h"
+#include "../glpch.h"
+#include "../GLCore/DataStruct.h"
+#include "Entity.h"
+#include "Component.h"
+#include "Transform.h"
+#include "MeshFilter.h"
 #include "../GLCore/Render/PrimitivesHelper.h"
 
 namespace ECS {
@@ -11,10 +16,10 @@ namespace ECS {
 
         bool visibleModel = true;
         bool drawLocalBB = false;
-
-        GLCore::MeshData meshData;
         bool dropShadow = true;
 
+
+        GLCore::MeshData meshData;
         glm::mat4 model_transform_matrix{ glm::mat4(1.0f) };
 
 
@@ -38,7 +43,7 @@ namespace ECS {
             GLCore::Render::PrimitivesHelper::SetupMeshAttributes(meshData);
 
             //Keep original Position
-            entity->getComponent<Transform>().position = meshData.meshLocalPosition;
+            entity->getComponent<ECS::Transform>().position = meshData.meshLocalPosition;
 
             //-----------------------------------PREPARE BOUNDING BOX LOCAL-----------------------------------
             meshData.PrepareAABB();
@@ -54,14 +59,14 @@ namespace ECS {
         void update() override
         {
             // Recuperamos el componente Transform de la entidad
-            Transform& transform = entity->getComponent<Transform>();
+            Transform& transform = entity->getComponent<ECS::Transform>();
 
             // Ahora, directamente podemos obtener la matriz de transformación del objeto
             model_transform_matrix = transform.getLocalModelMatrix();
 
             // Si hay un padre, combinamos nuestras transformaciones con las de él.
-            if (entity->getComponent<Transform>().parent != nullptr) {
-                model_transform_matrix = entity->getComponent<Transform>().parent->getComponent<Transform>().getLocalModelMatrix() * model_transform_matrix;
+            if (entity->getComponent<ECS::Transform>().parent != nullptr) {
+                model_transform_matrix = entity->getComponent<ECS::Transform>().parent->getComponent<ECS::Transform>().getLocalModelMatrix() * model_transform_matrix;
             }
         }
 
@@ -136,6 +141,20 @@ namespace ECS {
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
         }
 
+        // Método para serializar el MeshFilter a YAML
+        void serialize(YAML::Emitter& out) const {
+            out << YAML::BeginMap;
+            out << YAML::Key << "ShaderName" << YAML::Value << currentShaderName;
+            out << YAML::Key << "visibleModel" << YAML::Value << visibleModel;
+            out << YAML::Key << "dropShadow" << YAML::Value << dropShadow;
+            out << YAML::EndMap;
+        }
+
+        // Método para deserializar el MeshFilter desde YAML
+        void deserialize(const YAML::Node& node) {
+
+        }
+
     private:
         //PARA LA GESTION DEL SHADER
         std::vector<const char*> shaderNames;
@@ -145,35 +164,24 @@ namespace ECS {
 
 
 
-
-
-
-
-
-
-
-
-
-//
-//
-//GLfloat vertices_AABB[72] = {
-//    -0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  // Línea 1
-//     0.5f, -0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  // Línea 2
-//     0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f,  // Línea 3
-//    -0.5f,  0.5f, -0.5f, -0.5f, -0.5f, -0.5f,  // Línea 4
-//    -0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  // Línea 5
-//     0.5f, -0.5f,  0.5f,  0.5f,  0.5f,  0.5f,  // Línea 6
-//     0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f,  // Línea 7
-//    -0.5f,  0.5f,  0.5f, -0.5f, -0.5f,  0.5f,  // Línea 8
-//    -0.5f, -0.5f, -0.5f, -0.5f, -0.5f,  0.5f,  // Línea 9
-//     0.5f, -0.5f, -0.5f,  0.5f, -0.5f,  0.5f,  // Línea 10
-//     0.5f,  0.5f, -0.5f,  0.5f,  0.5f,  0.5f,  // Línea 11
-//    -0.5f,  0.5f, -0.5f, -0.5f,  0.5f,  0.5f   // Línea 12
-//};
-//
-//// Definimos los índices de los vértices del bounding box que forman las líneas
-//GLuint indices_AABB[24] = {
-//    0, 1, 1, 2, 2, 3, 3, 0,  // Líneas de la cara frontal
-//    4, 5, 5, 6, 6, 7, 7, 4,  // Líneas de la cara trasera
-//    0, 4, 1, 5, 2, 6, 3, 7   // Líneas diagonales
-//};
+////GLfloat vertices_AABB[72] = {
+////    -0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  // Línea 1
+////     0.5f, -0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  // Línea 2
+////     0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f,  // Línea 3
+////    -0.5f,  0.5f, -0.5f, -0.5f, -0.5f, -0.5f,  // Línea 4
+////    -0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  // Línea 5
+////     0.5f, -0.5f,  0.5f,  0.5f,  0.5f,  0.5f,  // Línea 6
+////     0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f,  // Línea 7
+////    -0.5f,  0.5f,  0.5f, -0.5f, -0.5f,  0.5f,  // Línea 8
+////    -0.5f, -0.5f, -0.5f, -0.5f, -0.5f,  0.5f,  // Línea 9
+////     0.5f, -0.5f, -0.5f,  0.5f, -0.5f,  0.5f,  // Línea 10
+////     0.5f,  0.5f, -0.5f,  0.5f,  0.5f,  0.5f,  // Línea 11
+////    -0.5f,  0.5f, -0.5f, -0.5f,  0.5f,  0.5f   // Línea 12
+////};
+////
+////// Definimos los índices de los vértices del bounding box que forman las líneas
+////GLuint indices_AABB[24] = {
+////    0, 1, 1, 2, 2, 3, 3, 0,  // Líneas de la cara frontal
+////    4, 5, 5, 6, 6, 7, 7, 4,  // Líneas de la cara trasera
+////    0, 4, 1, 5, 2, 6, 3, 7   // Líneas diagonales
+////};

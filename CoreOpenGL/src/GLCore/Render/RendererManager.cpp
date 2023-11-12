@@ -1,11 +1,13 @@
 #include "RendererManager.h"
+
+
+#include "../../ECS/Material.h"
 #include "../../ECS/MeshFilter.h"
 #include "../../ECS/MeshRenderer.h"
-#include "../../ECS/Material.h"
-#include "../../ECS/PointLight.h"
-#include "../../ECS/SpotLight.h"
-#include "../../ECS/DirectionalLight.h"
 #include "../../ECS/Camera.h"
+#include "../../ECS/DirectionalLight.h"
+#include "../../ECS/SpotLight.h"
+#include "../../ECS/PointLight.h"
 
 
 namespace GLCore::Render
@@ -31,23 +33,24 @@ namespace GLCore::Render
 
 				entitiesInScene[i]->getComponent<ECS::DirectionalLight>().draw();
 			}
+			//-SPOT LIGHTS
+			if (entitiesInScene[i]->hascomponent<ECS::SpotLight>())
+			{
+				entitiesInScene[i]->getComponent<ECS::SpotLight>().draw();
+			}
 
 			//-POINTS LIGHTS
 			if (entitiesInScene[i]->hascomponent<ECS::PointLight>())
 			{
 				entitiesInScene[i]->getComponent<ECS::PointLight>().draw();
 			}
-			//-SPOT LIGHTS
-			if (entitiesInScene[i]->hascomponent<ECS::SpotLight>())
-			{
-				entitiesInScene[i]->getComponent<ECS::SpotLight>().draw();
-			}
+
 		}
 	}
 
 	void RendererManager::passShadow()
 	{
-		//--SHADOWS PASS
+		////--SHADOWS PASS
 		for (int i = 0; i < entitiesInScene.size(); i++)
 		{
 			//-DIRECTIONAL LIGHTS
@@ -68,14 +71,15 @@ namespace GLCore::Render
 				}
 			}
 
-			//-POINTS LIGHTS
-			if (entitiesInScene[i]->hascomponent<ECS::PointLight>())
-			{
-				if (entitiesInScene[i]->getComponent<ECS::PointLight>().drawShadows)
-				{
-					entitiesInScene[i]->getComponent<ECS::PointLight>().shadowMappingProjection(entitiesInScene);
-				}
-			}
+		//	//-POINTS LIGHTS
+		//	if (entitiesInScene[i]->hascomponent<ECS::PointLight>())
+		//	{
+		//		if (entitiesInScene[i]->getComponent<ECS::PointLight>().drawShadows)
+		//		{
+		//			entitiesInScene[i]->getComponent<ECS::PointLight>().shadowMappingProjection(entitiesInScene);
+		//		}
+		//	}
+
 		}
 	}
 
@@ -83,7 +87,7 @@ namespace GLCore::Render
 	{
 		for (int i = 0; i < entitiesInScene.size(); i++)
 		{
-			//-MATERIALS
+			//-CAMERAS
 			if (entitiesInScene[i]->hascomponent<ECS::Camera>()) // Only root entities
 			{
 				entitiesInScene[i]->getComponent<ECS::Camera>().draw();
@@ -106,10 +110,6 @@ namespace GLCore::Render
 			}
 		}
 	}
-
-
-
-
 
 
 

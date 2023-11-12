@@ -1,23 +1,9 @@
-// main.cpp
-//#define IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_ENABLE_DOCKING
 #define STB_IMAGE_IMPLEMENTATION
 
 #include "GLCore/Core/Application.h"
 
-//#define YAML_CPP_STATIC_DEFINE
-//#include "yaml-cpp/emitterstyle.h"
-//#include "yaml-cpp/eventhandler.h"
-//#include "yaml-cpp/yaml.h"  // IWYU pragma: keep
-
 int main() {
-    
-    
-    //YAML::Emitter out;
-    //out << "Hello, World!";
-    //std::cout << "Here's the output YAML:\n" << out.c_str(); // prints "Hello, World!"
-
-    
     GLCore::Application app;
     if (!app.initialize("OpenGL App", 1080, 720)) {
         return -1;
