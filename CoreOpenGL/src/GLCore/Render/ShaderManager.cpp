@@ -41,18 +41,16 @@ namespace GLCore::Render
             if (shaderSource.geometrySource.c_str() == "")
             {
                 ShaderManager::Load(shaderSource.name.c_str(), shaderSource.vertexSource.c_str(), shaderSource.fragmentSource.c_str());
-                /*Shader* shader = new Shader(shaderSource.vertexSource.c_str(), shaderSource.fragmentSource.c_str());
-                compiledShaders[shaderSource.name.c_str()] = shader;*/
             }
             else
             {
                 ShaderManager::Load(shaderSource.name.c_str(), shaderSource.vertexSource.c_str(), shaderSource.fragmentSource.c_str(), shaderSource.geometrySource.c_str());
-                /*Shader* shader = new Shader(shaderSource.vertexSource.c_str(), shaderSource.fragmentSource.c_str(), shaderSource.geometrySource.c_str());
-                compiledShaders[shaderSource.name.c_str()] = shader;*/
             }
         }
         //----------------------------------------------------------------------------------------------------------------------------
     }
+
+
 
     
     void ShaderManager::Load(const std::string& name, const std::string& vertexPath, const std::string& fragmentPath, const std::string& geometryPath) {
@@ -81,9 +79,9 @@ namespace GLCore::Render
         for (const auto& entry : fs::directory_iterator(path)) {
             items.push_back(entry.path().filename().string());
         }
-
         return items;
     }
+
 
 
     std::string readFile(const std::string& filePath) {
