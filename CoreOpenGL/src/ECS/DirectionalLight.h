@@ -124,7 +124,7 @@ namespace ECS
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
         }
 
-        void update() override
+        void update(GLCore::Timestep timestamp) override
         {
             auto [sceneCenter, sceneRadius] = GLCore::Scene::SceneBounds;
 

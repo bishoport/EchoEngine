@@ -26,7 +26,6 @@ namespace GLCore::Render {
             std::string fragmentCode;
             std::string geometryCode;
 
-
             try
             {
                 // load shaders with includes
@@ -92,6 +91,58 @@ namespace GLCore::Render {
             if (geometryPath != nullptr)
                 glDeleteShader(geometry);
 
+        }
+
+        void CompileFromString(const std::string& vertexCode, const std::string& fragmentCode, const std::string& geometryCode = "") {
+            GLuint vertex, fragment, geometry;
+            GLint success;
+            GLchar infoLog[1024];
+
+            // Compilar el vertex shader
+            if (!vertexCode.empty()) {
+                vertex = glCreateShader(GL_VERTEX_SHADER);
+                const char* source = vertexCode.c_str();
+                glShaderSource(vertex, 1, &source, NULL);
+                glCompileShader(vertex);
+                checkCompileErrors(vertex, "VERTEX");
+            }
+
+            // Compilar el fragment shader
+            if (!fragmentCode.empty()) {
+                fragment = glCreateShader(GL_FRAGMENT_SHADER);
+                const char* source = fragmentCode.c_str();
+                glShaderSource(fragment, 1, &source, NULL);
+                glCompileShader(fragment);
+                checkCompileErrors(fragment, "FRAGMENT");
+            }
+
+            // Compilar el geometry shader si se proporciona
+            if (!geometryCode.empty()) {
+                geometry = glCreateShader(GL_GEOMETRY_SHADER);
+                const char* source = geometryCode.c_str();
+                glShaderSource(geometry, 1, &source, NULL);
+                glCompileShader(geometry);
+                checkCompileErrors(geometry, "GEOMETRY");
+            }
+
+            // Vincular los shaders a un nuevo programa (el ID de clase)
+            glUseProgram(0); // Desvincular cualquier programa actual
+            if (ID != 0) {
+                glDeleteProgram(ID); // Eliminar el programa anterior si existe
+            }
+            ID = glCreateProgram(); // Crear un nuevo ID de programa
+
+            if (!vertexCode.empty()) glAttachShader(ID, vertex);
+            if (!fragmentCode.empty()) glAttachShader(ID, fragment);
+            if (!geometryCode.empty()) glAttachShader(ID, geometry);
+
+            glLinkProgram(ID);
+            checkCompileErrors(ID, "PROGRAM");
+
+            // Eliminar los shaders ya que están vinculados al programa y ya no son necesarios
+            if (!vertexCode.empty()) glDeleteShader(vertex);
+            if (!fragmentCode.empty()) glDeleteShader(fragment);
+            if (!geometryCode.empty()) glDeleteShader(geometry);
         }
 
 
@@ -160,10 +211,6 @@ namespace GLCore::Render {
             glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
         }
 
-        //void setVec4Array(const std::string& name, const std::array<glm::vec4, 2>& values) const
-        //{
-        //    glUniform4fv(glGetUniformLocation(ID, name.c_str()), values.size(), reinterpret_cast<const GLfloat*>(values.data()));
-        //}
 
     private:
         // utility function for checking shader compilation/linking errors.
@@ -191,9 +238,6 @@ namespace GLCore::Render {
                 }
             }
         }
-
-
-
         std::string readFile(const std::string& filePath) {
             std::ifstream fileStream(filePath, std::ios::in);
 
@@ -224,7 +268,14 @@ namespace GLCore::Render {
 
             fileStream.close();
             return content;
-        }
+        } 
+    };
+}
+
+
+
+
+
 
 
 
@@ -248,6 +299,10 @@ namespace GLCore::Render {
             return content;
         }*/
 
-    };
-}
+
+        //void setVec4Array(const std::string& name, const std::array<glm::vec4, 2>& values) const
+        //{
+        //    glUniform4fv(glGetUniformLocation(ID, name.c_str()), values.size(), reinterpret_cast<const GLfloat*>(values.data()));
+        //}
+
 

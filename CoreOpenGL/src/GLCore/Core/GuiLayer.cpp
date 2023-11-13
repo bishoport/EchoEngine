@@ -213,7 +213,6 @@ namespace GLCore {
                     {
                         UsarDelegado(MainMenuAction::AddCharacterController);
                     }
-
                     if (ImGui::MenuItem("Camera"))
                     {
                         UsarDelegado(MainMenuAction::AddCamera);
@@ -227,18 +226,14 @@ namespace GLCore {
 
 
 
-            //if (ImGui::BeginMenu("Components")) { 
+            if (ImGui::BeginMenu("Components")) { 
 
-            //    if (ImGui::BeginMenu("Postprocessing"))
-            //    {
-            //        if (ImGui::MenuItem("Bloom"))
-            //        {
-            //            UsarDelegado(MainMenuAction::AddBloom);
-            //        }
-            //        ImGui::EndMenu(); // Fin del menú OTROS
-            //    }
-            //    ImGui::EndMenu(); 
-            //}
+                if (ImGui::MenuItem("CarController"))
+                {
+                    UsarDelegado(MainMenuAction::AddCarController);
+                }
+                ImGui::EndMenu(); 
+            }
 
 
             if (ImGui::BeginMenu("About")) { ImGui::EndMenu(); }

@@ -171,6 +171,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\ECS\Camera.h" />
+    <ClInclude Include="src\ECS\Car.h" />
     <ClInclude Include="src\ECS\CharacterController.h" />
     <ClInclude Include="src\ECS\Component.h" />
     <ClInclude Include="src\ECS\ComponentsIncludes.h" />

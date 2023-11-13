@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 #include <fstream>
+#include "../GLCore/Core/Timestep.h"
 
 namespace ECS {
     class Manager {
@@ -14,7 +15,7 @@ namespace ECS {
         int nextID = 0;
 
     public:
-        void update();
+        void update(GLCore::Timestep deltaTime);
         void draw();
         void drawGUI_Inspector();
         void refresh();

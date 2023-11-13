@@ -15,13 +15,12 @@
 namespace GLCore {
 
 	std::pair<glm::vec3, float> Scene::SceneBounds = { glm::vec3(0.0f), 0.0f };
-	
 	Render::RendererManager* rendererManager = new Render::RendererManager();
-	
-    Scene::Scene() : m_EditorCamera(16.0f / 9.0f) {}
 
+    Scene::Scene() : m_EditorCamera(16.0f / 9.0f) {}
     Scene::~Scene(){shutdown();}
 
+	//-INIT
     bool Scene::initialize()
     {
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -32,37 +31,40 @@ namespace GLCore {
         //----------------------------------------------------------------------------------------------------------------------------
 
 
-        //--LOAD SHADERS
-        GLCore::Render::ShaderManager::Load("pbr",           "assets/shaders/Default.vert",		       "assets/shaders/pbr.fs");
-		GLCore::Render::ShaderManager::Load("pbr_ibl",       "assets/shaders/Default.vert",            "assets/shaders/pbr_ibl.fs");
-        GLCore::Render::ShaderManager::Load("debug",         "assets/shaders/Debug.vert",              "assets/shaders/Debug.frag");
-        GLCore::Render::ShaderManager::Load("skybox",        "assets/shaders/skybox/skybox.vs",        "assets/shaders/skybox/skybox.fs");
-        GLCore::Render::ShaderManager::Load("dynamicSkybox", "assets/shaders/skybox/dynamicSkybox.vs", "assets/shaders/skybox/dynamicSkybox.fs");
+      //--LOAD SHADERS
+	  GLCore::Render::ShaderManager::LoadAllShaders();
+		 
+		 
+  //      GLCore::Render::ShaderManager::Load("pbr",           "assets/shaders/Default.vert",		       "assets/shaders/pbr.fs");
+		//GLCore::Render::ShaderManager::Load("pbr_ibl",       "assets/shaders/Default.vert",            "assets/shaders/pbr_ibl.fs");
+  //      GLCore::Render::ShaderManager::Load("debug",         "assets/shaders/Debug.vert",              "assets/shaders/Debug.frag");
+  //      GLCore::Render::ShaderManager::Load("skybox",        "assets/shaders/skybox/skybox.vs",        "assets/shaders/skybox/skybox.fs");
+  //      GLCore::Render::ShaderManager::Load("dynamicSkybox", "assets/shaders/skybox/dynamicSkybox.vs", "assets/shaders/skybox/dynamicSkybox.fs");
 
 
-        GLCore::Render::ShaderManager::Load("direct_light_depth_shadows",      
-											"assets/shaders/shadows/directLight_shadow_mapping_depth_shader.vs", 
-											"assets/shaders/shadows/directLight_shadow_mapping_depth_shader.fs");
+  //      GLCore::Render::ShaderManager::Load("direct_light_depth_shadows",      
+		//									"assets/shaders/shadows/directLight_shadow_mapping_depth_shader.vs", 
+		//									"assets/shaders/shadows/directLight_shadow_mapping_depth_shader.fs");
 
-		GLCore::Render::ShaderManager::Load("spotLight_depth_shadows",
-											"assets/shaders/shadows/spotLight_shadow_map_depth.vs",
-											"assets/shaders/shadows/spotLight_shadow_map_depth.fs");
+		//GLCore::Render::ShaderManager::Load("spotLight_depth_shadows",
+		//									"assets/shaders/shadows/spotLight_shadow_map_depth.vs",
+		//									"assets/shaders/shadows/spotLight_shadow_map_depth.fs");
 
-		GLCore::Render::ShaderManager::Load("pointLight_depth_shadows",
-											"assets/shaders/shadows/pointLight_shadow_mapping_depth_shader.vs",
-											"assets/shaders/shadows/pointLight_shadow_mapping_depth_shader.fs",
-											"assets/shaders/shadows/pointLight_shadow_mapping_depth_shader.gs");
+		//GLCore::Render::ShaderManager::Load("pointLight_depth_shadows",
+		//									"assets/shaders/shadows/pointLight_shadow_mapping_depth_shader.vs",
+		//									"assets/shaders/shadows/pointLight_shadow_mapping_depth_shader.fs",
+		//									"assets/shaders/shadows/pointLight_shadow_mapping_depth_shader.gs");
 
-		GLCore::Render::ShaderManager::Load("postprocessing", "assets/shaders/postpro/postprocessing.vs", "assets/shaders/postpro/postprocessing.fs");
-		GLCore::Render::ShaderManager::Load("main_output_FBO", "assets/shaders/main_output_FBO.vs", "assets/shaders/main_output_FBO.fs");
+		//GLCore::Render::ShaderManager::Load("postprocessing", "assets/shaders/postpro/postprocessing.vs", "assets/shaders/postpro/postprocessing.fs");
+		//GLCore::Render::ShaderManager::Load("main_output_FBO", "assets/shaders/main_output_FBO.vs", "assets/shaders/main_output_FBO.fs");
 
 
-		//--IBL
-		GLCore::Render::ShaderManager::Load("equirectangularToCubemap","assets/shaders/IBL/cubemap.vs","assets/shaders/IBL/equirectangular_to_cubemap.fs");
-		GLCore::Render::ShaderManager::Load("irradiance","assets/shaders/IBL/cubemap.vs","assets/shaders/IBL/irradiance_convolution.fs");
-		GLCore::Render::ShaderManager::Load("prefilter","assets/shaders/IBL/cubemap.vs","assets/shaders/IBL/prefilter.fs");
-		GLCore::Render::ShaderManager::Load("brdf","assets/shaders/IBL/brdf.vs","assets/shaders/IBL/brdf.fs");
-		GLCore::Render::ShaderManager::Load("background","assets/shaders/IBL/background.vs","assets/shaders/IBL/background.fs");
+		////--IBL
+		//GLCore::Render::ShaderManager::Load("equirectangularToCubemap","assets/shaders/IBL/cubemap.vs","assets/shaders/IBL/equirectangular_to_cubemap.fs");
+		//GLCore::Render::ShaderManager::Load("irradiance","assets/shaders/IBL/cubemap.vs","assets/shaders/IBL/irradiance_convolution.fs");
+		//GLCore::Render::ShaderManager::Load("prefilter","assets/shaders/IBL/cubemap.vs","assets/shaders/IBL/prefilter.fs");
+		//GLCore::Render::ShaderManager::Load("brdf","assets/shaders/IBL/brdf.vs","assets/shaders/IBL/brdf.fs");
+		//GLCore::Render::ShaderManager::Load("background","assets/shaders/IBL/background.vs","assets/shaders/IBL/background.fs");
         //----------------------------------------------------------------------------------------------------------------------------
 
 
@@ -121,9 +123,10 @@ namespace GLCore {
 
         return true;
     }
+	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-
+	//-MAIN LOOP
     void Scene::update(Timestep deltaTime)
     {
 		//--INPUTS TOOLS
@@ -143,7 +146,7 @@ namespace GLCore {
 
 		//--ENTITIES
 		Application::gameObjectManager->manager.refresh();
-		Application::gameObjectManager->manager.update();
+		Application::gameObjectManager->manager.update(deltaTime);
 		rendererManager->entitiesInScene = Application::gameObjectManager->manager.getAllEntities();
 
 		if (rendererManager->entitiesInScene.size() > 0)
@@ -166,10 +169,6 @@ namespace GLCore {
 			Application::gameObjectManager->cameras[i]->SetProjection(Application::gameObjectManager->cameras[i]->GetFov(), gameSize.x / gameSize.y, 0.1f, 100.0f);
 		}
     }
-
-
-
-
     void Scene::render()
     {
 		//--EDITOR CAMERA
@@ -216,9 +215,6 @@ namespace GLCore {
 		CheckIfPointerIsOverObject();
 		//-------------------------------------------------------------------------------------------------------------------------------------------
     }
-
-
-
 	void GLCore::Scene::SetGenericsUniforms(glm::mat4 cameraProjectionMatrix, glm::mat4 cameraViewMatrix, glm::vec3 cameraPosition)
 	{
 		//-GENERICS TO ALL SHADER
@@ -238,8 +234,6 @@ namespace GLCore {
 		}
 		//-------------------------------------------------------------------------------------------------------------------------------------------
 	}
-
-
 	void GLCore::Scene::RenderPipeline(glm::mat4 cameraProjectionMatrix, glm::mat4 cameraViewMatrix, glm::vec3 cameraPosition, FBO_Data fboData)
 	{
 		//--RENDER-PIPELINE
@@ -398,9 +392,8 @@ namespace GLCore {
 		//-------------------------------------------------------------------------------------------------------------------------------------------
 
 	}
+	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 
@@ -708,7 +701,6 @@ namespace GLCore {
 		sceneSize = ImGui::GetWindowSize();
 		scenePos = ImGui::GetWindowPos();
 		
-
 		EventManager::getOnPanelResizedEvent().trigger("SCENE", sceneSize, scenePos);
 
 		ImGui::Image((void*)(intptr_t)scene_colorBuffers[0], ImVec2(sceneSize.x, sceneSize.y), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
@@ -724,7 +716,6 @@ namespace GLCore {
 		}
 		ImGui::End();
 		//---------------------------------------------------------------------------------------------------
-
 
 
 		//-------------------------------------------GAME PANEL--------------------------------------------
@@ -759,6 +750,9 @@ namespace GLCore {
 
 
 
+		//--SHADER EDITOR PANEL
+		GLCore::Render::ShaderManager::DrawShaderEditorPanel();
+		//---------------------------------------------------------------------------------------------------
 
 		//-------------------------------------------------DIALOGS--------------------------------------
 		if (selectingEntity == true)
@@ -798,9 +792,6 @@ namespace GLCore {
 		importOptions.modelID = rendererManager->entitiesInScene.size() + 1;
 		Application::gameObjectManager->loadFileModel(importOptions);
 	}
-	
-
-
 	
 
 
@@ -898,7 +889,6 @@ namespace GLCore {
 			pickingObj = true;
 		}
 	}
-
 	bool Scene::rayIntersectsBoundingBox(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, glm::vec3 boxMin, glm::vec3 boxMax)
 	{
 		float tMin = (boxMin.x - rayOrigin.x) / rayDirection.x;

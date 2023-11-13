@@ -12,6 +12,8 @@
 #include "../../ECS/DirectionalLight.h"
 #include "../../ECS/PointLight.h"
 #include "../../ECS/SpotLight.h"
+#include "../../ECS/CharacterController.h"
+#include "../../ECS/Car.h"
 
 
 
@@ -134,23 +136,26 @@ namespace GLCore
 
 			totalSpotLight += 1;
 		}
-		
+		else if (action == MainMenuAction::AddCharacterController)
+		{
+			/*gameObject = CreateEntity();
+			gameObject->addComponent<ECS::CharacterController>();
+			
+			GLCore::MeshData segCube = GLCore::Render::PrimitivesHelper::CreateSegmentedCube(1);
 
-
-
-		//else if (action == MainMenuAction::AddCharacterController)
-		//{
-		//	gameObject = &manager.addEntity();
-		//	gameObject->addComponent<ECS::CharacterController>();
-		//	
-		//	GLCore::MeshData segCube = GLCore::Render::PrimitivesHelper::CreateSegmentedCube(1);
-
-		//	gameObject->name = "CharacterController_" + std::to_string(entitiesInScene.size());
-		//	gameObject->addComponent<ECS::MeshFilter>().initMesh(segCube);
-		//	gameObject->addComponent<ECS::MeshRenderer>();
-		//	gameObject->addComponent<ECS::Material>();
-		//	gameObject->getComponent<ECS::Material>().setDafaultMaterial();
-		//}
+			gameObject->name = "CharacterController_" + std::to_string(entitiesInScene.size());
+			gameObject->addComponent<ECS::MeshFilter>().initMesh(segCube);
+			gameObject->addComponent<ECS::MeshRenderer>();
+			gameObject->addComponent<ECS::Material>();
+			gameObject->getComponent<ECS::Material>().setDafaultMaterial();*/
+		}
+		else if (action == MainMenuAction::AddCarController)
+		{
+			if (m_SelectedEntity != nullptr)
+			{
+				m_SelectedEntity->addComponent<ECS::Car>();
+			}
+		}
 
 
 
@@ -215,6 +220,8 @@ namespace GLCore
 		}
 	}
 
+	
+
 	void GameObjectManager::drawHierarchy()
 	{
 		//-------------------------------------------HIERARCHY PANEL--------------------------------------
@@ -263,7 +270,7 @@ namespace GLCore
 					// Si comienza a arrastrar el nodo
 					if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 					{
-						ImGui::SetDragDropPayload("DRAG_ENTITY", &i, sizeof(int)); // Podrías enviar más datos si lo necesitas
+						ImGui::SetDragDropPayload("DRAG_ENTITY", &i, sizeof(int)); // Envía el índice de la entidad
 						ImGui::Text("Drag %s", treeLabel.c_str());
 						ImGui::EndDragDropSource();
 					}
@@ -274,17 +281,22 @@ namespace GLCore
 						if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DRAG_ENTITY"))
 						{
 							int sourceEntityIndex = *(const int*)payload->Data;
-							auto& sourceEntity = manager.getAllEntities()[sourceEntityIndex]; // Entidad que estás arrastrando
-							auto& targetEntity = manager.getAllEntities()[i]; // Entidad sobre la cual se hace el "drop"
-
-							sourceEntity->getComponent<ECS::Transform>().parent = targetEntity;
-							targetEntity->getComponent<ECS::Transform>().children.push_back(sourceEntity);
-
-							//targetEntity->getComponent<ECS::Transform>().addChild(sourceEntity);
+							// Asegúrate de que los índices estén dentro de los límites
+							if (sourceEntityIndex >= 0 && sourceEntityIndex < manager.getAllEntities().size() && sourceEntityIndex != i)
+							{
+								ECS::Entity* sourceEntity = manager.getAllEntities()[sourceEntityIndex]; // Entidad que estás arrastrando
+								ECS::Entity* targetEntity = manager.getAllEntities()[i]; // Entidad sobre la cual se hace el "drop"
+								// Asegúrate de que la entidad objetivo no sea hija de la entidad fuente
+								if (!sourceEntity->getComponent<ECS::Transform>().isEntityChildOf(sourceEntity,targetEntity))
+								{
+									sourceEntity->getComponent<ECS::Transform>().setParent(targetEntity);
+								}
+							}
 						}
 						ImGui::EndDragDropTarget();
 					}
 					//--END DRAG_DROP
+
 
 
 

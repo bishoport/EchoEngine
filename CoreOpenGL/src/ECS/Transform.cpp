@@ -21,6 +21,41 @@ namespace ECS {
         rotation = glm::conjugate(rotation);
     }
 
+    void Transform::setParent(Entity* newParent) {
+        // Eliminar esta entidad de la lista de hijos del padre actual, si existe
+        if (parent) {
+            auto& siblings = parent->getComponent<Transform>().children;
+            siblings.erase(std::remove(siblings.begin(), siblings.end(), this->entity), siblings.end());
+        }
+
+        // Si el nuevo padre es diferente al actual, actualizar el padre y añadir a la lista de hijos
+        if (newParent != parent) {
+            parent = newParent;
+            if (newParent) {
+                newParent->getComponent<Transform>().children.push_back(this->entity);
+            }
+        }
+
+        m_isDirty = true; // Marcar para recalcular la matriz del modelo
+    }
+
+    bool Transform::isEntityChildOf(const Entity* potentialChild, const Entity* potentialParent) {
+        //if (potentialChild == nullptr || potentialParent == nullptr) {
+        //    return false; // Si alguna de las entidades es nula, no pueden tener una relación padre-hijo.
+        //}
+
+        //// Obten el componente Transform del potencial hijo.
+        //const Transform* childTransform = potentialChild->getComponent<Transform>();
+        //while (childTransform != nullptr) { // Mientras haya un componente padre para verificar...
+        //    if (childTransform->parent == potentialParent) {
+        //        return true; // El potencial padre es un padre del hijo.
+        //    }
+        //    childTransform = childTransform->parent ? childTransform->parent->getComponent<Transform>() : nullptr;
+        //}
+
+        return false; // No se encontró el potencial padre en la jerarquía.
+    }
+
     glm::vec3 Transform::GetEuler() const {
         return glm::eulerAngles(rotation);
     }

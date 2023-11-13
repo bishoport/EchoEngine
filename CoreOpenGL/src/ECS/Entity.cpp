@@ -13,8 +13,8 @@ namespace ECS
         return id;
     }
 
-    void Entity::update() {
-        for (auto& c : components) c->update();
+    void Entity::update(GLCore::Timestep timestep) {
+        for (auto& c : components) c->update(timestep);
     }
 
     void Entity::draw() {

@@ -74,7 +74,7 @@ namespace ECS
             m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
         }
 
-        void update() override
+        void update(GLCore::Timestep timestamp) override
         {
             // Aquí solo necesitamos asegurarnos de que la escala de la entidad es la correcta.
             // Asumiendo que esto es necesario en cada frame. Si no, esto podría ir en la función init.

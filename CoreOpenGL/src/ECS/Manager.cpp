@@ -1,11 +1,12 @@
 #include "Manager.h"
 #include "Transform.h"
 
+
 namespace ECS {
 
-    void Manager::update()
+    void Manager::update(GLCore::Timestep deltaTime)
     {
-        for (auto& e : entities) e->update();
+        for (auto& e : entities) e->update(deltaTime);
     }
 
     void Manager::draw() {

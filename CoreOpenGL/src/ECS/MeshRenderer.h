@@ -56,7 +56,7 @@ namespace ECS {
             }
         }
 
-        void update() override
+        void update(GLCore::Timestep timestamp) override
         {
             // Recuperamos el componente Transform de la entidad
             Transform& transform = entity->getComponent<ECS::Transform>();

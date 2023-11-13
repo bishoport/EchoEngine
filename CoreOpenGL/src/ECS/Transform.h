@@ -21,6 +21,8 @@ namespace ECS {
         Transform();
         glm::mat4 getLocalModelMatrix() const;
         void SetTransform(const glm::mat4& transformMatrix);
+        void setParent(Entity* newParent);
+        bool isEntityChildOf(const Entity* potentialChild, const Entity* potentialParent);
         glm::vec3 GetEuler() const;
         void computeModelMatrix();
         glm::mat4 computeGlobalModelMatrix() const;

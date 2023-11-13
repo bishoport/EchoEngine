@@ -2,6 +2,7 @@
 
 #include "../glpch.h"
 #include "Component.h"
+#include "../GLCore/Core/Timestep.h"
 
 
 
@@ -130,7 +131,7 @@ namespace ECS
         int getID() const;
 
 
-        void update();
+        void update(GLCore::Timestep);
         void draw();
         void drawGUI_Inspector();
         const std::vector<std::unique_ptr<Component>>& getComponents() const;

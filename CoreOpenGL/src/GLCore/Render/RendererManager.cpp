@@ -8,6 +8,7 @@
 #include "../../ECS/DirectionalLight.h"
 #include "../../ECS/SpotLight.h"
 #include "../../ECS/PointLight.h"
+#include "../../ECS/Car.h"
 
 
 namespace GLCore::Render
@@ -107,6 +108,11 @@ namespace GLCore::Render
 			if (entitiesInScene[i]->hascomponent<ECS::MeshRenderer>())
 			{
 				entitiesInScene[i]->getComponent<ECS::MeshRenderer>().draw();
+			}
+			//-CAR
+			if (entitiesInScene[i]->hascomponent<ECS::Car>())
+			{
+				entitiesInScene[i]->getComponent<ECS::Car>().draw();
 			}
 		}
 	}

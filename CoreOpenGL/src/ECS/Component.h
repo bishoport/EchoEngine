@@ -4,6 +4,7 @@
 #include "yaml-cpp/eventhandler.h"
 #include "yaml-cpp/yaml.h"  // IWYU pragma: keep
 
+#include "../GLCore/Core/Timestep.h"
 
 namespace ECS {
     class Entity;
@@ -12,7 +13,7 @@ namespace ECS {
     public:
         ECS::Entity* entity;
         virtual void init() {}
-        virtual void update() {}
+        virtual void update(GLCore::Timestep deltaTime) {}
         virtual void draw() {}
         virtual void drawGUI_Inspector() {}
         virtual void onDestroy() {}

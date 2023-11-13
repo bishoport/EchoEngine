@@ -1,19 +1,16 @@
 #pragma once
-//#include "../glpch.h"
-//#include "../Render/PrimitivesHelper.h"
+
 #include "../Render/Shader.h"
 
 #include "../../ECS/Entity.h"
-//#include "../../ECS/Manager.h"
-//#include "../../ECS/Camera.h"
+
+#include "AssetsPanel.h"
 
 #include "../Util/PerspectiveCameraController.h"
 #include "../Util/PostProcessingManager.h"
-#include "AssetsPanel.h"
 #include "../Util/Skybox.h"
 #include "../Util/DynamicSkybox.h"
 #include "../Util/GridWorldReference.h"
-
 #include "../Util/IBLManager.h"
 
 
