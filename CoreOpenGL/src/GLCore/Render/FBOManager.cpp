@@ -92,10 +92,10 @@ namespace GLCore::Render
 
 
     void FBOManager::CheckGLError() {
-        GLenum err = glGetError();
+        /*GLenum err = glGetError();
         if (err != GL_NO_ERROR) {
             std::cerr << "OpenGL error: " << err << std::endl;
-        }
+        }*/
     }
 
 

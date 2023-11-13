@@ -13,9 +13,19 @@ namespace GLCore::Render {
     class Shader
     {
     public:
+
+        enum class ShaderType {
+            NONE,
+            VERTEX,
+            FRAGMENT,
+            GEOMETRY,
+        };
+
+
         unsigned int ID;
 
         Shader() = default;
+
 
         // constructor generates the shader on the fly
         // ------------------------------------------------------------------------
@@ -93,57 +103,98 @@ namespace GLCore::Render {
 
         }
 
-        void CompileFromString(const std::string& vertexCode, const std::string& fragmentCode, const std::string& geometryCode = "") {
-            GLuint vertex, fragment, geometry;
-            GLint success;
-            GLchar infoLog[1024];
 
-            // Compilar el vertex shader
-            if (!vertexCode.empty()) {
-                vertex = glCreateShader(GL_VERTEX_SHADER);
-                const char* source = vertexCode.c_str();
-                glShaderSource(vertex, 1, &source, NULL);
-                glCompileShader(vertex);
-                checkCompileErrors(vertex, "VERTEX");
+        std::string processShaderIncludes(const std::string& source, const std::string& directory) {
+
+            std::string content;
+            std::istringstream sourceStream(source);  // Convierte el std::string en un stream
+            std::string line;
+            while (std::getline(sourceStream, line)) {  // Ahora puedes leer línea por línea
+                // Check for #include directive
+                if (line.find("#include") != std::string::npos) {
+                    size_t startQuotePos = line.find("\"");
+                    size_t endQuotePos = line.find("\"", startQuotePos + 1);
+                    if (startQuotePos != std::string::npos && endQuotePos != std::string::npos) {
+                        std::string includeFilename = line.substr(startQuotePos + 1, endQuotePos - startQuotePos - 1);
+                        content.append(readFile("assets/shaders/" + includeFilename)); // Recursively read the included file
+                    }
+                    else {
+                        std::cerr << "Error processing #include directive in " << std::endl;
+                    }
+                }
+                else {
+                    content.append(line + "\n");
+                }
             }
 
-            // Compilar el fragment shader
-            if (!fragmentCode.empty()) {
+            return content;
+        }
+
+
+        // constructor generates the shader on the fly from source strings
+        Shader(bool primero, const std::string& vertexSource,  const std::string& fragmentSource = "", const std::string& geometrySource = "" )
+        {
+            // Convertir las cadenas de código fuente en punteros a char para su uso con OpenGL
+            // Procesar los includes antes de compilar
+            std::string processedVertexCode = processShaderIncludes(vertexSource, "/assets/shaders");
+            std::string processedFragmentCode = processShaderIncludes(fragmentSource, "/assets/shaders");
+            std::string processedGeometryCode = processShaderIncludes(geometrySource, "/assets/shaders");
+
+            // Convertir las cadenas de código fuente en punteros a char para su uso con OpenGL
+            const char* vShaderCode = processedVertexCode.c_str();
+            const char* fShaderCode = processedFragmentCode.empty() ? nullptr : processedFragmentCode.c_str();
+            const char* gShaderCode = processedGeometryCode.empty() ? nullptr : processedGeometryCode.c_str();
+
+            //std::cout << fShaderCode << std::endl;
+
+            // 2. compile shaders
+            unsigned int vertex, fragment, geometry;
+
+            // vertex shader
+            vertex = glCreateShader(GL_VERTEX_SHADER);
+            glShaderSource(vertex, 1, &vShaderCode, NULL);
+            glCompileShader(vertex);
+            checkCompileErrors(vertex, "VERTEX");
+
+
+            // fragment Shader
+            if (fragmentSource != "") {
                 fragment = glCreateShader(GL_FRAGMENT_SHADER);
-                const char* source = fragmentCode.c_str();
-                glShaderSource(fragment, 1, &source, NULL);
+                glShaderSource(fragment, 1, &fShaderCode, NULL);
                 glCompileShader(fragment);
                 checkCompileErrors(fragment, "FRAGMENT");
             }
 
-            // Compilar el geometry shader si se proporciona
-            if (!geometryCode.empty()) {
+            // if geometry shader is given, compile geometry shader
+
+            if (geometrySource != "")
+            {
                 geometry = glCreateShader(GL_GEOMETRY_SHADER);
-                const char* source = geometryCode.c_str();
-                glShaderSource(geometry, 1, &source, NULL);
+                glShaderSource(geometry, 1, &gShaderCode, NULL);
                 glCompileShader(geometry);
                 checkCompileErrors(geometry, "GEOMETRY");
             }
 
-            // Vincular los shaders a un nuevo programa (el ID de clase)
-            glUseProgram(0); // Desvincular cualquier programa actual
-            if (ID != 0) {
-                glDeleteProgram(ID); // Eliminar el programa anterior si existe
-            }
-            ID = glCreateProgram(); // Crear un nuevo ID de programa
 
-            if (!vertexCode.empty()) glAttachShader(ID, vertex);
-            if (!fragmentCode.empty()) glAttachShader(ID, fragment);
-            if (!geometryCode.empty()) glAttachShader(ID, geometry);
-
+            // shader Program
+            ID = glCreateProgram();
+            glAttachShader(ID, vertex);
+            glAttachShader(ID, fragment);
+            if (geometrySource != "")
+                glAttachShader(ID, geometry);
             glLinkProgram(ID);
             checkCompileErrors(ID, "PROGRAM");
 
-            // Eliminar los shaders ya que están vinculados al programa y ya no son necesarios
-            if (!vertexCode.empty()) glDeleteShader(vertex);
-            if (!fragmentCode.empty()) glDeleteShader(fragment);
-            if (!geometryCode.empty()) glDeleteShader(geometry);
+
+            // delete the shaders as they're linked into our program now and no longer necessery
+            glDeleteShader(vertex);
+            glDeleteShader(fragment);
+            if (geometrySource != "")
+                glDeleteShader(geometry);
         }
+
+
+        
 
 
         // activate the shader
@@ -238,6 +289,10 @@ namespace GLCore::Render {
                 }
             }
         }
+
+
+
+
         std::string readFile(const std::string& filePath) {
             std::ifstream fileStream(filePath, std::ios::in);
 

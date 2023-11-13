@@ -6,24 +6,44 @@
 
 
 namespace GLCore::Render {
+
+
     class ShaderManager {
     public:
 
-        struct ShaderProgramSource {
-            std::string name= "";
-            std::string vertexSource= "";
-            std::string fragmentSource = "";
-            std::string geometrySource = "";
+        struct ShaderDataSource {
+            GLCore::Render::Shader::ShaderType shaderType;
+            std::string sourcePath;
+            std::string currentCode;
 
-            ShaderProgramSource(
-                const std::string& nameValue = "",
-                const std::string& vertexSourceValue = "",
-                const std::string& fragmentSourceValue = "",
-                const std::string& geometrySourceValue = "")
+            // Constructor por defecto con valores predeterminados
+            ShaderDataSource()
+                : shaderType(GLCore::Render::Shader::ShaderType::NONE), sourcePath("") {}
+
+            // Constructor con parámetros para inicializar miembros
+            ShaderDataSource(GLCore::Render::Shader::ShaderType type, const std::string& path)
+                : shaderType(type), sourcePath(path) {}
+        };
+
+        struct ShaderProgramSource {
+            std::string name;
+
+            ShaderDataSource vertexDataSource;
+            ShaderDataSource fragmentDataSource;
+            ShaderDataSource geometryDataSource;
+
+            // Constructor con valores predeterminados que asigna los tipos de shaders adecuados
+            ShaderProgramSource(const std::string& nameValue = "",
+                const std::string& vertexPath = "",
+                const std::string& fragmentPath = "",
+                const std::string& geometryPath = "")
                 : name(nameValue),
-                vertexSource(vertexSourceValue),
-                fragmentSource(fragmentSourceValue),
-                geometrySource(geometrySourceValue) {}
+                // Asigna el tipo de shader correspondiente a cada ShaderDataSource
+                vertexDataSource(GLCore::Render::Shader::ShaderType::VERTEX, vertexPath),
+                fragmentDataSource(GLCore::Render::Shader::ShaderType::FRAGMENT, fragmentPath),
+                geometryDataSource(GLCore::Render::Shader::ShaderType::GEOMETRY, geometryPath.empty() ? "" : geometryPath) // Asigna el path solo si geometryPath no está vacío
+            {
+            }
         };
 
 
@@ -42,8 +62,15 @@ namespace GLCore::Render {
 
 
     private:
+        // Establece un tamaño grande para el buffer de código del shader.
+        static const size_t ShaderBufferSize = 40000;
+
         static std::unordered_map<std::string, Shader*> compiledShaders;
         static std::vector<ShaderProgramSource> shaderProgramSources;
+        static void ReloadAllShaders(ShaderProgramSource& programSource);
+
+        static std::string readFile(const std::string& filePath);
+
     };
 }
 

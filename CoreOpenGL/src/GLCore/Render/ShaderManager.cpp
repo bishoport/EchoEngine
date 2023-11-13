@@ -8,11 +8,15 @@ namespace fs = std::filesystem;
 
 namespace GLCore::Render 
 {
+
     std::vector<GLCore::Render::ShaderManager::ShaderProgramSource> ShaderManager::shaderProgramSources;
     std::unordered_map<std::string, Shader*> ShaderManager::compiledShaders;
 
     void ShaderManager::LoadAllShaders()
     {
+
+        ShaderManager::shaderProgramSources.clear();
+
         //--LOAD SHADERS
         // Llamadas para cargar y almacenar las fuentes de los programas de shader
         ShaderManager::shaderProgramSources.emplace_back("pbr", "assets/shaders/Default.vert", "assets/shaders/pbr.fs");
@@ -38,16 +42,29 @@ namespace GLCore::Render
         //CARGAMOS LOS DATOS
         for (const auto& shaderSource : shaderProgramSources) {
 
-            if (shaderSource.geometrySource.c_str() == "")
+            if (shaderSource.geometryDataSource.sourcePath.c_str() == "")
             {
-                ShaderManager::Load(shaderSource.name.c_str(), shaderSource.vertexSource.c_str(), shaderSource.fragmentSource.c_str());
+                ShaderManager::Load(shaderSource.name.c_str(), shaderSource.vertexDataSource.sourcePath.c_str(), shaderSource.fragmentDataSource.sourcePath.c_str());
             }
             else
             {
-                ShaderManager::Load(shaderSource.name.c_str(), shaderSource.vertexSource.c_str(), shaderSource.fragmentSource.c_str(), shaderSource.geometrySource.c_str());
+                ShaderManager::Load(shaderSource.name.c_str(), shaderSource.vertexDataSource.sourcePath.c_str(), shaderSource.fragmentDataSource.sourcePath.c_str(), shaderSource.geometryDataSource.sourcePath.c_str());
             }
         }
         //----------------------------------------------------------------------------------------------------------------------------
+
+
+        //--Capturamos el codigo de los archivos para usarlo en el editor
+        for (int i = 0; i < shaderProgramSources.size(); i++)
+        {
+            shaderProgramSources[i].vertexDataSource.currentCode   = readFile(shaderProgramSources[i].vertexDataSource.sourcePath);
+            shaderProgramSources[i].fragmentDataSource.currentCode = readFile(shaderProgramSources[i].fragmentDataSource.sourcePath);
+
+            if (shaderProgramSources[i].geometryDataSource.sourcePath != "")
+            {
+                shaderProgramSources[i].geometryDataSource.currentCode = readFile(shaderProgramSources[i].geometryDataSource.sourcePath);
+            }
+        }
     }
 
 
@@ -72,6 +89,74 @@ namespace GLCore::Render
         compiledShaders.clear();
     }
 
+    void ShaderManager::ReloadAllShaders(ShaderProgramSource& programSource) {
+        // Obtén el programa de shader actual y desvincula todos los shaders.
+        glUseProgram(0);
+        GLuint programID = compiledShaders[programSource.name]->ID;
+        GLint shaderCount;
+        glGetProgramiv(programID, GL_ATTACHED_SHADERS, &shaderCount);
+
+        std::vector<GLuint> attachedShaders(shaderCount);
+        glGetAttachedShaders(programID, shaderCount, NULL, &attachedShaders[0]);
+
+        for (GLuint shader : attachedShaders) {
+            glDetachShader(programID, shader);
+            glDeleteShader(shader);
+        }
+
+        //CleanUp();
+
+        for (const auto& shaderSource : shaderProgramSources) {
+
+            if (shaderSource.geometryDataSource.sourcePath.c_str() == "")
+            {
+                Shader* shader = new Shader(shaderSource.vertexDataSource.currentCode.c_str(), shaderSource.fragmentDataSource.currentCode.c_str());
+                compiledShaders[shaderSource.name] = shader;
+            }
+            else
+            {
+                Shader* shader = new Shader(true,shaderSource.vertexDataSource.currentCode.c_str(), 
+                                            shaderSource.fragmentDataSource.currentCode.c_str(), 
+                                            shaderSource.geometryDataSource.currentCode.c_str());
+                compiledShaders[shaderSource.name] = shader;
+            }
+        }
+
+        //LoadAllShaders();
+
+        //// Crea y compila los nuevos shaders.
+        //GLuint vertexShader = CompileShader(GL_VERTEX_SHADER, programSource.vertexDataSource.sourceCode);
+        //GLuint fragmentShader = CompileShader(GL_FRAGMENT_SHADER, programSource.fragmentDataSource.sourceCode);
+        //GLuint geometryShader = 0;
+        //if (!programSource.geometryDataSource.sourceCode.empty()) {
+        //    geometryShader = CompileShader(GL_GEOMETRY_SHADER, programSource.geometryDataSource.sourceCode);
+        //}
+
+        //// Vincula los nuevos shaders al programa.
+        //glAttachShader(programID, vertexShader);
+        //glAttachShader(programID, fragmentShader);
+        //if (geometryShader != 0) {
+        //    glAttachShader(programID, geometryShader);
+        //}
+
+        //// Enlaza el programa.
+        //glLinkProgram(programID);
+        //checkLinkStatus(programID);
+
+        //// Luego de vincular, ya puedes eliminar los shaders individuales.
+        //glDeleteShader(vertexShader);
+        //glDeleteShader(fragmentShader);
+        //if (geometryShader != 0) {
+        //    glDeleteShader(geometryShader);
+        //}
+
+        //// Reemplaza el ID del programa en tu mapa de shaders compilados si es necesario.
+        //compiledShaders[programSource.name]->ID = programID;
+
+        //// Ahora puedes utilizar el nuevo programa con las modificaciones.
+        //glUseProgram(programID);
+    }
+
 
     std::vector<std::string> GetShaderFiles(const std::string& path) {
         std::vector<std::string> items;
@@ -84,7 +169,8 @@ namespace GLCore::Render
 
 
 
-    std::string readFile(const std::string& filePath) {
+    std::string ShaderManager::readFile(const std::string& filePath) {
+
         std::ifstream fileStream(filePath, std::ios::in);
 
         if (!fileStream.is_open()) {
@@ -106,28 +192,79 @@ namespace GLCore::Render
 
 
     void ShaderManager::DrawShaderEditorPanel() {
-        static int selectedItem = -1;
-        static std::string currentVertexCode;
-        static std::string currentFragmentCode;
-        static std::string currentGeometryCode;
+
+        static std::string currentVertexCode(ShaderManager::ShaderBufferSize, '\0'); // Reservamos espacio para 20000 caracteres
+        static std::string currentFragmentCode(ShaderManager::ShaderBufferSize, '\0');
+        static std::string currentGeometryCode(ShaderManager::ShaderBufferSize, '\0');
+
+        //// En algún lugar de tu inicialización (por ejemplo, donde actualmente estás declarando las variables static):
+        currentVertexCode.resize(ShaderManager::ShaderBufferSize, '\0'); // Establece el contenido inicial a nulos para el buffer completo.
+        currentFragmentCode.resize(ShaderManager::ShaderBufferSize, '\0');
+        currentGeometryCode.resize(ShaderManager::ShaderBufferSize, '\0');
+
+        static int selectedShaderIndex = -1;
+        static int selectedProgramIndex = -1;
+
+        // Variables estáticas para el tamaño de fuente y la escala de fuente
+        static float fontSize = 16.0f; // Tamaño inicial de fuente
+        static float fontScale = 1.0f; // Escala inicial (1.0f es el tamaño por defecto)
+
 
         ImGui::Begin("Shader Editor");
+        ImGui::SliderFloat("Font Scale", &fontScale, 0.5f, 2.0f, "%.1f");
+        
 
         // Lista de programas de shader a la izquierda
-        if (ImGui::BeginChild("Shader List", ImVec2(150, 0), true)) {
-            for (int i = 0; i < shaderProgramSources.size(); i++) {
-                if (ImGui::Selectable(shaderProgramSources[i].name.c_str(), selectedItem == i)) {
-                    selectedItem = i;
-                    // Carga los códigos fuente de los shaders seleccionados
-                    currentVertexCode = readFile(shaderProgramSources[i].vertexSource);
-                    currentFragmentCode = readFile(shaderProgramSources[i].fragmentSource);
-                    // Solo carga el código de geometría si está presente
-                    if (!shaderProgramSources[i].geometrySource.empty()) {
-                        currentGeometryCode = readFile(shaderProgramSources[i].geometrySource);
+        if (ImGui::BeginChild("Shader List", ImVec2(150, 0), true)) 
+        {
+            //--LISTA
+            for (int programIndex = 0; programIndex < shaderProgramSources.size(); programIndex++) {
+                std::string treeNodeId = shaderProgramSources[programIndex].name + "##" + std::to_string(programIndex);
+                bool node_open = ImGui::TreeNodeEx(treeNodeId.c_str(), 0);
+
+                if (node_open) {
+                    
+                    if (ImGui::Selectable("Vertex", selectedShaderIndex == programIndex * 3 + 1)) {
+                        selectedShaderIndex = programIndex * 3 + 1;
+                        selectedProgramIndex = programIndex; // Aquí actualizamos selectedProgramIndex
+
+                        currentVertexCode = shaderProgramSources[programIndex].vertexDataSource.currentCode;
                     }
-                    else {
-                        currentGeometryCode.clear();
+                    if (ImGui::Selectable("Fragment", selectedShaderIndex == programIndex * 3 + 2)) {
+                        selectedShaderIndex = programIndex * 3 + 2;
+                        selectedProgramIndex = programIndex;
+
+                        currentFragmentCode = shaderProgramSources[programIndex].fragmentDataSource.currentCode;
                     }
+                    if (!shaderProgramSources[programIndex].geometryDataSource.sourcePath.empty() &&
+                        ImGui::Selectable("Geometry", selectedShaderIndex == programIndex * 3 + 3)) {
+                        selectedShaderIndex = programIndex * 3 + 3;
+                        selectedProgramIndex = programIndex;
+
+                        currentGeometryCode = shaderProgramSources[programIndex].geometryDataSource.currentCode;
+                    }
+                    ImGui::TreePop();
+                }
+            }
+
+            //--BOTONES
+            if (selectedShaderIndex != -1) {
+
+                if (ImGui::Button("Reload")) {
+
+                    std::string theName = shaderProgramSources[selectedProgramIndex].name;
+                    std::cout << "shaderProgramSources[selectedProgramIndex].name " << theName << std::endl;
+
+                    //shaderProgramSources[selectedProgramIndex].vertexDataSource.currentCode = currentVertexCode;
+                    shaderProgramSources[selectedProgramIndex].fragmentDataSource.currentCode = currentFragmentCode;
+
+                    ReloadAllShaders(shaderProgramSources[selectedProgramIndex]);
+                }
+
+                ImGui::SameLine();
+
+                if (ImGui::Button("Save")) {
+                    // Lógica para guardar el código actual del shader en un archivo
                 }
             }
         }
@@ -135,31 +272,39 @@ namespace GLCore::Render
 
         ImGui::SameLine();
 
-        // Editor de texto para el código de los shaders a la derecha
-        if (selectedItem != -1) {
+        //--EDITOR
+        if (selectedShaderIndex != -1 || selectedProgramIndex != -1) {
+            
+            ImFont* font = ImGui::GetFont();
+            font->Scale = fontScale; // Establece la nueva escala
+            
             if (ImGui::BeginChild("Shader Code Editor", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()), true)) {
-                if (selectedItem != -1) {
-                    // Editor de texto para Vertex Shader
-                    ImGui::Text("Vertex Shader");
-                    ImGui::InputTextMultiline("##VertexCode", &currentVertexCode[0], currentVertexCode.capacity(), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), ImGuiInputTextFlags_AllowTabInput);
-
-                    // Editor de texto para Fragment Shader
-                    ImGui::Text("Fragment Shader");
-                    ImGui::InputTextMultiline("##FragmentCode", &currentFragmentCode[0], currentFragmentCode.capacity(), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), ImGuiInputTextFlags_AllowTabInput);
-
-                    // Si hay un Geometry Shader, añade un editor para eso también
-                    if (!currentGeometryCode.empty()) {
+                if (selectedShaderIndex != -1) {
+                    int shaderType = (selectedShaderIndex - 1) % 3;
+                    switch (shaderType) {
+                    case 0: // Vertex Shader
+                        ImGui::Text("Vertex Shader");
+                        ImGui::InputTextMultiline("##VertexCode", &currentVertexCode[0], ShaderBufferSize, ImVec2(-FLT_MIN, -FLT_MIN), ImGuiInputTextFlags_AllowTabInput);
+                        break;
+                    case 1: // Fragment Shader
+                        ImGui::Text("Fragment Shader");
+                        ImGui::InputTextMultiline("##FragmentCode", &currentFragmentCode[0], ShaderBufferSize, ImVec2(-FLT_MIN, -FLT_MIN), ImGuiInputTextFlags_AllowTabInput);
+                        break;
+                    case 2: // Geometry Shader
                         ImGui::Text("Geometry Shader");
-                        ImGui::InputTextMultiline("##GeometryCode", &currentGeometryCode[0], currentGeometryCode.capacity(), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), ImGuiInputTextFlags_AllowTabInput);
+                        ImGui::InputTextMultiline("##GeometryCode", &currentGeometryCode[0], ShaderBufferSize, ImVec2(-FLT_MIN, -FLT_MIN), ImGuiInputTextFlags_AllowTabInput);
+                        break;
                     }
                 }
             }
+            font->Scale = 1.0f;
             ImGui::EndChild();
-
         }
 
         ImGui::End();
     }
+
+
 
 }
 
