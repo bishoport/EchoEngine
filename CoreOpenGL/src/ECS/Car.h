@@ -113,6 +113,8 @@ namespace ECS
         void drawGUI_Inspector() override
         {
             ImGui::Text("CarController");
+            ImGui::Text("Component ID: %i", getTypeID());
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
             ImGui::SliderFloat("Speed", &speed, -maxSpeed/2.0f, maxSpeed); // El slider controlará speed de 0 a maxSpeed
 
             // Control para la velocidad máxima

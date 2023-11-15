@@ -96,6 +96,7 @@ namespace ECS {
         {
             ImGui::Text("Material");
 			ImGui::Text("Component ID: %i", getTypeID());
+			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 			if (ImGui::Button("Delete Material")) {
 				entity->removeComponent<Material>();
 				return;

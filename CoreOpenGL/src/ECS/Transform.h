@@ -19,6 +19,9 @@ namespace ECS {
         std::vector<Entity*> children;
 
         Transform();
+
+        void init() override;
+
         glm::mat4 getLocalModelMatrix() const;
         void SetTransform(const glm::mat4& transformMatrix);
         void setParent(Entity* newParent);

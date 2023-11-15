@@ -12,7 +12,7 @@ namespace ECS
 
         void init() override
         {
-            std::cout << "getTypeID()-> " << getTypeID() << std::endl;
+            std::cout << "Type ID en el Component TestComponent INIT" << getTypeID() << std::endl;
         }
 
         ComponentID getTypeID() const

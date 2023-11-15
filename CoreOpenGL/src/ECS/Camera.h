@@ -132,6 +132,7 @@ namespace ECS
         void drawGUI_Inspector() override
         {
             ImGui::Text("Camera %i", m_camID);
+            ImGui::Text("Component ID: %i", getTypeID());
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
             ImGui::Checkbox("Active", &m_active);

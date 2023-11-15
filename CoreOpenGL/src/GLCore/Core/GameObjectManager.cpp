@@ -164,10 +164,10 @@ namespace GLCore
 				gameObject->addComponentByPointer(component);
 				gameObject->name = "TestGameObject_" + std::to_string(idGenerated);
 
-				for (int i = 0; i < gameObject->componentArray.size(); i++)
+				for (int i = 0; i < gameObject->components.size(); i++)
 				{
-					if (gameObject->componentArray[i] != NULL)
-						std::cout << "getTypeID->" << gameObject->componentArray[i]->getTypeID() << std::endl;;
+					if (gameObject->components[i] != NULL)
+						std::cout << "getTypeID from components->" << gameObject->components[i]->getTypeID() << std::endl;;
 				}
 			}
 		}

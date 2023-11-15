@@ -8,6 +8,11 @@ namespace ECS {
         : position(glm::vec3(0.0f)), rotation(glm::quat()), scale(glm::vec3(1.0f)),
         m_modelMatrix(glm::mat4(1.0f)), m_isDirty(true) {}
 
+    void Transform::init()
+    {
+        std::cout << "Type ID en el Component TRANSFORM INIT" << getTypeID() << std::endl;
+    }
+
     glm::mat4 Transform::getLocalModelMatrix() const {
         return glm::translate(glm::mat4(1.0f), position)
             * glm::toMat4(rotation)
@@ -136,6 +141,7 @@ namespace ECS {
 
         ImGui::Text("Transform");
         ImGui::Text("Component ID: %i", getTypeID());
+        ImGui::Dummy(ImVec2(0.0f, 5.0f));
         ImGui::DragFloat3("Position", glm::value_ptr(position), 0.01f);
         glm::vec3 eulers = glm::degrees(glm::eulerAngles(rotation));
         if (ImGui::DragFloat3("Rotation", glm::value_ptr(eulers), 0.01f)) {

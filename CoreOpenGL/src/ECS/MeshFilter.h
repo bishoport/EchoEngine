@@ -58,6 +58,7 @@ namespace ECS {
             //Common Delete
             ImGui::Text("MeshFilter");
             ImGui::Text("Component ID: %i", getTypeID());
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
             // Muestra los valores en la ventana usando etiquetas y valores
             ImGui::Text("Model type: %s", ModelTypeToString(modelType).c_str());
             if (modelType == GLCore::MODEL_TYPES::EXTERNAL_FILE)

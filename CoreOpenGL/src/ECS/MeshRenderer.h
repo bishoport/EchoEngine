@@ -110,6 +110,7 @@ namespace ECS {
             //Common Delete
             ImGui::Text("MeshRenderer");
             ImGui::Text("Component ID: %i", getTypeID());
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
             if (ImGui::Button("Delete Mesh Renderer")) {
                 entity->removeComponent<MeshRenderer>();
                 return;

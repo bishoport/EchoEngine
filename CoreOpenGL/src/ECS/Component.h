@@ -36,15 +36,25 @@ namespace ECS {
     class Entity;
 
     class Component {
+    private:
+        ComponentID typeID; // Variable miembro para almacenar el ComponentID
+
     public:
         ECS::Entity* entity;
+
+        //Component() : typeID(getNewComponentTypeID()) {} // Constructor para inicializar el typeID
+
         virtual void init() {}
         virtual void update(GLCore::Timestep deltaTime) {}
         virtual void draw() {}
         virtual void drawGUI_Inspector() {}
         virtual void onDestroy() {}
         virtual ~Component() { onDestroy(); }
-        virtual ComponentID getTypeID() const = 0;
+
+        virtual ComponentID getTypeID() const { return typeID; } // Getter para typeID
+
+        void setTypeId(ComponentID id) { typeID = id; } // Setter para typeID
     };
 }
+
 
