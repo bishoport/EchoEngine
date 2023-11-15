@@ -66,5 +66,7 @@ enum class MainMenuAction {
     AddCharacterController,
     AddCarController,
     AddCamera,
-    SaveProject
+    SaveProject,
+    ReloadComponents,
+    LiberateDLL
 };

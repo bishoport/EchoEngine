@@ -93,36 +93,22 @@ namespace YAML {
 
 namespace ECS
 {
-    using ComponentID = std::size_t;
-
-    inline ComponentID getComponentTypeID()
-    {
-        static ComponentID lastID = 0;
-        return lastID++;
-    }
-
-    template <typename T> inline ComponentID getComponentTypeID() noexcept
-    {
-        static ComponentID typeID = getComponentTypeID();
-        return typeID;
-    }
-
-    constexpr std::size_t maxComponents = 32;
-
     using ComponentBitSet = std::bitset<maxComponents>;
     using ComponentArray = std::array<ECS::Component*, maxComponents>;
 
 
-
-
     class Entity {
     private:
+        
+
+    public:
+
         int id;
         std::vector<std::unique_ptr<ECS::Component>> components;
         ComponentArray componentArray;
         ComponentBitSet componentBitSet;
 
-    public:
+
         std::string name;
         bool active = true;
         bool markedToDelete = false;
@@ -143,14 +129,16 @@ namespace ECS
 		YAML::Node serialize() const;
 		void deserialize(const YAML::Node& node);
 
+        void addComponentByPointer(Component* component);
 
-        template <typename T> bool hascomponent() const
-        {
-            if (&getComponent<T>() != NULL)
-            {
-                return true;
+        template<typename T> bool hascomponent() const {
+            auto typeID = getComponentTypeID<T>(); // Asumiendo que esto devuelve un ID único para cada tipo T
+            if (typeID >= maxComponents) {
+                // ID de tipo está fuera de rango, lo que significa que el componente no existe
+                return false;
             }
-            return false;
+            // Verifica si el bit correspondiente al tipo de componente está establecido
+            return componentBitSet[typeID];
         }
 
         template <typename T, typename... TArgs> T& addComponent(TArgs&&... mArgs)
@@ -198,11 +186,5 @@ namespace ECS
             componentArray[typeID] = nullptr;
             componentBitSet[typeID] = false;
         }
-
-        
-
     };
-
-
-
 }

@@ -17,27 +17,21 @@
 
 
 
+
+
 namespace GLCore
 {
     ECS::Entity* GLCore::GameObjectManager::CreateEntity()
     {
 		ECS::Entity* e = nullptr;
 		e = &manager.addEntity();
-
 		idGenerated++;
-
         //By Default with transform
 		e->addComponent<ECS::Transform>();
         e->getComponent<ECS::Transform>().position = { 0.0f, 0.0f, 0.0f };
         e->getComponent<ECS::Transform>().scale = { 1.0f, 1.0f, 1.0f };
         glm::vec3 eulers = { (0 * pi) / 180, (0 * pi) / 180, (0 * pi) / 180 };// Inicializa el cuaternión de rotación con ángulos de Euler
         e->getComponent<ECS::Transform>().rotation = glm::quat(eulers);
-
-        //lo añadimos a la lista general
-		//entitiesInScene.push_back(e);
-		//entitiesInScene = manager.getAllEntities();
-
-        //Lo devolvemos para hacer mas cosas
         return e;
     }
 
@@ -156,10 +150,31 @@ namespace GLCore
 				m_SelectedEntity->addComponent<ECS::Car>();
 			}
 		}
+		else if (action == MainMenuAction::ReloadComponents)
+		{
+			if (!externalComponentManager.loadComponentLibrary("PRUEBA_DLL_2.dll")) {
+				std::cout << "Error cargando DLL" << std::endl;
+				return;
+			}
 
+			ECS::Component* component = externalComponentManager.createComponentInstance();
+			if (component) 
+			{
+				gameObject = CreateEntity();
+				gameObject->addComponentByPointer(component);
+				gameObject->name = "TestGameObject_" + std::to_string(idGenerated);
 
-
-		
+				for (int i = 0; i < gameObject->componentArray.size(); i++)
+				{
+					if (gameObject->componentArray[i] != NULL)
+						std::cout << "getTypeID->" << gameObject->componentArray[i]->getTypeID() << std::endl;;
+				}
+			}
+		}
+		else if (action == MainMenuAction::LiberateDLL)
+		{
+			externalComponentManager.unloadComponentLibrary();
+		}
 		else if (action == MainMenuAction::SaveProject)
 		{
 			std::cout << "GUARDANDO..." << std::endl;
@@ -219,9 +234,6 @@ namespace GLCore
 			std::cerr << "Error cargando el modelo: " << e.what() << std::endl;
 		}
 	}
-
-	
-
 	void GameObjectManager::drawHierarchy()
 	{
 		//-------------------------------------------HIERARCHY PANEL--------------------------------------

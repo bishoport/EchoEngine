@@ -56,6 +56,11 @@ namespace ECS {
             }
         }
 
+        ComponentID getTypeID() const
+        {
+            return getComponentTypeID<MeshRenderer>();
+        }
+
         void update(GLCore::Timestep timestamp) override
         {
             // Recuperamos el componente Transform de la entidad
@@ -104,6 +109,7 @@ namespace ECS {
         {
             //Common Delete
             ImGui::Text("MeshRenderer");
+            ImGui::Text("Component ID: %i", getTypeID());
             if (ImGui::Button("Delete Mesh Renderer")) {
                 entity->removeComponent<MeshRenderer>();
                 return;

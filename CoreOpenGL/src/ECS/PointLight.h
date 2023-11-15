@@ -51,7 +51,10 @@ namespace ECS {
             GLCore::Render::PrimitivesHelper::SetupMeshAttributes(sphereDebugMeshData);
         }
 
-
+        ComponentID getTypeID() const
+        {
+            return getComponentTypeID<PointLight>();
+        }
 
         void setId(int _lightID)
         {
@@ -210,7 +213,7 @@ namespace ECS {
         void drawGUI_Inspector() override
         {
             ImGui::Text("PointLight");
-
+            ImGui::Text("Component ID: %i", getTypeID());
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
             ImGui::Checkbox("Active", &active);
             ImGui::Checkbox("Debug", &debug);

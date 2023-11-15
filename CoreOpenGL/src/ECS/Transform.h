@@ -40,6 +40,7 @@ namespace ECS {
         glm::vec3 getGlobalScale() const;
         bool isDirty() const;
         void drawGUI_Inspector() override;
+        ComponentID getTypeID() const override;
 
         void serialize(YAML::Emitter& out) const;
         void deserialize(const YAML::Node& node);

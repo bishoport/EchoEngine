@@ -61,6 +61,11 @@ namespace ECS
             prepareShadows();
         } 
 
+        ComponentID getTypeID() const
+        {
+            return getComponentTypeID<DirectionalLight>();
+        }
+
 
         void onDestroy() override
         {

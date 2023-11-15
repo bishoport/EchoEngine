@@ -14,6 +14,13 @@ namespace ECS
         glm::vec3 velocity = { 0.0f, 0.0f, 0.0f };
         float speed = 5.0f;
 
+
+        ComponentID getTypeID() const
+        {
+            return getComponentTypeID<CharacterController>();
+        }
+
+
         void update(GLCore::Timestep timestamp) override {
             if (InputManager::Instance().IsKeyPressed(GLFW_KEY_W))
                 velocity.z -= 1.0f;

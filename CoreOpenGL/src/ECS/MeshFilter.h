@@ -19,6 +19,13 @@ namespace ECS {
 
         void init() override {}
 
+
+        ComponentID getTypeID() const
+        {
+            return getComponentTypeID<MeshFilter>();
+        }
+
+
         void initMesh(const GLCore::MeshData& meshData)
         {
             this->meshData = meshData;
@@ -50,7 +57,7 @@ namespace ECS {
         {            
             //Common Delete
             ImGui::Text("MeshFilter");
-
+            ImGui::Text("Component ID: %i", getTypeID());
             // Muestra los valores en la ventana usando etiquetas y valores
             ImGui::Text("Model type: %s", ModelTypeToString(modelType).c_str());
             if (modelType == GLCore::MODEL_TYPES::EXTERNAL_FILE)

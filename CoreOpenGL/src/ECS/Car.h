@@ -33,6 +33,11 @@ namespace ECS
             glBindVertexArray(0); // Desvincular para evitar cambios accidentales en otros lugares del código
         }
 
+        ComponentID getTypeID() const
+        {
+            return getComponentTypeID<Car>();
+        }
+
         void update(GLCore::Timestep deltaTime) override {
             ECS::Transform& transform = entity->getComponent<ECS::Transform>();
 

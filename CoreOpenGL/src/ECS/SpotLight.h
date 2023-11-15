@@ -56,6 +56,11 @@ namespace ECS
             prepareShadows();
         }
 
+        ComponentID getTypeID() const
+        {
+            return getComponentTypeID<SpotLight>();
+        }
+
 
         void onDestroy() override
         {
@@ -195,6 +200,7 @@ namespace ECS
         {
             ImGui::Text("%s",entity->name.c_str());
             ImGui::Text("Light Id: %i",lightID);
+            ImGui::Text("Component ID: %i", getTypeID());
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
             ImGui::Checkbox("Active", &active);
             ImGui::Checkbox("Debug", &debug);

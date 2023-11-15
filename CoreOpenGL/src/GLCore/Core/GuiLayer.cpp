@@ -226,7 +226,19 @@ namespace GLCore {
 
 
 
-            if (ImGui::BeginMenu("Components")) { 
+            if (ImGui::BeginMenu("Components")) 
+            { 
+                if (ImGui::MenuItem("ReloadComponents"))
+                {
+                    UsarDelegado(MainMenuAction::ReloadComponents);
+                }
+
+                if (ImGui::MenuItem("Liberate DLL"))
+                {
+                    UsarDelegado(MainMenuAction::LiberateDLL);
+                }
+
+                ImGui::Separator();
 
                 if (ImGui::MenuItem("CarController"))
                 {

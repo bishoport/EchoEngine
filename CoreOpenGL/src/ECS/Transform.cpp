@@ -135,6 +135,7 @@ namespace ECS {
         ImGui::Separator();
 
         ImGui::Text("Transform");
+        ImGui::Text("Component ID: %i", getTypeID());
         ImGui::DragFloat3("Position", glm::value_ptr(position), 0.01f);
         glm::vec3 eulers = glm::degrees(glm::eulerAngles(rotation));
         if (ImGui::DragFloat3("Rotation", glm::value_ptr(eulers), 0.01f)) {
@@ -144,6 +145,13 @@ namespace ECS {
         ImGui::Separator();
         ImGui::Dummy(ImVec2(0.0f, 5.0f));
     }
+
+    ComponentID Transform::getTypeID() const
+    {
+        return getComponentTypeID<Transform>();
+    }
+
+
 
     void Transform::serialize(YAML::Emitter& out) const {
         out << YAML::BeginMap;

@@ -11,6 +11,9 @@
 #include "yaml-cpp/yaml.h"  // IWYU pragma: keep
 
 
+#include "../../ECS/ExternalComponentManager.h"
+
+
 
 namespace GLCore 
 {
@@ -40,6 +43,7 @@ namespace GLCore
 		
 		int idGenerated = 0;
 
+		ECS::ExternalComponentManager externalComponentManager;
 		//std::vector<ECS::Entity*> entitiesInScene;
 	};
 }

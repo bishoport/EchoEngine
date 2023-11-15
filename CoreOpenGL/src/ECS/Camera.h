@@ -60,6 +60,11 @@ namespace ECS
             //---------------------------------------------------
         }
 
+        ComponentID getTypeID() const
+        {
+            return getComponentTypeID<Camera>();
+        }
+
 
 
         void setCamId(unsigned int camID)
