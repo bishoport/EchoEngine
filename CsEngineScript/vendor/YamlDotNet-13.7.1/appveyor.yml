@@ -1,0 +1,53 @@
+version: 0.0.{build}
+
+image: Visual Studio 2022
+
+test: off
+
+environment:
+  NUGET_API_KEY:
+    secure: gKVampJvSdHxl1/L1+IjpG/TDnR7flhj6ZmwtDqd9a4M+pWJ8VJ78xv/yDarc4iC
+  GITHUB_TOKEN:
+    secure: ulVa56sjSUcOy/08/Qn88LsGVfndWBizu5gRdVTvsGu/ju1fKUe8XCZPvUvypvWH
+  TWITTER_CONSUMER_API_KEY:
+    secure: o4jM6NnXqtI3/Bzef2xpcTAOuPn/WwO+khiWvrbletk=
+  TWITTER_CONSUMER_API_SECRET:
+    secure: a4TQjB1vp0lRFZ7aA7RamHAhkHlPlMqdvsaZvzGs/pPkR+YfuGQ7AKlknD26HIE0xGUTi8M1wqffQUKJL1knHg==
+  TWITTER_ACCESS_TOKEN:
+    secure: TfgxKzf9AAbDuJmuYnnzjYKhHcxyYv7Z+AnFRzlQc5CcIJ3h52YZAokQGF3n3K8r21V1DxeKHc/qWG1yZs4NKg==
+  TWITTER_ACCESS_TOKEN_SECRET:
+    secure: aMvxmavbq8tylMDe8QGEdemNMPzrd7i6982i/iVydNYHhUvzV7lw5AJsiEpfRyzt
+
+install:
+  - cmd: git submodule update --init
+  - cmd: dotnet tool install --global GitVersion.Tool
+
+build_script:
+  - cmd: .\build.cmd --appveyor
+
+artifacts:
+  - path: YamlDotNet\bin\Release\netstandard2.0
+    name: Release-NetStandard-2.0
+
+  - path: YamlDotNet\bin\Release\netstandard2.1
+    name: Release-NetStandard-2.1
+
+  - path: YamlDotNet\bin\Release\net45
+    name: Release-Net45
+
+  - path: YamlDotNet\bin\Release\net47
+    name: Release-Net47
+
+  - path: YamlDotNet\bin\Release\net35
+    name: Release-Net35
+
+  - path: YamlDotNet\bin\Release\net40
+    name: Release-UnitySubset-v35
+
+  - path: YamlDotNet\bin\Release\net60
+    name: Release-Net60
+
+  - path: YamlDotNet\bin\Release\net70
+    name: Release-Net70
+
+  - path: YamlDotNet\bin\*.nupkg

@@ -55,6 +55,7 @@
 
 enum class MainMenuAction {
     None,                   // Representa ninguna acción
+    AddEmpty,
     AddDirectionalLight,    // Representa agregar una luz direccional
     AddPointLight,          // Representa agregar una luz puntual
     AddSpotLight,           // Representa agregar una luz foco
@@ -67,6 +68,6 @@ enum class MainMenuAction {
     AddCarController,
     AddCamera,
     SaveProject,
-    ReloadComponents,
+    LoadComponentsFromCs,
     LiberateDLL
 };

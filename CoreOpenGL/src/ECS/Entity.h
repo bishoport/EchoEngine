@@ -91,6 +91,9 @@ namespace YAML {
 
 } // Fin del espacio de nombres YAML
 
+
+
+
 namespace ECS
 {
     using ComponentBitSet = std::bitset<maxComponents>;
@@ -132,13 +135,13 @@ namespace ECS
         void addComponentByPointer(Component* component);
 
         template<typename T> bool hascomponent() const {
-            auto typeID = getComponentTypeID<T>(); // Asumiendo que esto devuelve un ID único para cada tipo T
-            if (typeID >= maxComponents) {
+            auto componentID = getComponentTypeID<T>(); // Asumiendo que esto devuelve un ID único para cada tipo T
+            if (componentID >= maxComponents) {
                 // ID de tipo está fuera de rango, lo que significa que el componente no existe
                 return false;
             }
             // Verifica si el bit correspondiente al tipo de componente está establecido
-            return componentBitSet[typeID];
+            return componentBitSet[componentID];
         }
 
         template <typename T, typename... TArgs> T& addComponent(TArgs&&... mArgs)
@@ -164,8 +167,8 @@ namespace ECS
         template<typename T> void removeComponent()
         {
             // Comprobar si el componente existe
-            auto typeID = getComponentTypeID<T>();
-            if (!componentBitSet[typeID]) {
+            auto componentID = getComponentTypeID<T>();
+            if (!componentBitSet[componentID]) {
             	return; // No tiene el componente, así que no hay nada que eliminar
             }
             
@@ -183,8 +186,8 @@ namespace ECS
             }
             
             // Actualizar el 'componentArray' y 'componentBitSet'
-            componentArray[typeID] = nullptr;
-            componentBitSet[typeID] = false;
+            componentArray[componentID] = nullptr;
+            componentBitSet[componentID] = false;
         }
     };
 }

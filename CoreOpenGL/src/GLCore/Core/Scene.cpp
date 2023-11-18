@@ -17,6 +17,10 @@ namespace GLCore {
 	std::pair<glm::vec3, float> Scene::SceneBounds = { glm::vec3(0.0f), 0.0f };
 	Render::RendererManager* rendererManager = new Render::RendererManager();
 
+	const int BUF_SIZE = 256;
+	char textBuffer[BUF_SIZE] = "CsTestComponent"; // Buffer para ImGui
+	std::string inputString = textBuffer; // std::string sincronizado con textBuffer
+
     Scene::Scene() : m_EditorCamera(16.0f / 9.0f) {}
     Scene::~Scene(){shutdown();}
 
@@ -680,6 +684,22 @@ namespace GLCore {
 		ImGui::Begin("Inspector", nullptr);
 		if (Application::gameObjectManager->m_SelectedEntity != nullptr)
 		{
+			// Input Text con buffer de caracteres
+			if (ImGui::InputText("##input", textBuffer, BUF_SIZE))
+			{
+				// Actualizar std::string cuando el texto cambia
+				inputString = textBuffer;
+			}
+
+			ImGui::SameLine();
+
+			// Crear un botón y comprobar si se ha presionado
+			if (ImGui::Button("->"))
+			{
+				// Llamar a MyFunction con el texto del campo de texto
+				//Application::gameObjectManager->addCsComponentToSelectedGameObject(inputString);
+			}
+
 			const auto& comps = Application::gameObjectManager->m_SelectedEntity->getComponents();
 			for (const auto& component : comps) 
 			{

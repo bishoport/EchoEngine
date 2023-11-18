@@ -24,9 +24,6 @@ namespace ECS
 
     public:
 
-
-
-
         void init() override
         {
             m_Position = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -60,7 +57,7 @@ namespace ECS
             //---------------------------------------------------
         }
 
-        ComponentID getTypeID() const
+        ComponentID getComponentID() const
         {
             return getComponentTypeID<Camera>();
         }
@@ -132,7 +129,7 @@ namespace ECS
         void drawGUI_Inspector() override
         {
             ImGui::Text("Camera %i", m_camID);
-            ImGui::Text("Component ID: %i", getTypeID());
+            ImGui::Text("Component ID: %i", getComponentID());
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
             ImGui::Checkbox("Active", &m_active);

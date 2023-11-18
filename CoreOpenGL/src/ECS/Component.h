@@ -27,8 +27,8 @@ namespace ECS {
 
     template <typename T>
     inline ComponentID getComponentTypeID() noexcept {
-        static ComponentID typeID = getNewComponentTypeID();
-        return typeID;
+        static ComponentID componentID = getNewComponentTypeID();
+        return componentID;
     }
 
     constexpr std::size_t maxComponents = 32;
@@ -37,12 +37,12 @@ namespace ECS {
 
     class Component {
     private:
-        ComponentID typeID; // Variable miembro para almacenar el ComponentID
+        ComponentID componentID; // Variable miembro para almacenar el ComponentID
 
     public:
         ECS::Entity* entity;
 
-        //Component() : typeID(getNewComponentTypeID()) {} // Constructor para inicializar el typeID
+        //Component() : componentID(getNewComponentTypeID()) {} // Constructor para inicializar el componentID
 
         virtual void init() {}
         virtual void update(GLCore::Timestep deltaTime) {}
@@ -51,9 +51,9 @@ namespace ECS {
         virtual void onDestroy() {}
         virtual ~Component() { onDestroy(); }
 
-        virtual ComponentID getTypeID() const { return typeID; } // Getter para typeID
+        virtual ComponentID getComponentID() const { return componentID; } // Getter para componentID
 
-        void setTypeId(ComponentID id) { typeID = id; } // Setter para typeID
+        void setComponentID(ComponentID id) { componentID = id; } // Setter para componentID
     };
 }
 

@@ -96,8 +96,8 @@
 //
 //	template <typename T> inline ComponentID getComponentTypeID() noexcept
 //	{
-//		static ComponentID typeID = getComponentTypeID();
-//		return typeID;
+//		static ComponentID componentID = getComponentTypeID();
+//		return componentID;
 //	}
 //
 //	constexpr std::size_t maxComponents = 32;
@@ -216,8 +216,8 @@
 //		template<typename T> void removeComponent()
 //		{
 //			// Comprobar si el componente existe
-//			auto typeID = getComponentTypeID<T>();
-//			if (!componentBitSet[typeID]) {
+//			auto componentID = getComponentTypeID<T>();
+//			if (!componentBitSet[componentID]) {
 //				return; // No tiene el componente, así que no hay nada que eliminar
 //			}
 //
@@ -235,8 +235,8 @@
 //			}
 //
 //			// Actualizar el 'componentArray' y 'componentBitSet'
-//			componentArray[typeID] = nullptr;
-//			componentBitSet[typeID] = false;
+//			componentArray[componentID] = nullptr;
+//			componentBitSet[componentID] = false;
 //		}
 //	};
 //

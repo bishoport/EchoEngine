@@ -53,14 +53,14 @@ namespace ECS
             throw std::invalid_argument("Null component pointer passed to addComponentByPointer.");
         }
 
-        auto typeID = getNewComponentTypeID();
+        auto componentID = getNewComponentTypeID();
 
         // Añadir el nuevo componente y tomar propiedad con unique_ptr.
         std::unique_ptr<Component> uPtr{ component };
         components.emplace_back(std::move(uPtr));
-        componentArray[typeID] = components.back().get();
-        componentBitSet[typeID] = true;
-        component->setTypeId(typeID);
+        componentArray[componentID] = components.back().get();
+        componentBitSet[componentID] = true;
+        component->setComponentID(componentID);
         // Inicializar el componente y establecer su entidad propietaria.
         component->entity = this;
         component->init();
@@ -123,27 +123,27 @@ namespace ECS
     //        throw std::invalid_argument("Null component pointer passed to addComponentByPointer.");
     //    }
 
-    //    auto typeID = component->getTypeID(); // El componente ya debe tener un ID asignado.
+    //    auto componentID = component->getComponentID(); // El componente ya debe tener un ID asignado.
 
-    //    if (typeID >= maxComponents) {
+    //    if (componentID >= maxComponents) {
     //        throw std::out_of_range("Component type ID out of range in addComponentByPointer.");
     //    }
 
     //    // Si ya hay un componente del mismo tipo, decide qué acción tomar.
-    //    if (componentBitSet[typeID]) {
+    //    if (componentBitSet[componentID]) {
     //        // Aquí puedes decidir si sobrescribir el componente existente, 
     //        // lanzar una excepción o simplemente ignorar la adición.
     //        // Por ejemplo:
     //        throw std::logic_error("Component of this type already exists in the entity.");
     //        // Pero si quieres sobrescribirlo, necesitas primero eliminar el componente actual.
-    //        //removeComponentByTypeID(typeID);
+    //        //removeComponentByTypeID(componentID);
     //    }
 
     //    // Añadir el nuevo componente y tomar propiedad con unique_ptr.
     //    std::unique_ptr<Component> uPtr{ component };
     //    components.emplace_back(std::move(uPtr));
-    //    componentArray[typeID] = component; // Usa el ID que el componente ya tiene.
-    //    componentBitSet[typeID] = true; // Marca el bit correspondiente.
+    //    componentArray[componentID] = component; // Usa el ID que el componente ya tiene.
+    //    componentBitSet[componentID] = true; // Marca el bit correspondiente.
 
     //    // Inicializar el componente y establecer su entidad propietaria.
     //    component->entity = this; // Establece la entidad propietaria del componente.

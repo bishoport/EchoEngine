@@ -16,12 +16,9 @@
 #include "../../ECS/Car.h"
 
 
-
-
-
 namespace GLCore
 {
-    ECS::Entity* GLCore::GameObjectManager::CreateEntity()
+    ECS::Entity* GLCore::GameObjectManager::CreateGameObject()
     {
 		ECS::Entity* e = nullptr;
 		e = &manager.addEntity();
@@ -35,15 +32,16 @@ namespace GLCore
         return e;
     }
 
+	
+
 	void GLCore::GameObjectManager::createGameObject(MainMenuAction action)
 	{
 		ECS::Entity* gameObject = nullptr;
-
 		if (action == MainMenuAction::AddCube)
 		{
 			GLCore::MeshData cube = GLCore::Render::PrimitivesHelper::CreateCube();
 
-			gameObject = CreateEntity();
+			gameObject = CreateGameObject();
 			gameObject->name = "Cube_" + std::to_string(idGenerated);
 			gameObject->addComponent<ECS::MeshFilter>().initMesh(cube);
 			gameObject->getComponent<ECS::MeshFilter>().modelType = PRIMIVITE_CUBE;
@@ -55,7 +53,7 @@ namespace GLCore
 		{
 			GLCore::MeshData segCube = GLCore::Render::PrimitivesHelper::CreateSegmentedCube(1);
 
-			gameObject = CreateEntity();
+			gameObject = CreateGameObject();
 			gameObject->name = "SegCube_" + std::to_string(idGenerated);
 			gameObject->addComponent<ECS::MeshFilter>().initMesh(segCube);
 			gameObject->getComponent<ECS::MeshFilter>().modelType = PRIMIVITE_SEGMENTED_CUBE;
@@ -67,7 +65,7 @@ namespace GLCore
 		{
 			GLCore::MeshData sphere = GLCore::Render::PrimitivesHelper::CreateSphere(1, 20, 20);
 
-			gameObject = CreateEntity();
+			gameObject = CreateGameObject();
 			gameObject->name = "Sphere_" + std::to_string(idGenerated);
 			gameObject->addComponent<ECS::MeshFilter>().initMesh(sphere);
 			gameObject->getComponent<ECS::MeshFilter>().modelType = PRIMIVITE_SPHERE;
@@ -79,7 +77,7 @@ namespace GLCore
 		{
 			GLCore::MeshData quad = GLCore::Render::PrimitivesHelper::CreateQuad();
 
-			gameObject = CreateEntity();
+			gameObject = CreateGameObject();
 			gameObject->name = "Quad_" + std::to_string(idGenerated);
 			gameObject->addComponent<ECS::MeshFilter>().initMesh(quad);
 			gameObject->getComponent<ECS::MeshFilter>().modelType = PRIMIVITE_QUAD;
@@ -91,7 +89,7 @@ namespace GLCore
 		{
 			GLCore::MeshData plane = GLCore::Render::PrimitivesHelper::CreatePlane();
 
-			gameObject = CreateEntity();
+			gameObject = CreateGameObject();
 			gameObject->name = "Plane_" + std::to_string(idGenerated);
 			gameObject->addComponent<ECS::MeshFilter>().initMesh(plane);
 			gameObject->getComponent<ECS::MeshFilter>().modelType = PRIMIVITE_PLANE;
@@ -101,7 +99,7 @@ namespace GLCore
 		}
 		else if (action == MainMenuAction::AddCamera)
 		{
-			gameObject = CreateEntity();
+			gameObject = CreateGameObject();
 			gameObject->addComponent<ECS::Camera>();
 			gameObject->name = "Camera_" + std::to_string(idGenerated);
 
@@ -109,14 +107,14 @@ namespace GLCore
 		}
 		else if (action == MainMenuAction::AddDirectionalLight)
 		{
-			gameObject = CreateEntity();
+			gameObject = CreateGameObject();
 			gameObject->addComponent<ECS::DirectionalLight>();
 
 			useDirectionalLight = true;
 		}
 		else if (action == MainMenuAction::AddPointLight)
 		{
-			gameObject = CreateEntity();
+			gameObject = CreateGameObject();
 			gameObject->addComponent<ECS::PointLight>();
 			gameObject->getComponent<ECS::PointLight>().setId(totalPointLight);
 			
@@ -124,7 +122,7 @@ namespace GLCore
 		}
 		else if (action == MainMenuAction::AddSpotLight)
 		{
-			gameObject = CreateEntity();
+			gameObject = CreateGameObject();
 			gameObject->addComponent<ECS::SpotLight>();
 			gameObject->getComponent<ECS::SpotLight>().setId(totalSpotLight);
 
@@ -132,7 +130,7 @@ namespace GLCore
 		}
 		else if (action == MainMenuAction::AddCharacterController)
 		{
-			/*gameObject = CreateEntity();
+			/*gameObject = CreateGameObject();
 			gameObject->addComponent<ECS::CharacterController>();
 			
 			GLCore::MeshData segCube = GLCore::Render::PrimitivesHelper::CreateSegmentedCube(1);
@@ -143,38 +141,6 @@ namespace GLCore
 			gameObject->addComponent<ECS::Material>();
 			gameObject->getComponent<ECS::Material>().setDafaultMaterial();*/
 		}
-		else if (action == MainMenuAction::AddCarController)
-		{
-			if (m_SelectedEntity != nullptr)
-			{
-				m_SelectedEntity->addComponent<ECS::Car>();
-			}
-		}
-		else if (action == MainMenuAction::ReloadComponents)
-		{
-			if (!externalComponentManager.loadComponentLibrary("PRUEBA_DLL_2.dll")) {
-				std::cout << "Error cargando DLL" << std::endl;
-				return;
-			}
-
-			ECS::Component* component = externalComponentManager.createComponentInstance();
-			if (component) 
-			{
-				gameObject = CreateEntity();
-				gameObject->addComponentByPointer(component);
-				gameObject->name = "TestGameObject_" + std::to_string(idGenerated);
-
-				for (int i = 0; i < gameObject->components.size(); i++)
-				{
-					if (gameObject->components[i] != NULL)
-						std::cout << "getTypeID from components->" << gameObject->components[i]->getTypeID() << std::endl;;
-				}
-			}
-		}
-		else if (action == MainMenuAction::LiberateDLL)
-		{
-			externalComponentManager.unloadComponentLibrary();
-		}
 		else if (action == MainMenuAction::SaveProject)
 		{
 			std::cout << "GUARDANDO..." << std::endl;
@@ -182,6 +148,7 @@ namespace GLCore
 			SaveSceneToFile("scene.yaml");
 		}
 
+		addNativeComponentToSelectedGameObject(action);
 
 		//Autoselect in creating
 		if (gameObject != nullptr)
@@ -190,20 +157,32 @@ namespace GLCore
 		}
 	}
 
+	void GLCore::GameObjectManager::addNativeComponentToSelectedGameObject(MainMenuAction action)
+	{
+		if (action == MainMenuAction::AddCarController)
+		{
+			if (m_SelectedEntity != nullptr)
+			{
+				m_SelectedEntity->addComponent<ECS::Car>();
+			}
+		}
+	}
+
+
 	void GameObjectManager::loadFileModel(ImportOptions importOptions)
 	{
 		ModelParent modelParent = {};
 		try {
 			modelParent = GLCore::Utils::ModelLoader::LoadModel(importOptions);
 
-			ECS::Entity* entityParent = CreateEntity();
+			ECS::Entity* entityParent = CreateGameObject();
 			entityParent->name = modelParent.name;
 
 			if (modelParent.modelInfos.size() > 1)
 			{
 				for (int i = 0; i < modelParent.modelInfos.size(); i++)
 				{
-					ECS::Entity* entityChild = CreateEntity();
+					ECS::Entity* entityChild = CreateGameObject();
 					entityChild->name = modelParent.modelInfos[i].meshData.meshName + std::to_string(i);
 					entityChild->addComponent<ECS::MeshFilter>().initMesh(modelParent.modelInfos[i].meshData);
 					entityChild->getComponent<ECS::MeshFilter>().modelType = EXTERNAL_FILE;
@@ -375,7 +354,6 @@ namespace GLCore
 		//---------------------------------------------------------------------------------------------------------------
 	}
 
-
 	void GameObjectManager::SaveSceneToFile(const std::string& filename)
 	{
 		YAML::Emitter out;
@@ -392,8 +370,6 @@ namespace GLCore
 		std::ofstream fout(filename);
 		fout << out.c_str();
 	}
-
-
 	void GameObjectManager::LoadSceneFromFile(const std::string& filename, std::vector<ECS::Entity*>& entitiesInScene, ECS::Manager& manager) {
 		//std::ifstream fin(filename);
 		//if (!fin.is_open()) {
@@ -420,4 +396,5 @@ namespace GLCore
 		//	entitiesInScene.push_back(&newEntity); // Añade la entidad al vector de entidades de la escena
 		//}
 	}
+
 }

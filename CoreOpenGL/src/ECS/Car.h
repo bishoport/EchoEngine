@@ -33,7 +33,7 @@ namespace ECS
             glBindVertexArray(0); // Desvincular para evitar cambios accidentales en otros lugares del código
         }
 
-        ComponentID getTypeID() const
+        ComponentID getComponentID() const
         {
             return getComponentTypeID<Car>();
         }
@@ -113,7 +113,7 @@ namespace ECS
         void drawGUI_Inspector() override
         {
             ImGui::Text("CarController");
-            ImGui::Text("Component ID: %i", getTypeID());
+            ImGui::Text("Component ID: %i", getComponentID());
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
             ImGui::SliderFloat("Speed", &speed, -maxSpeed/2.0f, maxSpeed); // El slider controlará speed de 0 a maxSpeed
 

@@ -20,8 +20,6 @@ namespace ECS {
 
         Transform();
 
-        void init() override;
-
         glm::mat4 getLocalModelMatrix() const;
         void SetTransform(const glm::mat4& transformMatrix);
         void setParent(Entity* newParent);
@@ -43,7 +41,7 @@ namespace ECS {
         glm::vec3 getGlobalScale() const;
         bool isDirty() const;
         void drawGUI_Inspector() override;
-        ComponentID getTypeID() const override;
+        ComponentID getComponentID() const override;
 
         void serialize(YAML::Emitter& out) const;
         void deserialize(const YAML::Node& node);

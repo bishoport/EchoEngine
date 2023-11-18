@@ -20,7 +20,7 @@ namespace ECS {
         void init() override {}
 
 
-        ComponentID getTypeID() const
+        ComponentID getComponentID() const
         {
             return getComponentTypeID<MeshFilter>();
         }
@@ -57,7 +57,7 @@ namespace ECS {
         {            
             //Common Delete
             ImGui::Text("MeshFilter");
-            ImGui::Text("Component ID: %i", getTypeID());
+            ImGui::Text("Component ID: %i", getComponentID());
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
             // Muestra los valores en la ventana usando etiquetas y valores
             ImGui::Text("Model type: %s", ModelTypeToString(modelType).c_str());

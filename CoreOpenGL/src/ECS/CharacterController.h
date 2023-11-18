@@ -15,7 +15,7 @@ namespace ECS
         float speed = 5.0f;
 
 
-        ComponentID getTypeID() const
+        ComponentID getComponentID() const
         {
             return getComponentTypeID<CharacterController>();
         }

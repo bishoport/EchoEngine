@@ -21,7 +21,7 @@ namespace ECS {
             material->shininess = 32.0f;
         }
 
-		ComponentID getTypeID() const
+		ComponentID getComponentID() const
 		{
 			return getComponentTypeID<Material>();
 		}
@@ -95,7 +95,7 @@ namespace ECS {
         void drawGUI_Inspector() override
         {
             ImGui::Text("Material");
-			ImGui::Text("Component ID: %i", getTypeID());
+			ImGui::Text("Component ID: %i", getComponentID());
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 			if (ImGui::Button("Delete Material")) {
 				entity->removeComponent<Material>();

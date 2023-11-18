@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../ECS/Entity.h"
+//#include "ECS/Entity.h"
 #include "../../ECS/Manager.h"
 
 #include "../../ECS/Camera.h"
@@ -9,9 +10,10 @@
 #include "yaml-cpp/emitterstyle.h"
 #include "yaml-cpp/eventhandler.h"
 #include "yaml-cpp/yaml.h"  // IWYU pragma: keep
-
-
 #include "../../ECS/ExternalComponentManager.h"
+
+//#include "../../Scripting/ScriptableGameObjectManager.h"
+
 
 
 
@@ -21,7 +23,7 @@ namespace GLCore
 	class GameObjectManager
 	{
 	public:
-		ECS::Entity* CreateEntity();
+		ECS::Entity* CreateGameObject();
 		ECS::Manager manager;
 		std::vector<ECS::Camera*> cameras;
 		ECS::Entity* m_SelectedEntity = nullptr;
@@ -31,6 +33,9 @@ namespace GLCore
 		int totalSpotLight = 0;
 
 		void createGameObject(MainMenuAction action);
+		void addNativeComponentToSelectedGameObject(MainMenuAction action);
+		/*void addCsComponentToSelectedGameObject(const std::string& className);*/
+
 		void loadFileModel(ImportOptions importOptions);
 		void drawHierarchy();
 
@@ -42,9 +47,6 @@ namespace GLCore
 		float pi = 3.1415926535f;
 		
 		int idGenerated = 0;
-
-		ECS::ExternalComponentManager externalComponentManager;
-		//std::vector<ECS::Entity*> entitiesInScene;
 	};
 }
 

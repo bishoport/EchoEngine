@@ -56,7 +56,7 @@ namespace ECS {
             }
         }
 
-        ComponentID getTypeID() const
+        ComponentID getComponentID() const
         {
             return getComponentTypeID<MeshRenderer>();
         }
@@ -109,7 +109,7 @@ namespace ECS {
         {
             //Common Delete
             ImGui::Text("MeshRenderer");
-            ImGui::Text("Component ID: %i", getTypeID());
+            ImGui::Text("Component ID: %i", getComponentID());
             ImGui::Dummy(ImVec2(0.0f, 5.0f));
             if (ImGui::Button("Delete Mesh Renderer")) {
                 entity->removeComponent<MeshRenderer>();

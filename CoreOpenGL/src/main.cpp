@@ -3,13 +3,16 @@
 
 #include "GLCore/Core/Application.h"
 
+
+
+
 int main() {
     GLCore::Application app;
     if (!app.initialize("OpenGL App", 1080, 720)) {
         return -1;
     }
 
-
+    //auto m = mono_image_init("dd");
 
     app.run();
     app.shutdown();

@@ -14,7 +14,9 @@ namespace GLCore {
 
     std::unique_ptr<GuiLayer> Application::guiLayer = nullptr;
     std::unique_ptr<Scene> Application::scene = nullptr; 
+    
     std::unique_ptr<GameObjectManager> Application::gameObjectManager = nullptr;
+    //std::unique_ptr<Scripting::ScriptableGameObjectManager> Application::gameObjectManager = nullptr;
 
     Application::Application() : window(nullptr) {
         if (!s_Instance)
@@ -73,6 +75,7 @@ namespace GLCore {
 
         //--GAMEOBJECT MANAGER
         Application::gameObjectManager = std::make_unique<GameObjectManager>();
+        //Application::gameObjectManager = std::make_unique<Scripting::ScriptableGameObjectManager>();
         //--------------------------------------------------------------------------------------------------
 
         //--DEFAULT SCENE

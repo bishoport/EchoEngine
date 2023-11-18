@@ -160,6 +160,11 @@ namespace GLCore {
 
             if (ImGui::BeginMenu("GameObjects"))
             {
+                if (ImGui::MenuItem("Empty"))
+                {
+                    UsarDelegado(MainMenuAction::AddEmpty);
+                }
+                
             	// Sección de Primitives
             	if (ImGui::BeginMenu("Primitives"))
             	{
@@ -230,7 +235,7 @@ namespace GLCore {
             { 
                 if (ImGui::MenuItem("ReloadComponents"))
                 {
-                    UsarDelegado(MainMenuAction::ReloadComponents);
+                    UsarDelegado(MainMenuAction::LoadComponentsFromCs);
                 }
 
                 if (ImGui::MenuItem("Liberate DLL"))

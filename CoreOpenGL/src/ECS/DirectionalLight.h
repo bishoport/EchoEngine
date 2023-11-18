@@ -61,7 +61,7 @@ namespace ECS
             prepareShadows();
         } 
 
-        ComponentID getTypeID() const
+        ComponentID getComponentID() const
         {
             return getComponentTypeID<DirectionalLight>();
         }
