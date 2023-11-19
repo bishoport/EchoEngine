@@ -1,17 +1,19 @@
 #pragma once
+#include "../src/glpch.h"
+#include "../src/GLCore/Core/Timestep.h"
+
+#include "ScriptableEntity.h"
 #include <vector>
 #include <memory>
-#include "ScriptableEntity.h"
-#include "ScriptableComponent.h"
-#include <string>
+#include <fstream>
 
 
-namespace Scripting::ECS
+
+namespace ECS_SCRIPTING
 {
     class ScriptableManager {
 
     private:
-
         std::vector<std::unique_ptr<ScriptableEntity>> entities;
         int nextID = 0;
 

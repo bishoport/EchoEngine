@@ -1,7 +1,7 @@
 #include "ScriptableManager.h"
 #include <iostream>
 
-namespace Scripting::ECS
+namespace ECS_SCRIPTING
 {
     void ScriptableManager::update(GLCore::Timestep deltaTime)
     {

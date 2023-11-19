@@ -1,9 +1,13 @@
 #pragma once
 #include <cstddef>
-#include "../../GLCore/Core/Timestep.h"
+#define YAML_CPP_STATIC_DEFINE
+#include "yaml-cpp/emitterstyle.h"
+#include "yaml-cpp/eventhandler.h"
+#include "yaml-cpp/yaml.h"  // IWYU pragma: keep
+#include "../src/GLCore/Core/Timestep.h"
 
 
-namespace Scripting::ECS
+namespace ECS_SCRIPTING
 {
     using ComponentID = std::size_t;
 
@@ -32,7 +36,7 @@ namespace Scripting::ECS
         ComponentID componentID; // Variable miembro para almacenar el ComponentID
 
     public:
-        ECS::ScriptableEntity* entity;
+        ScriptableEntity* entity;
 
         //Component() : componentID(getNewComponentTypeID()) {} // Constructor para inicializar el componentID
 

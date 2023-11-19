@@ -1,6 +1,6 @@
 #include "ScriptableEntity.h"
 
-namespace Scripting::ECS
+namespace ECS_SCRIPTING
 {
     ScriptableEntity::ScriptableEntity(int nextID) : id(nextID) {}
 

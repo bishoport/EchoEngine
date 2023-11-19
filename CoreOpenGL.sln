@@ -7,7 +7,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CoreOpenGL", "CoreOpenGL\Co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsEngineScript", "CsEngineScript\CsEngineScript.csproj", "{F7E6D9E6-70C5-4117-9284-A9F254299A99}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ScriptableECS", "ScriptableECS\ScriptableECS.vcxproj", "{399BAEFB-04A1-44C5-A7AE-AEEE650985C4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ScriptableECSLib", "ScriptableECS\ScriptableECS.vcxproj", "{399BAEFB-04A1-44C5-A7AE-AEEE650985C4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9DF62C9E-7840-4DBB-8683-7CDF07ED1B5A} = {9DF62C9E-7840-4DBB-8683-7CDF07ED1B5A}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NativeECSLib", "NativeECSLib\NativeECSLib.vcxproj", "{1620BC94-FFCD-40F0-B759-62BF4088D4DA}"
 EndProject

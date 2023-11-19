@@ -5,7 +5,7 @@
 #include <memory>
 
 
-namespace Scripting::ECS
+namespace ECS_SCRIPTING
 {
     using ComponentBitSet = std::bitset<maxComponents>;
     using ComponentArray = std::array<ScriptableComponent*, maxComponents>;
@@ -14,7 +14,8 @@ namespace Scripting::ECS
     class ScriptableEntity {
 
     private:
-
+        ComponentArray componentArray;
+        ComponentBitSet componentBitSet;
 
     public:
 
@@ -54,7 +55,7 @@ namespace Scripting::ECS
         {
             T* c(new T(std::forward<TArgs>(mArgs)...));
             c->entity = this;
-            std::unique_ptr<Component> uPtr{ c };
+            std::unique_ptr<ScriptableComponent> uPtr{ c };
             components.emplace_back(std::move(uPtr));
             componentArray[getComponentTypeID<T>()] = c;
             componentBitSet[getComponentTypeID<T>()] = true;
@@ -70,6 +71,8 @@ namespace Scripting::ECS
             return *static_cast<T*>(ptr);
         }
 
+
+
         template<typename T> void removeComponent()
         {
             // Comprobar si el componente existe
@@ -80,7 +83,7 @@ namespace Scripting::ECS
 
             // Eliminar el puntero del vector 'components'
             auto it = std::find_if(components.begin(), components.end(),
-                [](const std::unique_ptr<Component>& component) {
+                [](const std::unique_ptr<ScriptableComponent>& component) {
                     return dynamic_cast<T*>(component.get()) != nullptr;
                 });
             if (it != components.end()) {

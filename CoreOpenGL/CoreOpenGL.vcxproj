@@ -108,14 +108,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>vendor;vendor\imgui;C:\Users\pdortegon\Documents\PROPIOS\EchoEngine\NativeECSLib</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;vendor\imgui;C:\Users\pdortegon\Documents\PROPIOS\EchoEngine\NativeECSLib;C:\Users\pdortegon\Documents\PROPIOS\EchoEngine\ScriptableECS</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;assimp-vc143-mtd.lib;yaml-cppd.lib;mono-2.0-sgen.lib;NativeECSLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>libs</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;assimp-vc143-mtd.lib;yaml-cppd.lib;mono-2.0-sgen.lib;NativeECSLib.lib;ScriptableECSLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\pdortegon\Documents\PROPIOS\EchoEngine\x64\Debug;libs</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(MONO_PROJECT)bin\mono-2.0-sgen.dll" "$(TargetDir)" /y
@@ -143,7 +143,6 @@ xcopy "$(MONO_PROJECT)lib\mono\4.5\*" "$(TargetDir)mono\4.5\" /y /i /s</Command>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-
     <ClCompile Include="src\GLCore\Core\Application.cpp" />
     <ClCompile Include="src\GLCore\Core\AssetsPanel.cpp" />
     <ClCompile Include="src\GLCore\Core\GameObjectManager.cpp" />

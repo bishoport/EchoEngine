@@ -1,16 +1,16 @@
 #pragma once
 
-#include "../../glpch.h"
+#include "../src/glpch.h"
 #include <mono/jit/jit.h>  // Para MonoObject
 
-#include "../ScriptableGameObjectManager.h"
+#include "../src/GLCore/Core/ScriptableGameObjectManager.h"
 #include "ScriptableComponent.h"
 #include <string>
 #include <iostream>
 
-namespace Scripting::ECS
+namespace ECS_SCRIPTING
 {
-    class ScriptComponent : public Scripting::ECS::ScriptableComponent
+    class ScriptComponent : public ScriptableComponent
     {
     public:
 
