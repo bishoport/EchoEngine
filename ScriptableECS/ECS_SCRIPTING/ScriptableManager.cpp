@@ -75,11 +75,13 @@ namespace ECS_SCRIPTING
     }
 
     std::vector<ScriptableEntity*> ScriptableManager::getAllEntities() {
-        std::vector<ScriptableEntity*> rawEntities;
-        for (auto& e : entities) {
-            if (e->isActive()) rawEntities.push_back(e.get());
+        std::vector<ECS_SCRIPTING::ScriptableEntity*> activeEntities;
+        for (auto& entity : entities) {
+            if (entity->isActive()) {
+                activeEntities.push_back(entity.get());
+            }
         }
-        return rawEntities;
+        return activeEntities;
     }
 
 

@@ -4,11 +4,14 @@
 
 #include "GuiLayer.h"
 #include "Scene.h"
-#include "GameObjectManager.h"
+
+//CHOOSE ECS SYSTEM
+//#include "GameObjectManager.h"
+#include "ScriptableGameObjectManager.h"
 
 #include "Input/InputManager.h"  // Asegúrate de que la ruta es correcta
 #include "Input/keyCodes.h"  // Asegúrate de que la ruta es correcta
-//#include "../../Scripting/ScriptableGameObjectManager.h"
+
 
 namespace GLCore {
 
@@ -33,8 +36,8 @@ namespace GLCore {
         inline GLFWwindow& GetWindow() { return *window; }
         inline static Application& Get() { return *s_Instance; }
 
-        static std::unique_ptr<GameObjectManager> gameObjectManager;
-        //static std::unique_ptr<Scripting::ScriptableGameObjectManager> gameObjectManager;
+        //static std::unique_ptr<GameObjectManager> gameObjectManager;
+        static std::unique_ptr<Scripting::ScriptableGameObjectManager> gameObjectManager;
 
     private:
         static Application* s_Instance;

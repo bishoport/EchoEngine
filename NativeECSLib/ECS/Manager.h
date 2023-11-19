@@ -20,7 +20,9 @@ namespace ECS {
         void draw();
         void drawGUI_Inspector();
         void refresh();
+
         ECS::Entity& addEntity();
+
         void removeEntity(ECS::Entity* e, bool isRootCall = true);
         std::vector<ECS::Entity*> getAllEntities();
 

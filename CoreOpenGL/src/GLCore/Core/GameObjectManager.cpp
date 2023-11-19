@@ -33,11 +33,7 @@ namespace GLCore
     }
 
 
-
-
-	
-
-	void GLCore::GameObjectManager::createGameObject(MainMenuAction action)
+	void GLCore::GameObjectManager::createPresetGameObject(MainMenuAction action)
 	{
 		ECS::Entity* gameObject = nullptr;
 		if (action == MainMenuAction::AddCube)
@@ -399,9 +395,6 @@ namespace GLCore
 		//	entitiesInScene.push_back(&newEntity); // Añade la entidad al vector de entidades de la escena
 		//}
 	}
-
-
-
 
 	//RAY
 	bool GameObjectManager::CheckIfGameObjectInRay(const glm::vec3& rayOrigin, const glm::vec3& rayDirection)

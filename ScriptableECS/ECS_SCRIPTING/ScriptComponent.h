@@ -20,7 +20,6 @@ namespace ECS_SCRIPTING
         void init() override
         {   
             std::cout << "Init Script Component" << std::endl;
-            /*ScriptableGameObjectManager::GetInstance().InvokeMethod(ClassName, "Init");*/
         }
 
         void update(GLCore::Timestep timestamp) override {

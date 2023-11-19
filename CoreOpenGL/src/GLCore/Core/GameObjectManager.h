@@ -8,17 +8,14 @@
 #include "yaml-cpp/emitterstyle.h"
 #include "yaml-cpp/eventhandler.h"
 #include "yaml-cpp/yaml.h"  // IWYU pragma: keep
-//#include "ECS/ExternalComponentManager.h"
-
-//#include "../../Scripting/ScriptableGameObjectManager.h"
-
 
 namespace GLCore 
 {
-
 	class GameObjectManager
 	{
+
 	public:
+
 		ECS::Entity* CreateGameObject();
 		ECS::Manager manager;
 		std::vector<ECS::Camera*> cameras;
@@ -32,9 +29,8 @@ namespace GLCore
 		int totalPointLight = 0;
 		int totalSpotLight = 0;
 
-		void createGameObject(MainMenuAction action);
+		void createPresetGameObject(MainMenuAction action);
 		void addNativeComponentToSelectedGameObject(MainMenuAction action);
-		/*void addCsComponentToSelectedGameObject(const std::string& className);*/
 
 		void loadFileModel(ImportOptions importOptions);
 		void drawHierarchy();

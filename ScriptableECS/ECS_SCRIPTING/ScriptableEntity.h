@@ -1,102 +1,109 @@
 #pragma once
 #include <bitset>
 #include "ScriptableComponent.h"
-#include <vector>
+#include <unordered_map>
 #include <memory>
 
 
 namespace ECS_SCRIPTING
 {
-    using ComponentBitSet = std::bitset<maxComponents>;
-    using ComponentArray = std::array<ScriptableComponent*, maxComponents>;
-
 
     class ScriptableEntity {
 
     private:
-        ComponentArray componentArray;
-        ComponentBitSet componentBitSet;
+
 
     public:
 
         int id;
-        std::vector<std::unique_ptr<ScriptableComponent>> components;
-
         std::string name;
-        bool active = true;
         bool markedToDelete = false;
 
-        ScriptableEntity(int nextID);
-        int getID() const;
+        //-Componentes
+        std::unordered_map<std::string, std::unique_ptr<ScriptableComponent>> components;
 
 
-        void update(GLCore::Timestep);
-        void draw();
-        void drawGUI_Inspector();
-        const std::vector<std::unique_ptr<ScriptableComponent>>& getComponents() const;
-        bool isActive() const;
-        void destroy();
-        void removeAllComponents();
+        ScriptableEntity(int nextID)
+        {
+            this->id = nextID;
+        }
 
-       
-        void addComponentByPointer(ScriptableComponent* component);
+        int getID() const
+        {
+            return id;
+        }
 
-        template<typename T> bool hascomponent() const {
-            auto componentID = getComponentTypeID<T>(); // Asumiendo que esto devuelve un ID único para cada tipo T
-            if (componentID >= maxComponents) {
-                // ID de tipo está fuera de rango, lo que significa que el componente no existe
-                return false;
+        void update(GLCore::Timestep deltaTime)
+        {
+            for (auto& pair : components) {
+                std::string key = pair.first;
+                ScriptableComponent* component = pair.second.get();
+                component->update(deltaTime);
             }
-            // Verifica si el bit correspondiente al tipo de componente está establecido
-            return componentBitSet[componentID];
         }
-
-        template <typename T, typename... TArgs> T& addComponent(TArgs&&... mArgs)
+        void draw()
         {
-            T* c(new T(std::forward<TArgs>(mArgs)...));
-            c->entity = this;
-            std::unique_ptr<ScriptableComponent> uPtr{ c };
-            components.emplace_back(std::move(uPtr));
-            componentArray[getComponentTypeID<T>()] = c;
-            componentBitSet[getComponentTypeID<T>()] = true;
-
-            c->init();
-            return *c;
-        }
-
-
-        template<typename T> T& getComponent() const
-        {
-            auto ptr(componentArray[getComponentTypeID<T>()]);
-            return *static_cast<T*>(ptr);
-        }
-
-
-
-        template<typename T> void removeComponent()
-        {
-            // Comprobar si el componente existe
-            auto componentID = getComponentTypeID<T>();
-            if (!componentBitSet[componentID]) {
-                return; // No tiene el componente, así que no hay nada que eliminar
+            for (auto& pair : components) {
+                std::string key = pair.first;
+                ScriptableComponent* component = pair.second.get();
+                component->draw();
             }
+        }
+        void drawGUI_Inspector()
+        {
+            for (auto& pair : components) {
+                std::string key = pair.first;
+                ScriptableComponent* component = pair.second.get();
+                component->drawGUI_Inspector();
+            }
+        }
+        bool isActive() const
+        {
+            return true;
+        }
+        void destroy(){}
 
-            // Eliminar el puntero del vector 'components'
-            auto it = std::find_if(components.begin(), components.end(),
-                [](const std::unique_ptr<ScriptableComponent>& component) {
-                    return dynamic_cast<T*>(component.get()) != nullptr;
-                });
+
+        //--COMPONENTS
+
+        void addComponentByPointer(const std::string& className) {
+
+            //// Crear un nuevo componente 'Transform', que se supone es un ScriptableComponent o una clase derivada.
+            //ECS_SCRIPTING::ScriptableComponent* component = new ECS_SCRIPTING::ScriptableComponent(); // O una clase derivada de ScriptableComponent.
+            //component->ClassName = className;
+
+            //components[className] = std::unique_ptr<ScriptableComponent>(component);
+
+
+        }
+
+        ScriptableComponent* getComponent(const std::string& key) {
+            auto it = components.find(key);
             if (it != components.end()) {
-                // Llamar a onDestroy antes de eliminar el componente
-                (*it)->onDestroy();
+                return it->second.get();
+            }
+            return nullptr; // O lanzar una excepción si prefieres.
+        }
 
-                // Realizar la eliminación efectiva del componente
+        void removeComponent(const std::string& key) {
+            auto it = components.find(key);
+            if (it != components.end()) {
+                // Llamar a onDestroy si es necesario.
+                // it->second->onDestroy();
                 components.erase(it);
             }
+        }
 
-            // Actualizar el 'componentArray' y 'componentBitSet'
-            componentArray[componentID] = nullptr;
-            componentBitSet[componentID] = false;
+
+        void removeAllComponents()
+        {
+            // Llamar a onDestroy para cada componente antes de eliminarlos si es necesario.
+            for (auto& pair : components) {
+                pair.second->onDestroy();
+            }
+
+            // Eliminar todos los elementos del mapa, lo que destruirá los componentes.
+            components.clear();
         }
     };
 

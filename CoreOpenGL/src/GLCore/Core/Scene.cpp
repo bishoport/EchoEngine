@@ -7,9 +7,9 @@
 #include "../Util/ModelLoader.h"
 
 
-#include "ECS/Transform.h"
-#include "ECS/MeshRenderer.h"
-#include "ECS/Camera.h"
+//#include "ECS/Transform.h"
+//#include "ECS/MeshRenderer.h"
+//#include "ECS/Camera.h"
 
 
 namespace GLCore 
@@ -92,7 +92,7 @@ namespace GLCore
 		});
 
 
-		Application::gameObjectManager->createGameObject(MainMenuAction::AddCube);
+		//Application::gameObjectManager->createPresetGameObject(MainMenuAction::AddCube);
 
         return true;
     }
@@ -121,12 +121,12 @@ namespace GLCore
 		//--ENTITIES
 		Application::gameObjectManager->manager.refresh();
 		Application::gameObjectManager->manager.update(deltaTime);
-		rendererManager->entitiesInScene = Application::gameObjectManager->manager.getAllEntities();
+		//rendererManager->entitiesInScene = Application::gameObjectManager->manager.getAllEntities();
 
-		if (rendererManager->entitiesInScene.size() > 0)
-		{
-			rendererManager->CalcSceneBundle();
-		}
+		//if (rendererManager->entitiesInScene.size() > 0)
+		//{
+		//	rendererManager->CalcSceneBundle();
+		//}
 		//----------------------------------------------------------------------------------------------------------------------------
 
 
@@ -139,10 +139,10 @@ namespace GLCore
 
 
 		//--GAME CAMERAS
-		for (int i = 0; i < Application::gameObjectManager->cameras.size(); i++)
+		/*for (int i = 0; i < Application::gameObjectManager->cameras.size(); i++)
 		{
 			Application::gameObjectManager->cameras[i]->SetProjection(Application::gameObjectManager->cameras[i]->GetFov(), gameSize.x / gameSize.y, 0.1f, 100.0f);
-		}
+		}*/
     }
 
     void Scene::render()
@@ -165,7 +165,7 @@ namespace GLCore
 
 
 		//--GAME CAMERAS
-		for (int i = 0; i < Application::gameObjectManager->cameras.size(); i++)
+		/*for (int i = 0; i < Application::gameObjectManager->cameras.size(); i++)
 		{
 			glm::mat4 cameraProjectionMatrix = Application::gameObjectManager->cameras[i]->GetProjectionMatrix();
 			glm::mat4 cameraViewMatrix = Application::gameObjectManager->cameras[i]->GetViewMatrix();
@@ -179,7 +179,7 @@ namespace GLCore
 			fboData.drawSize = gameSize;
 			fboData.drawPos = gamePos;
 			RenderPipeline(cameraProjectionMatrix, cameraViewMatrix, cameraPosition, fboData);
-		}
+		}*/
 
 
 		//-ACTIVE SELECTED ENTITY
@@ -475,61 +475,61 @@ namespace GLCore
 	void Scene::checkGizmo()
 	{
 		//---------------------------ImGUIZMO------------------------------------------
-		if (Application::gameObjectManager->m_SelectedEntity != nullptr)
-		{
-			if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::Transform>())
-			{
-				ImGuizmo::SetOrthographic(false);
-				ImGuizmo::SetDrawlist();
-				ImGuizmo::SetRect(scenePos.x, scenePos.y, sceneSize.x, sceneSize.y);
+		//if (Application::gameObjectManager->m_SelectedEntity != nullptr)
+		//{
+		//	if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::Transform>())
+		//	{
+		//		ImGuizmo::SetOrthographic(false);
+		//		ImGuizmo::SetDrawlist();
+		//		ImGuizmo::SetRect(scenePos.x, scenePos.y, sceneSize.x, sceneSize.y);
 
-				glm::mat4 camera_view = m_EditorCamera.GetCamera().GetViewMatrix();
-				glm::mat4 camera_projection = m_EditorCamera.GetCamera().GetProjectionMatrix();
+		//		glm::mat4 camera_view = m_EditorCamera.GetCamera().GetViewMatrix();
+		//		glm::mat4 camera_projection = m_EditorCamera.GetCamera().GetProjectionMatrix();
 
-				glm::mat4 entity_transform = Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().getLocalModelMatrix();
+		//		glm::mat4 entity_transform = Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().getLocalModelMatrix();
 
-				// Comprobación de parentesco
-				if (Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent != nullptr) {
-					entity_transform = Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent->getComponent<ECS::Transform>().getLocalModelMatrix() * entity_transform;
-				}
+		//		// Comprobación de parentesco
+		//		if (Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent != nullptr) {
+		//			entity_transform = Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent->getComponent<ECS::Transform>().getLocalModelMatrix() * entity_transform;
+		//		}
 
-				switch (m_GizmoOperation)
-				{
-				case GizmoOperation::Translate:
-					ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_projection),
-						ImGuizmo::TRANSLATE, ImGuizmo::LOCAL, glm::value_ptr(entity_transform));
-					break;
-				case GizmoOperation::Rotate3D:
-					ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_projection),
-						ImGuizmo::ROTATE, ImGuizmo::LOCAL, glm::value_ptr(entity_transform));
-					break;
-				case GizmoOperation::Scale:
-					ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_projection),
-						ImGuizmo::SCALE, ImGuizmo::LOCAL, glm::value_ptr(entity_transform));
-					break;
-				}
+		//		switch (m_GizmoOperation)
+		//		{
+		//		case GizmoOperation::Translate:
+		//			ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_projection),
+		//				ImGuizmo::TRANSLATE, ImGuizmo::LOCAL, glm::value_ptr(entity_transform));
+		//			break;
+		//		case GizmoOperation::Rotate3D:
+		//			ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_projection),
+		//				ImGuizmo::ROTATE, ImGuizmo::LOCAL, glm::value_ptr(entity_transform));
+		//			break;
+		//		case GizmoOperation::Scale:
+		//			ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_projection),
+		//				ImGuizmo::SCALE, ImGuizmo::LOCAL, glm::value_ptr(entity_transform));
+		//			break;
+		//		}
 
-				if (ImGuizmo::IsUsing())
-				{
-					glm::vec3 translation, rotation, scale, skew;
-					glm::quat orientation;
-					glm::vec4 perspective;
+		//		if (ImGuizmo::IsUsing())
+		//		{
+		//			glm::vec3 translation, rotation, scale, skew;
+		//			glm::quat orientation;
+		//			glm::vec4 perspective;
 
-					glm::decompose(entity_transform, scale, orientation, translation, skew, perspective);
+		//			glm::decompose(entity_transform, scale, orientation, translation, skew, perspective);
 
-					// Cálculo de la transformación local
-					if (Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent != nullptr) {
-						glm::mat4 parent_transform = Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent->getComponent<ECS::Transform>().getLocalModelMatrix();
-						glm::mat4 local_transform = glm::inverse(parent_transform) * entity_transform;
-						glm::decompose(local_transform, scale, orientation, translation, skew, perspective);
-					}
+		//			// Cálculo de la transformación local
+		//			if (Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent != nullptr) {
+		//				glm::mat4 parent_transform = Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent->getComponent<ECS::Transform>().getLocalModelMatrix();
+		//				glm::mat4 local_transform = glm::inverse(parent_transform) * entity_transform;
+		//				glm::decompose(local_transform, scale, orientation, translation, skew, perspective);
+		//			}
 
-					Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().rotation = orientation;
-					Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().position = translation;
-					Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().scale = scale;
-				}
-			}
-		}
+		//			Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().rotation = orientation;
+		//			Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().position = translation;
+		//			Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().scale = scale;
+		//		}
+		//	}
+		//}
 	}
 
 	void Scene::renderGUI()
@@ -620,34 +620,35 @@ namespace GLCore
 
 
 		//-------------------------------------------INSPECTOR PANEL--------------------------------------
-		ImGui::Begin("Inspector", nullptr);
-		if (Application::gameObjectManager->m_SelectedEntity != nullptr)
-		{
-			// Input Text con buffer de caracteres
-			if (ImGui::InputText("##input", textBuffer, BUF_SIZE))
-			{
-				// Actualizar std::string cuando el texto cambia
-				inputString = textBuffer;
-			}
+		//ImGui::Begin("Inspector", nullptr);
 
-			ImGui::SameLine();
+		//if (Application::gameObjectManager->m_SelectedEntity != nullptr)
+		//{
+		//	// Input Text con buffer de caracteres
+		//	if (ImGui::InputText("##input", textBuffer, BUF_SIZE))
+		//	{
+		//		// Actualizar std::string cuando el texto cambia
+		//		inputString = textBuffer;
+		//	}
 
-			// Crear un botón y comprobar si se ha presionado
-			if (ImGui::Button("->"))
-			{
-				// Llamar a MyFunction con el texto del campo de texto
-				//Application::gameObjectManager->addCsComponentToSelectedGameObject(inputString);
-			}
+		//	ImGui::SameLine();
 
-			const auto& comps = Application::gameObjectManager->m_SelectedEntity->getComponents();
-			for (const auto& component : comps) 
-			{
-				if (component) {
-					component->drawGUI_Inspector();
-				}
-			}
-		}
-		ImGui::End();
+		//	// Crear un botón y comprobar si se ha presionado
+		//	if (ImGui::Button("->"))
+		//	{
+		//		// Llamar a MyFunction con el texto del campo de texto
+		//		//Application::gameObjectManager->addCsComponentToSelectedGameObject(inputString);
+		//	}
+
+		//	const auto& comps = Application::gameObjectManager->m_SelectedEntity->getComponents();
+		//	for (const auto& component : comps) 
+		//	{
+		//		if (component) {
+		//			component->drawGUI_Inspector();
+		//		}
+		//	}
+		//}
+		//ImGui::End();
 		//------------------------------------------------------------------------------------------------
 
 		//-------------------------------------------ASSETS PANEL--------------------------------------
@@ -684,14 +685,14 @@ namespace GLCore
 		
 		EventManager::getOnPanelResizedEvent().trigger("GAME", gameSize, gamePos);
 
-		if (Application::gameObjectManager->cameras.size() > 0)
+		/*if (Application::gameObjectManager->cameras.size() > 0)
 		{
 			ImGui::Image((void*)(intptr_t)Application::gameObjectManager->cameras[0]->colorBuffers[0], ImVec2(gameSize.x, gameSize.y), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
 		}
 		else
 		{
 			ImGui::Text("No camera/s added in scene");
-		}
+		}*/
 		
 		
 		mouseInGame = false;
@@ -779,36 +780,36 @@ namespace GLCore
 		}
 
 		// Aquí empieza el raycasting
-		if (InputManager::Instance().IsMouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) && mouseInScene)
-		{
-			if (pickingObj) return; //Si esta bool está a true, retornará, y significa que hemos pulsado ya el mouse y hasta que no soltemos el boton, no se devuelve a false
+		//if (InputManager::Instance().IsMouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) && mouseInScene)
+		//{
+		//	if (pickingObj) return; //Si esta bool está a true, retornará, y significa que hemos pulsado ya el mouse y hasta que no soltemos el boton, no se devuelve a false
 
-			if (Application::gameObjectManager->m_SelectedEntity != nullptr) //Si ya existe un objeto seleccionado y tiene drawable, desactivamos su BB
-				if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>()) Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = false;
+		//	if (Application::gameObjectManager->m_SelectedEntity != nullptr) //Si ya existe un objeto seleccionado y tiene drawable, desactivamos su BB
+		//		if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>()) Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = false;
 
-			Application::gameObjectManager->m_SelectedEntity = nullptr; //Reset de la variable que almacena la entity seleccioanda preparandola para recibit o no una nueva selección
+		//	Application::gameObjectManager->m_SelectedEntity = nullptr; //Reset de la variable que almacena la entity seleccioanda preparandola para recibit o no una nueva selección
 
-			//llevamos un punto 2D a un espacio 3D (mouse position -> escene)
-			float normalizedX = (2.0f * mouseX) / currentPanelSize.x - 1.0f;
-			float normalizedY = ((2.0f * mouseY) / currentPanelSize.y - 1.0f) * -1.0f;
-			glm::vec3 clipSpaceCoordinates(normalizedX, normalizedY, 1.0);
+		//	//llevamos un punto 2D a un espacio 3D (mouse position -> escene)
+		//	float normalizedX = (2.0f * mouseX) / currentPanelSize.x - 1.0f;
+		//	float normalizedY = ((2.0f * mouseY) / currentPanelSize.y - 1.0f) * -1.0f;
+		//	glm::vec3 clipSpaceCoordinates(normalizedX, normalizedY, 1.0);
 
-			glm::vec4 homogenousCoordinates = glm::inverse(m_EditorCamera.GetCamera().GetProjectionMatrix() *
-				m_EditorCamera.GetCamera().GetViewMatrix()) * glm::vec4(clipSpaceCoordinates, 1.0);
-			glm::vec3 worldCoordinates = glm::vec3(homogenousCoordinates / homogenousCoordinates.w);
-
-
-			//Preparamos el rayo para lanzarlo desde la camara hasta la posicion del mouse ya convertido al espacio 3D
-			glm::vec3 rayOrigin = m_EditorCamera.GetCamera().GetPosition();
-			glm::vec3 rayDirection = glm::normalize(worldCoordinates - rayOrigin);
-			glm::vec3 rayEnd = glm::vec3(0.0);
+		//	glm::vec4 homogenousCoordinates = glm::inverse(m_EditorCamera.GetCamera().GetProjectionMatrix() *
+		//		m_EditorCamera.GetCamera().GetViewMatrix()) * glm::vec4(clipSpaceCoordinates, 1.0);
+		//	glm::vec3 worldCoordinates = glm::vec3(homogenousCoordinates / homogenousCoordinates.w);
 
 
-			selectingEntity = Application::gameObjectManager->CheckIfGameObjectInRay(rayOrigin, rayDirection);
+		//	//Preparamos el rayo para lanzarlo desde la camara hasta la posicion del mouse ya convertido al espacio 3D
+		//	glm::vec3 rayOrigin = m_EditorCamera.GetCamera().GetPosition();
+		//	glm::vec3 rayDirection = glm::normalize(worldCoordinates - rayOrigin);
+		//	glm::vec3 rayEnd = glm::vec3(0.0);
 
-			//Flag para evitar que se vuelva a pasar por esta funcion hasta que se levante el dedo del boton del mouse
-			pickingObj = true;
-		}
+
+		//	selectingEntity = Application::gameObjectManager->CheckIfGameObjectInRay(rayOrigin, rayDirection);
+
+		//	//Flag para evitar que se vuelva a pasar por esta funcion hasta que se levante el dedo del boton del mouse
+		//	pickingObj = true;
+		//}
 	}
 	
 	void Scene::shutdown() {}

@@ -149,6 +149,7 @@ xcopy "$(MONO_PROJECT)lib\mono\4.5\*" "$(TargetDir)mono\4.5\" /y /i /s</Command>
     <ClCompile Include="src\GLCore\Core\GuiLayer.cpp" />
     <ClCompile Include="src\GLCore\Core\Input\InputManager.cpp" />
     <ClCompile Include="src\GLCore\Core\Log.cpp" />
+    <ClCompile Include="src\GLCore\Core\ScriptableGameObjectManager.cpp" />
     <ClCompile Include="src\GLCore\Render\FBOManager.cpp" />
     <ClCompile Include="src\GLCore\Render\RendererManager.cpp" />
     <ClCompile Include="src\GLCore\Util\DynamicSkybox.cpp" />
@@ -201,6 +202,7 @@ xcopy "$(MONO_PROJECT)lib\mono\4.5\*" "$(TargetDir)mono\4.5\" /y /i /s</Command>
     <ClInclude Include="src\GLCore\Core\Log.h" />
     <ClInclude Include="src\GLCore\Core\Input\MouseButtonCodes.h" />
     <ClInclude Include="src\ECS\ProjectManager.h" />
+    <ClInclude Include="src\GLCore\Core\ScriptableGameObjectManager.h" />
     <ClInclude Include="src\GLCore\Core\Timestep.h" />
     <ClInclude Include="src\GLCore\Render\FBOManager.h" />
     <ClInclude Include="src\GLCore\Render\RendererManager.h" />

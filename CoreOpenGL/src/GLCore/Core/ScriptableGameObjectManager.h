@@ -1,4 +1,5 @@
 #pragma once
+#include "../src/glpch.h"
 
 #include <mono/jit/jit.h>
 #include <mono/metadata/assembly.h>
@@ -6,9 +7,11 @@
 #include <string>
 #include <unordered_map>
 
-#include "ECS/ScriptableEntity.h"
-#include "ECS/ScriptableManager.h"
-#include "../GLCore/DataStruct.h"
+#include "ECS_SCRIPTING/ScriptableEntity.h"
+#include "ECS_SCRIPTING/ScriptableManager.h"
+
+#include "../DataStruct.h"
+
 
 namespace Scripting
 {
@@ -22,8 +25,32 @@ namespace Scripting
             return instance;
         }
 
+        ScriptableGameObjectManager();
+        ~ScriptableGameObjectManager();
+
         //--VARIABLES
-        ECS::ScriptableEntity* m_SelectedEntity = nullptr;
+        ECS_SCRIPTING::ScriptableEntity* m_SelectedEntity = nullptr;
+
+        std::vector<ECS_SCRIPTING::ScriptableEntity*> cameras;
+        std::vector<ECS_SCRIPTING::ScriptableEntity*> entitiesInRay;
+
+        bool CheckIfGameObjectInRay(const glm::vec3& rayOrigin, const glm::vec3& rayDirection);
+
+        ECS_SCRIPTING::ScriptableManager manager;
+
+        bool useDirectionalLight = false;
+        int totalPointLight = 0;
+        int totalSpotLight = 0;
+
+        void addComponentToSelectedGameObject(MainMenuAction action);
+
+        //--SERIALIZACIONES
+        void SaveSceneToFile(const std::string& filename);
+        void LoadSceneFromFile(const std::string& filename, std::vector<ECS_SCRIPTING::ScriptableEntity*>& entitiesInScene, ECS_SCRIPTING::ScriptableManager& manager);
+
+
+
+
 
         //-DLL------------------------------------------------------------------------
         ScriptableGameObjectManager(const ScriptableGameObjectManager&) = delete;
@@ -35,8 +62,10 @@ namespace Scripting
         //----------------------------------------------------------------------------
 
 
-        ECS::ScriptableEntity* CreateEmptyGameObject();
-        void createGameObject(MainMenuAction action);
+
+        ECS_SCRIPTING::ScriptableEntity& CreateEmptyGameObject();
+
+        void createPresetGameObject(MainMenuAction action);
         void loadFileModel(GLCore::ImportOptions importOptions);
         void drawHierarchy();
 
@@ -45,11 +74,12 @@ namespace Scripting
         void SetCsComponentProperty(const std::string& className, const std::string& propertyName, MonoObject* value);
 
     private:
-        ScriptableGameObjectManager();
-        ~ScriptableGameObjectManager();
+       
 
+        float pi = 3.1415926535f;
+        bool rayIntersectsBoundingBox(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, glm::vec3 boxMin, glm::vec3 boxMax);
         int idGenerated = 0;
-        ECS::ScriptableManager manager;
+        
 
         MonoDomain* m_ptrMonoDomain = nullptr;
         MonoAssembly* m_ptrCsEngineAssembly = nullptr;

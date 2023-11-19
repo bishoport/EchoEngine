@@ -11,9 +11,6 @@
 #include "../Util/GridWorldReference.h"
 #include "../Util/IBLManager.h"
 
-#include "ECS/Entity.h"
-
-
 namespace GLCore {
 
     class Scene {
@@ -31,12 +28,10 @@ namespace GLCore {
 
         void getModelPathFromAssets(ImportOptions importOptions);
 
-        //static std::pair<glm::vec3, float> SceneBounds;
 
     private:
 
         bool isWireframe = false;
-        //void CalcSceneBundle();
         //---------------------------------------------------
 
 
@@ -131,14 +126,5 @@ namespace GLCore {
         bool selectingEntity = false;
         bool cursorOverSelectEntityDialog = false;
         void CheckIfPointerIsOverObject();
-
-        /*std::vector<ECS::Entity*> entitiesInRay;
-        bool rayIntersectsBoundingBox(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, glm::vec3 boxMin, glm::vec3 boxMax);*/
-
-
-
-        
-
-
     };
 }

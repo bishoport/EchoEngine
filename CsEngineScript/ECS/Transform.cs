@@ -53,7 +53,7 @@ namespace CsEngineScript.ECS
 
         public Transform()
         {
-            Console.WriteLine("PASAMOS POR EL CONSTRUCTOR EN CsTestComponent");
+            Console.WriteLine("PASAMOS POR EL CONSTRUCTOR EN Transform");
             //SetSerializableProperty("Position", Position);
         }
 

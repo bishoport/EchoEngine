@@ -6,6 +6,8 @@
 #include "yaml-cpp/yaml.h"  // IWYU pragma: keep
 #include "../src/GLCore/Core/Timestep.h"
 
+#include <mono/jit/jit.h>  // Para MonoObject
+#include <iostream>
 
 namespace ECS_SCRIPTING
 {
@@ -38,16 +40,56 @@ namespace ECS_SCRIPTING
     public:
         ScriptableEntity* entity;
 
-        //Component() : componentID(getNewComponentTypeID()) {} // Constructor para inicializar el componentID
+        std::string ClassName;
+        MonoObject* monoInstance = nullptr;
 
-        virtual void init() {}
-        virtual void update(GLCore::Timestep deltaTime) {}
-        virtual void draw() {}
-        virtual void drawGUI_Inspector() {}
-        virtual void onDestroy() {}
-        virtual ~ScriptableComponent() { onDestroy(); }
+        ScriptableComponent() : componentID(getNewComponentTypeID()) {} // Constructor para inicializar el componentID
 
-        virtual ComponentID getComponentID() const { return componentID; } // Getter para componentID
+        void init()
+        {
+            std::cout << "Init Script Component" << std::endl;
+            /*ScriptableGameObjectManager::GetInstance().InvokeMethod(ClassName, "Init");*/
+        }
+
+        void update(GLCore::Timestep deltaTime) {}
+
+        void draw() 
+        {
+            if (monoInstance)
+            {
+                // Obtener la clase Mono
+                MonoClass* monoClass = mono_object_get_class(monoInstance);
+
+                // Obtener el método Serialize
+                MonoMethod* serializeMethod = mono_class_get_method_from_name(monoClass, "Serialize", 0);
+                if (serializeMethod)
+                {
+                    MonoObject* serializedData = mono_runtime_invoke(serializeMethod, monoInstance, nullptr, nullptr);
+                    if (serializedData)
+                    {
+                        // Aquí, necesitas manejar el objeto serializedData que es un diccionario.
+                        // Esto puede ser complicado ya que necesitas invocar métodos del diccionario y convertir los MonoObjects a tipos C++.
+                        // Por ejemplo, puedes obtener los pares clave-valor y mostrarlos.
+                        // La implementación específica dependerá de cómo quieras mostrar o manejar estas propiedades en ImGui.
+                    }
+                }
+            }
+        }
+
+        void drawGUI_Inspector()
+        {
+            ImGui::Text("Script %s", ClassName.c_str());
+            //ImGui::Text("Component ID: %i", getComponentID());
+            ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+            
+        }
+
+
+        void onDestroy() {}
+        ~ScriptableComponent() { onDestroy(); }
+
+        ComponentID getComponentID() const { return componentID; } // Getter para componentID
 
         void setComponentID(ComponentID id) { componentID = id; } // Setter para componentID
     };
