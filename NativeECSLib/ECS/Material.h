@@ -1,10 +1,12 @@
 #pragma once
-#include "../glpch.h"
-#include "../GLCore/DataStruct.h"
+#include "../src/glpch.h"
+#include "../src/GLCore/DataStruct.h"
 #include "Entity.h"
 #include "Component.h"
+#include "Transform.h"
+
+#include "../src/GLCore/Util/IMGLoader.h"
 #include "MeshRenderer.h"
-#include "../GLCore/Util/IMGLoader.h"
 
 namespace ECS {
 

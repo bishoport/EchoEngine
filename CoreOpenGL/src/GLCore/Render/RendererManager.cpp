@@ -1,14 +1,14 @@
 #include "RendererManager.h"
 
 
-#include "../../ECS/Material.h"
-#include "../../ECS/MeshFilter.h"
-#include "../../ECS/MeshRenderer.h"
-#include "../../ECS/Camera.h"
-#include "../../ECS/DirectionalLight.h"
-#include "../../ECS/SpotLight.h"
-#include "../../ECS/PointLight.h"
-#include "../../ECS/Car.h"
+#include "ECS/Material.h"
+#include "ECS/MeshFilter.h"
+#include "ECS/MeshRenderer.h"
+#include "ECS/Camera.h"
+#include "ECS/DirectionalLight.h"
+#include "ECS/SpotLight.h"
+#include "ECS/PointLight.h"
+#include "ECS/Car.h"
 
 
 namespace GLCore::Render
@@ -18,9 +18,7 @@ namespace GLCore::Render
 	RendererManager::RendererManager()
 	{
 	}
-
 	RendererManager::~RendererManager(){}
-
 
 	void RendererManager::passLights()
 	{
@@ -116,7 +114,6 @@ namespace GLCore::Render
 			}
 		}
 	}
-
 
 
 	void RendererManager::CalcSceneBundle() {

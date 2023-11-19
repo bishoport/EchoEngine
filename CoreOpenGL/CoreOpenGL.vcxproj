@@ -143,9 +143,7 @@ xcopy "$(MONO_PROJECT)lib\mono\4.5\*" "$(TargetDir)mono\4.5\" /y /i /s</Command>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\ECS\Entity.cpp" />
-    <ClCompile Include="src\ECS\Manager.cpp" />
-    <ClCompile Include="src\ECS\Transform.cpp" />
+
     <ClCompile Include="src\GLCore\Core\Application.cpp" />
     <ClCompile Include="src\GLCore\Core\AssetsPanel.cpp" />
     <ClCompile Include="src\GLCore\Core\GameObjectManager.cpp" />

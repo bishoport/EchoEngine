@@ -1,13 +1,18 @@
 #pragma once
 
-#include "../glpch.h"
-#include "../GLCore/DataStruct.h"
-#include "Component.h"
-#include "Entity.h"
-#include "Transform.h"
+#include "../src/glpch.h"
 
-#include "../GLCore/Render/PrimitivesHelper.h"
-#include "../GLCore/Core/Scene.h"
+
+#include "Entity.h"
+#include "Component.h"
+#include "Transform.h"
+#include "MeshRenderer.h"
+
+#include "../src/GLCore/Core/Input/InputManager.h"
+#include "../src/GLCore/Render/PrimitivesHelper.h"
+#include "../src/GLCore/Render/RendererManager.h"
+#include "../src/GLCore/DataStruct.h"
+
 
 
 namespace ECS
@@ -131,7 +136,7 @@ namespace ECS
 
         void update(GLCore::Timestep timestamp) override
         {
-            auto [sceneCenter, sceneRadius] = GLCore::Scene::SceneBounds;
+            auto [sceneCenter, sceneRadius] = GLCore::Render::RendererManager::SceneBounds;
 
             currentSceneRadius = sceneRadius;
 

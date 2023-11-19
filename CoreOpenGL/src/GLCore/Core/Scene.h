@@ -2,8 +2,6 @@
 
 #include "../Render/Shader.h"
 
-#include "../../ECS/Entity.h"
-
 #include "AssetsPanel.h"
 
 #include "../Util/PerspectiveCameraController.h"
@@ -13,6 +11,7 @@
 #include "../Util/GridWorldReference.h"
 #include "../Util/IBLManager.h"
 
+#include "ECS/Entity.h"
 
 
 namespace GLCore {
@@ -32,16 +31,12 @@ namespace GLCore {
 
         void getModelPathFromAssets(ImportOptions importOptions);
 
-        static std::pair<glm::vec3, float> SceneBounds;
+        //static std::pair<glm::vec3, float> SceneBounds;
 
     private:
 
         bool isWireframe = false;
-
-        //--ENTITIES
-        /*ECS::Entity* m_SelectedEntity = nullptr;*/
-        //ECS::Entity* gridWorldReference = nullptr;
-        void CalcSceneBundle();
+        //void CalcSceneBundle();
         //---------------------------------------------------
 
 
@@ -135,9 +130,10 @@ namespace GLCore {
         bool pickingObj = false;
         bool selectingEntity = false;
         bool cursorOverSelectEntityDialog = false;
-        std::vector<ECS::Entity*> entitiesInRay;
         void CheckIfPointerIsOverObject();
-        bool rayIntersectsBoundingBox(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, glm::vec3 boxMin, glm::vec3 boxMax);
+
+        /*std::vector<ECS::Entity*> entitiesInRay;
+        bool rayIntersectsBoundingBox(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, glm::vec3 boxMin, glm::vec3 boxMax);*/
 
 
 

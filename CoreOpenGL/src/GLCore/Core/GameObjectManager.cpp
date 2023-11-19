@@ -1,19 +1,19 @@
 #include "GameObjectManager.h"
-
 #include "../Render/PrimitivesHelper.h"
-
 #include "../Util/ModelLoader.h"
 
+
 //Components
-#include "../../ECS/Transform.h"
-#include "../../ECS/MeshFilter.h"
-#include "../../ECS/MeshRenderer.h"
-#include "../../ECS/Material.h"
-#include "../../ECS/DirectionalLight.h"
-#include "../../ECS/PointLight.h"
-#include "../../ECS/SpotLight.h"
-#include "../../ECS/CharacterController.h"
-#include "../../ECS/Car.h"
+#include "ECS/Transform.h"
+#include "ECS/MeshFilter.h"
+#include "ECS/MeshRenderer.h"
+#include "ECS/Material.h"
+#include "ECS/DirectionalLight.h"
+#include "ECS/PointLight.h"
+#include "ECS/SpotLight.h"
+#include "ECS/CharacterController.h"
+#include "ECS/Car.h"
+
 
 
 namespace GLCore
@@ -31,6 +31,9 @@ namespace GLCore
         e->getComponent<ECS::Transform>().rotation = glm::quat(eulers);
         return e;
     }
+
+
+
 
 	
 
@@ -396,5 +399,94 @@ namespace GLCore
 		//	entitiesInScene.push_back(&newEntity); // Añade la entidad al vector de entidades de la escena
 		//}
 	}
+
+
+
+
+	//RAY
+	bool GameObjectManager::CheckIfGameObjectInRay(const glm::vec3& rayOrigin, const glm::vec3& rayDirection)
+	{
+		bool selectingEntity = false;
+
+		//La lista de entidades actual que vamos a comprobar si atraviensan el rayo
+		std::vector<ECS::Entity*> entities = manager.getAllEntities();
+
+
+		entitiesInRay.clear();
+		//Recorremos la lista de entidades 
+		for (int i = 0; i < entities.size(); i++)
+		{
+			if (entities[i]->hascomponent<ECS::MeshRenderer>())
+			{
+				// Obtener la matriz de transformación actual
+				const glm::mat4& transform = entities[i]->getComponent<ECS::MeshRenderer>().model_transform_matrix;
+
+				// Transformar los vértices min y max de la Bounding Box
+				glm::vec3 transformedMin = glm::vec3(transform * glm::vec4(entities[i]->getComponent<ECS::MeshRenderer>().meshData.minBounds, 1.0f));
+				glm::vec3 transformedMax = glm::vec3(transform * glm::vec4(entities[i]->getComponent<ECS::MeshRenderer>().meshData.maxBounds, 1.0f));
+
+				// Verificar la intersección del rayo
+				if (rayIntersectsBoundingBox(rayOrigin, rayDirection, transformedMin, transformedMax))
+				{
+					entitiesInRay.push_back(entities[i]);
+				}
+			}
+		}
+
+
+		if (entitiesInRay.size() > 1)
+		{
+			selectingEntity = true;
+		}
+		else if (entitiesInRay.size() > 0)
+		{
+			m_SelectedEntity = entitiesInRay[0];
+			entitiesInRay.clear();
+			if (m_SelectedEntity->hascomponent<ECS::MeshRenderer>())
+				m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = true;
+		}
+
+
+		return selectingEntity;
+	}
+	bool GameObjectManager::rayIntersectsBoundingBox(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, glm::vec3 boxMin, glm::vec3 boxMax)
+	{
+		float tMin = (boxMin.x - rayOrigin.x) / rayDirection.x;
+		float tMax = (boxMax.x - rayOrigin.x) / rayDirection.x;
+
+		if (tMin > tMax) std::swap(tMin, tMax);
+
+		float tyMin = (boxMin.y - rayOrigin.y) / rayDirection.y;
+		float tyMax = (boxMax.y - rayOrigin.y) / rayDirection.y;
+
+		if (tyMin > tyMax) std::swap(tyMin, tyMax);
+
+		if ((tMin > tyMax) || (tyMin > tMax))
+			return false;
+
+		if (tyMin > tMin)
+			tMin = tyMin;
+
+		if (tyMax < tMax)
+			tMax = tyMax;
+
+		float tzMin = (boxMin.z - rayOrigin.z) / rayDirection.z;
+		float tzMax = (boxMax.z - rayOrigin.z) / rayDirection.z;
+
+		if (tzMin > tzMax) std::swap(tzMin, tzMax);
+
+		if ((tMin > tzMax) || (tzMin > tMax))
+			return false;
+
+		if (tzMin > tMin)
+			tMin = tzMin;
+
+		if (tzMax < tMax)
+			tMax = tzMax;
+
+		return true;
+	}
+
+
 
 }

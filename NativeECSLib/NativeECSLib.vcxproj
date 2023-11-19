@@ -145,9 +145,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ECS\Camera.h" />
+    <ClInclude Include="ECS\Car.h" />
+    <ClInclude Include="ECS\CharacterController.h" />
     <ClInclude Include="ECS\Component.h" />
+    <ClInclude Include="ECS\DirectionalLight.h" />
     <ClInclude Include="ECS\Entity.h" />
     <ClInclude Include="ECS\Manager.h" />
+    <ClInclude Include="ECS\Material.h" />
+    <ClInclude Include="ECS\MeshFilter.h" />
+    <ClInclude Include="ECS\MeshRenderer.h" />
+    <ClInclude Include="ECS\PointLight.h" />
+    <ClInclude Include="ECS\SpotLight.h" />
     <ClInclude Include="ECS\Transform.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />

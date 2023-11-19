@@ -4,17 +4,17 @@
 #include "../Render/ShaderManager.h"
 #include "../Render/RendererManager.h"
 #include <imGizmo/ImGuizmo.h>
-
-
 #include "../Util/ModelLoader.h"
-#include "../../ECS/Transform.h"
-#include "../../ECS/MeshRenderer.h"
-#include "../../ECS/Camera.h"
 
 
-namespace GLCore {
+#include "ECS/Transform.h"
+#include "ECS/MeshRenderer.h"
+#include "ECS/Camera.h"
 
-	std::pair<glm::vec3, float> Scene::SceneBounds = { glm::vec3(0.0f), 0.0f };
+
+namespace GLCore 
+{
+
 	Render::RendererManager* rendererManager = new Render::RendererManager();
 
 	const int BUF_SIZE = 256;
@@ -35,42 +35,9 @@ namespace GLCore {
         //----------------------------------------------------------------------------------------------------------------------------
 
 
-      //--LOAD SHADERS
-	  GLCore::Render::ShaderManager::LoadAllShaders();
-		 
-		 
-  //      GLCore::Render::ShaderManager::Load("pbr",           "assets/shaders/Default.vert",		       "assets/shaders/pbr.fs");
-		//GLCore::Render::ShaderManager::Load("pbr_ibl",       "assets/shaders/Default.vert",            "assets/shaders/pbr_ibl.fs");
-  //      GLCore::Render::ShaderManager::Load("debug",         "assets/shaders/Debug.vert",              "assets/shaders/Debug.frag");
-  //      GLCore::Render::ShaderManager::Load("skybox",        "assets/shaders/skybox/skybox.vs",        "assets/shaders/skybox/skybox.fs");
-  //      GLCore::Render::ShaderManager::Load("dynamicSkybox", "assets/shaders/skybox/dynamicSkybox.vs", "assets/shaders/skybox/dynamicSkybox.fs");
-
-
-  //      GLCore::Render::ShaderManager::Load("direct_light_depth_shadows",      
-		//									"assets/shaders/shadows/directLight_shadow_mapping_depth_shader.vs", 
-		//									"assets/shaders/shadows/directLight_shadow_mapping_depth_shader.fs");
-
-		//GLCore::Render::ShaderManager::Load("spotLight_depth_shadows",
-		//									"assets/shaders/shadows/spotLight_shadow_map_depth.vs",
-		//									"assets/shaders/shadows/spotLight_shadow_map_depth.fs");
-
-		//GLCore::Render::ShaderManager::Load("pointLight_depth_shadows",
-		//									"assets/shaders/shadows/pointLight_shadow_mapping_depth_shader.vs",
-		//									"assets/shaders/shadows/pointLight_shadow_mapping_depth_shader.fs",
-		//									"assets/shaders/shadows/pointLight_shadow_mapping_depth_shader.gs");
-
-		//GLCore::Render::ShaderManager::Load("postprocessing", "assets/shaders/postpro/postprocessing.vs", "assets/shaders/postpro/postprocessing.fs");
-		//GLCore::Render::ShaderManager::Load("main_output_FBO", "assets/shaders/main_output_FBO.vs", "assets/shaders/main_output_FBO.fs");
-
-
-		////--IBL
-		//GLCore::Render::ShaderManager::Load("equirectangularToCubemap","assets/shaders/IBL/cubemap.vs","assets/shaders/IBL/equirectangular_to_cubemap.fs");
-		//GLCore::Render::ShaderManager::Load("irradiance","assets/shaders/IBL/cubemap.vs","assets/shaders/IBL/irradiance_convolution.fs");
-		//GLCore::Render::ShaderManager::Load("prefilter","assets/shaders/IBL/cubemap.vs","assets/shaders/IBL/prefilter.fs");
-		//GLCore::Render::ShaderManager::Load("brdf","assets/shaders/IBL/brdf.vs","assets/shaders/IBL/brdf.fs");
-		//GLCore::Render::ShaderManager::Load("background","assets/shaders/IBL/background.vs","assets/shaders/IBL/background.fs");
-        //----------------------------------------------------------------------------------------------------------------------------
-
+		//--LOAD SHADERS
+		GLCore::Render::ShaderManager::LoadAllShaders();
+		//----------------------------------------------------------------------------------------------------------------------------
 
 
 		//--SKYBOX
@@ -87,9 +54,11 @@ namespace GLCore {
 		dynamicSkybox = new Utils::DynamicSkybox(faces);
 		//----------------------------------------------------------------------------------------------------------------------------
 
+
 		//--GRID WORLD REFENRENCE
 		gridWorldRef = new Utils::GridWorldReference();
 		//----------------------------------------------------------------------------------------------------------------------------
+
 
 		//--IBL
 		iblManager.prepare_PBR_IBL(800, 600);
@@ -148,6 +117,7 @@ namespace GLCore {
 		}
 		//------------------------------------------------------------------------------
 
+
 		//--ENTITIES
 		Application::gameObjectManager->manager.refresh();
 		Application::gameObjectManager->manager.update(deltaTime);
@@ -155,17 +125,18 @@ namespace GLCore {
 
 		if (rendererManager->entitiesInScene.size() > 0)
 		{
-			CalcSceneBundle();
+			rendererManager->CalcSceneBundle();
 		}
 		//----------------------------------------------------------------------------------------------------------------------------
 
 
+
         //--EDITOR CAMERA
         aspectRatio = static_cast<float>(sceneSize.x) / static_cast<float>(sceneSize.y);
-
         m_EditorCamera.GetCamera().SetProjection(m_EditorCamera.GetCamera().GetFov(), aspectRatio, 0.1f, 100.0f);
         m_EditorCamera.OnUpdate(deltaTime);
         //----------------------------------------------------------------------------------------------------------------------------
+
 
 		//--GAME CAMERAS
 		for (int i = 0; i < Application::gameObjectManager->cameras.size(); i++)
@@ -173,6 +144,7 @@ namespace GLCore {
 			Application::gameObjectManager->cameras[i]->SetProjection(Application::gameObjectManager->cameras[i]->GetFov(), gameSize.x / gameSize.y, 0.1f, 100.0f);
 		}
     }
+
     void Scene::render()
     {
 		//--EDITOR CAMERA
@@ -190,7 +162,6 @@ namespace GLCore {
 		fboDataEditor.drawPos = scenePos;
 		RenderPipeline(cameraEditorProjectionMatrix, cameraEditorViewMatrix, cameraEditorPosition, fboDataEditor);
 		//----------------------------------------------------------------------------------------
-
 
 
 		//--GAME CAMERAS
@@ -212,13 +183,14 @@ namespace GLCore {
 
 
 		//-ACTIVE SELECTED ENTITY
-		if (Application::gameObjectManager->m_SelectedEntity != nullptr && Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>())
+		/*if (Application::gameObjectManager->m_SelectedEntity != nullptr && Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>())
 		{
 			Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = true;
-		}
+		}*/
 		CheckIfPointerIsOverObject();
 		//-------------------------------------------------------------------------------------------------------------------------------------------
     }
+
 	void GLCore::Scene::SetGenericsUniforms(glm::mat4 cameraProjectionMatrix, glm::mat4 cameraViewMatrix, glm::vec3 cameraPosition)
 	{
 		//-GENERICS TO ALL SHADER
@@ -238,6 +210,7 @@ namespace GLCore {
 		}
 		//-------------------------------------------------------------------------------------------------------------------------------------------
 	}
+	
 	void GLCore::Scene::RenderPipeline(glm::mat4 cameraProjectionMatrix, glm::mat4 cameraViewMatrix, glm::vec3 cameraPosition, FBO_Data fboData)
 	{
 		//--RENDER-PIPELINE
@@ -499,40 +472,6 @@ namespace GLCore {
 		glBindVertexArray(0);
 	}
 
-	void Scene::CalcSceneBundle() { 
-
-		glm::vec3 sceneMinBounds = glm::vec3(FLT_MAX);
-		glm::vec3 sceneMaxBounds = glm::vec3(-FLT_MAX);
-
-		for (ECS::Entity* entity : rendererManager->entitiesInScene)
-		{
-			if (entity->hascomponent<ECS::MeshRenderer>()) {
-				ECS::MeshRenderer& renderer = entity->getComponent<ECS::MeshRenderer>();
-				GLCore::MeshData& meshData = renderer.meshData;
-
-				glm::mat4 transform = renderer.model_transform_matrix;
-
-				for (int i = 0; i < 8; ++i) {
-					glm::vec3 corner = glm::vec3(
-						(i & 1) ? meshData.maxBounds.x : meshData.minBounds.x,
-						(i & 2) ? meshData.maxBounds.y : meshData.minBounds.y,
-						(i & 4) ? meshData.maxBounds.z : meshData.minBounds.z
-					);
-					glm::vec3 worldCorner = transform * glm::vec4(corner, 1.0f);
-					sceneMinBounds = glm::min(sceneMinBounds, worldCorner);
-					sceneMaxBounds = glm::max(sceneMaxBounds, worldCorner);
-				}
-			}
-		}
-
-		glm::vec3 sceneCenter = (sceneMinBounds + sceneMaxBounds) * 0.5f;
-		float sceneRadius = glm::length(sceneMaxBounds - sceneMinBounds) * 0.5f;
-
-		if (!std::isinf(sceneRadius)) {
-			SceneBounds = std::make_pair(sceneCenter, sceneRadius);
-		}
-	}
-
 	void Scene::checkGizmo()
 	{
 		//---------------------------ImGUIZMO------------------------------------------
@@ -774,38 +713,38 @@ namespace GLCore {
 		GLCore::Render::ShaderManager::DrawShaderEditorPanel();
 		//---------------------------------------------------------------------------------------------------
 
-		//-------------------------------------------------DIALOGS--------------------------------------
-		if (selectingEntity == true)
-		{
-			ImGui::OpenPopup("Seleccionar Entidad");
-		}
-		if (ImGui::BeginPopup("Seleccionar Entidad") && selectingEntity == true)
-		{
-			if (ImGui::IsWindowHovered())
-			{
-				cursorOverSelectEntityDialog = true;
-			}
-			else
-			{
-				cursorOverSelectEntityDialog = false;
-			}
+		////-------------------------------------------------DIALOGS--------------------------------------
+		//if (selectingEntity == true)
+		//{
+		//	ImGui::OpenPopup("Seleccionar Entidad");
+		//}
+		//
+		//if (ImGui::BeginPopup("Seleccionar Entidad") && selectingEntity == true)
+		//{
+		//	if (ImGui::IsWindowHovered())
+		//	{
+		//		cursorOverSelectEntityDialog = true;
+		//	}
+		//	else
+		//	{
+		//		cursorOverSelectEntityDialog = false;
+		//	}
 
-			for (size_t i = 0; i < entitiesInRay.size(); ++i)
-			{
-				if (ImGui::Selectable(entitiesInRay[i]->name.c_str()))
-				{
-					Application::gameObjectManager->m_SelectedEntity = entitiesInRay[i];
-					selectingEntity = false;
-					if (Application::gameObjectManager->m_SelectedEntity) //Si hemos obtenido un objeto, revisamos si tiene posibilidad de drawable y en ese caso activamos su BB
-						if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>()) 
-							Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = true;
-				}
-			}
-			ImGui::EndPopup();
-		}
+		//	for (size_t i = 0; i < entitiesInRay.size(); ++i)
+		//	{
+		//		if (ImGui::Selectable(entitiesInRay[i]->name.c_str()))
+		//		{
+		//			//Application::gameObjectManager->m_SelectedEntity = entitiesInRay[i];
+		//			//selectingEntity = false;
+		//			//if (Application::gameObjectManager->m_SelectedEntity) //Si hemos obtenido un objeto, revisamos si tiene posibilidad de drawable y en ese caso activamos su BB
+		//			//	if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>()) 
+		//			//		Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = true;
+		//		}
+		//	}
+		//	ImGui::EndPopup();
+		//}
 		//---------------------------------------------------------------------------------------------------
     }
-
 
 	void Scene::getModelPathFromAssets(ImportOptions importOptions)
 	{
@@ -813,8 +752,6 @@ namespace GLCore {
 		Application::gameObjectManager->loadFileModel(importOptions);
 	}
 	
-
-
 	void Scene::CheckIfPointerIsOverObject()
 	{
 		float mouseX, mouseY;
@@ -867,85 +804,12 @@ namespace GLCore {
 			glm::vec3 rayEnd = glm::vec3(0.0);
 
 
-			//La lista de entidades actual que vamos a comprobar si atraviensan el rayo
-			std::vector<ECS::Entity*> entities = Application::gameObjectManager->manager.getAllEntities();
-
-
-			entitiesInRay.clear();
-			//Recorremos la lista de entidades 
-			for (int i = 0; i < entities.size(); i++)
-			{
-				if (entities[i]->hascomponent<ECS::MeshRenderer>())
-				{
-					// Obtener la matriz de transformación actual
-					const glm::mat4& transform = entities[i]->getComponent<ECS::MeshRenderer>().model_transform_matrix;
-
-					// Transformar los vértices min y max de la Bounding Box
-					glm::vec3 transformedMin = glm::vec3(transform * glm::vec4(entities[i]->getComponent<ECS::MeshRenderer>().meshData.minBounds, 1.0f));
-					glm::vec3 transformedMax = glm::vec3(transform * glm::vec4(entities[i]->getComponent<ECS::MeshRenderer>().meshData.maxBounds, 1.0f));
-
-					// Verificar la intersección del rayo
-					if (rayIntersectsBoundingBox(rayOrigin, rayDirection, transformedMin, transformedMax))
-					{
-						entitiesInRay.push_back(entities[i]);
-					}
-				}
-			}
-
-			
-			if (entitiesInRay.size() > 1)
-			{
-				selectingEntity = true;
-			}
-			else if (entitiesInRay.size() > 0)
-			{
-				Application::gameObjectManager->m_SelectedEntity = entitiesInRay[0];
-				entitiesInRay.clear();
-				if (Application::gameObjectManager->m_SelectedEntity) //Si hemos obtenido un objeto, revisamos si tiene posibilidad de drawable y en ese caso activamos su BB
-					if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>()) Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = true;
-			}
+			selectingEntity = Application::gameObjectManager->CheckIfGameObjectInRay(rayOrigin, rayDirection);
 
 			//Flag para evitar que se vuelva a pasar por esta funcion hasta que se levante el dedo del boton del mouse
 			pickingObj = true;
 		}
 	}
-	bool Scene::rayIntersectsBoundingBox(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, glm::vec3 boxMin, glm::vec3 boxMax)
-	{
-		float tMin = (boxMin.x - rayOrigin.x) / rayDirection.x;
-		float tMax = (boxMax.x - rayOrigin.x) / rayDirection.x;
-
-		if (tMin > tMax) std::swap(tMin, tMax);
-
-		float tyMin = (boxMin.y - rayOrigin.y) / rayDirection.y;
-		float tyMax = (boxMax.y - rayOrigin.y) / rayDirection.y;
-
-		if (tyMin > tyMax) std::swap(tyMin, tyMax);
-
-		if ((tMin > tyMax) || (tyMin > tMax))
-			return false;
-
-		if (tyMin > tMin)
-			tMin = tyMin;
-
-		if (tyMax < tMax)
-			tMax = tyMax;
-
-		float tzMin = (boxMin.z - rayOrigin.z) / rayDirection.z;
-		float tzMax = (boxMax.z - rayOrigin.z) / rayDirection.z;
-
-		if (tzMin > tzMax) std::swap(tzMin, tzMax);
-
-		if ((tMin > tzMax) || (tzMin > tMax))
-			return false;
-
-		if (tzMin > tMin)
-			tMin = tzMin;
-
-		if (tzMax < tMax)
-			tMax = tzMax;
-
-		return true;
-	}
-
+	
 	void Scene::shutdown() {}
 }
