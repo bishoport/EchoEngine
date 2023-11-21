@@ -6,3 +6,5 @@ C:\Users\pdortegon\Documents\PROPIOS\EchoEngine\CsEngineScript\obj\Debug\CsEngin
 C:\Users\pdortegon\Documents\PROPIOS\EchoEngine\CsEngineScript\obj\Debug\CsEngineScript.csproj.CoreCompileInputs.cache
 C:\Users\pdortegon\Documents\PROPIOS\EchoEngine\CsEngineScript\obj\Debug\CsEngineScript.dll
 C:\Users\pdortegon\Documents\PROPIOS\EchoEngine\CsEngineScript\obj\Debug\CsEngineScript.pdb
+C:\Users\pdortegon\Documents\PROPIOS\EchoEngine\x64\Debug\CsEngineScript.dll.config
+C:\Users\pdortegon\Documents\PROPIOS\EchoEngine\CsEngineScript\obj\Debug\CsEngineScript.csproj.CopyComplete

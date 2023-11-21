@@ -47,6 +47,7 @@ namespace CsEngineScript.ECS
         // Método para obtener una propiedad serializable
         public object GetSerializableProperty(string propertyName)
         {
+            Console.WriteLine("GetSerializableProperty: " + propertyName);
             if (serializableProperties.ContainsKey(propertyName))
             {
                 return serializableProperties[propertyName];

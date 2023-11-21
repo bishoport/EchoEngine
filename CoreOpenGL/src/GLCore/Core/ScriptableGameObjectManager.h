@@ -19,11 +19,11 @@ namespace Scripting
     {
     public:
 
-        static ScriptableGameObjectManager& GetInstance()
+        /*static ScriptableGameObjectManager& GetInstance()
         {
             static ScriptableGameObjectManager instance;
             return instance;
-        }
+        }*/
 
         ScriptableGameObjectManager();
         ~ScriptableGameObjectManager();
@@ -49,16 +49,13 @@ namespace Scripting
         void LoadSceneFromFile(const std::string& filename, std::vector<ECS_SCRIPTING::ScriptableEntity*>& entitiesInScene, ECS_SCRIPTING::ScriptableManager& manager);
 
 
-
-
-
         //-DLL------------------------------------------------------------------------
         ScriptableGameObjectManager(const ScriptableGameObjectManager&) = delete;
         ScriptableGameObjectManager& operator=(const ScriptableGameObjectManager&) = delete;
-        MonoObject* CreateCsComponent(const std::string& className);
+        //MonoObject* CreateCsComponent(const std::string& className);
         void InvokeMethod(const std::string& className, const std::string& methodName, void** params = nullptr, int paramCount = 0);
-        void LoadDll();
-        void UnloadDLL();
+       /* void LoadDll();
+        void UnloadDLL();*/
         //----------------------------------------------------------------------------
 
 
@@ -85,8 +82,8 @@ namespace Scripting
         MonoAssembly* m_ptrCsEngineAssembly = nullptr;
         MonoImage* m_ptrCsEngineAssemblyImage = nullptr;
 
-        std::unordered_map<std::string, MonoClass*> m_Classes;
-        std::unordered_map<std::string, MonoObject*> m_Instances;
+        //std::unordered_map<std::string, MonoClass*> m_Classes;
+        //std::unordered_map<std::string, MonoObject*> m_Instances;
     };
 }
 

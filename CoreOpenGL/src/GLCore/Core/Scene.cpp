@@ -620,35 +620,36 @@ namespace GLCore
 
 
 		//-------------------------------------------INSPECTOR PANEL--------------------------------------
-		//ImGui::Begin("Inspector", nullptr);
+		ImGui::Begin("Inspector", nullptr);
 
-		//if (Application::gameObjectManager->m_SelectedEntity != nullptr)
-		//{
-		//	// Input Text con buffer de caracteres
-		//	if (ImGui::InputText("##input", textBuffer, BUF_SIZE))
-		//	{
-		//		// Actualizar std::string cuando el texto cambia
-		//		inputString = textBuffer;
-		//	}
+		if (Application::gameObjectManager->m_SelectedEntity != nullptr)
+		{
+			// Input Text con buffer de caracteres
+			if (ImGui::InputText("##input", textBuffer, BUF_SIZE))
+			{
+				// Actualizar std::string cuando el texto cambia
+				inputString = textBuffer;
+			}
 
-		//	ImGui::SameLine();
+			ImGui::SameLine();
 
-		//	// Crear un botón y comprobar si se ha presionado
-		//	if (ImGui::Button("->"))
-		//	{
-		//		// Llamar a MyFunction con el texto del campo de texto
-		//		//Application::gameObjectManager->addCsComponentToSelectedGameObject(inputString);
-		//	}
+			// Crear un botón y comprobar si se ha presionado
+			if (ImGui::Button("->"))
+			{
+				// Llamar a MyFunction con el texto del campo de texto
+				//Application::gameObjectManager->addCsComponentToSelectedGameObject(inputString);
+			}
 
-		//	const auto& comps = Application::gameObjectManager->m_SelectedEntity->getComponents();
-		//	for (const auto& component : comps) 
-		//	{
-		//		if (component) {
-		//			component->drawGUI_Inspector();
-		//		}
-		//	}
-		//}
-		//ImGui::End();
+			const auto& comps = Application::gameObjectManager->m_SelectedEntity->getComponents();
+
+			for (const auto& component : comps) 
+			{
+				if (component) {
+					component->drawGUI_Inspector();
+				}
+			}
+		}
+		ImGui::End();
 		//------------------------------------------------------------------------------------------------
 
 		//-------------------------------------------ASSETS PANEL--------------------------------------

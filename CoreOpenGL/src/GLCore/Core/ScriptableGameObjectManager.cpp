@@ -8,45 +8,7 @@ namespace Scripting
 {
 	//-DLL------------------------------------------------------------------------
 	ScriptableGameObjectManager::ScriptableGameObjectManager() {}
-
-
-	void ScriptableGameObjectManager::LoadDll()
-	{
-		if (m_ptrCsEngineAssemblyImage != nullptr)
-			return;
-
-		//Current directory as mono dir
-		mono_set_dirs("C:/Program Files/Mono/lib", "C:/Program Files/Mono/etc");
-
-		//Create mono domain
-		m_ptrMonoDomain = mono_jit_init("CsEngine");
-		//mono_domain_free();
-		if (m_ptrMonoDomain)
-		{
-			//Load a mono assembly CsEngineScript.dll
-			m_ptrCsEngineAssembly = mono_domain_assembly_open(m_ptrMonoDomain, "C:/Users/pdortegon/Documents/PROPIOS/EchoEngine/x64/Debug/CsEngineScript.dll");
-			if (m_ptrCsEngineAssembly)
-			{
-				//Loading mono image
-				m_ptrCsEngineAssemblyImage = mono_assembly_get_image(m_ptrCsEngineAssembly);
-				if (m_ptrCsEngineAssemblyImage)
-				{
-					std::cout << "Mono DLL Load Success" << std::endl;
-				}
-			}
-		}
-	}
-
-
 	ScriptableGameObjectManager::~ScriptableGameObjectManager()
-	{
-		if (m_ptrMonoDomain)
-		{
-			mono_jit_cleanup(m_ptrMonoDomain);
-		}
-	}
-
-	void ScriptableGameObjectManager::UnloadDLL()
 	{
 		if (m_ptrMonoDomain)
 		{
@@ -59,19 +21,10 @@ namespace Scripting
 
 	ECS_SCRIPTING::ScriptableEntity& ScriptableGameObjectManager::CreateEmptyGameObject()
 	{
-		LoadDll();
-
 		// Agregar una nueva entidad al manager y obtener una referencia a ella.
 		ECS_SCRIPTING::ScriptableEntity* entity = &manager.addEntity();
-
-		// Crear un nuevo componente 'Transform', que se supone es un ScriptableComponent o una clase derivada.
-		ECS_SCRIPTING::ScriptableComponent* component = new ECS_SCRIPTING::ScriptableComponent(); // O una clase derivada de ScriptableComponent.
-		component->ClassName = "Transform";
-
-		entity->components[component->ClassName] = std::unique_ptr<ECS_SCRIPTING::ScriptableComponent>(component);
-		idGenerated++;
-
-		// Devolver la referencia a la entidad.
+		entity->addComponentScriptableComponent("Transform");
+		m_SelectedEntity = entity;
 		return *entity;
 	}
 
@@ -83,23 +36,18 @@ namespace Scripting
 	//Operaciones desde menu TOP
 	void ScriptableGameObjectManager::createPresetGameObject(MainMenuAction action)
 	{
-		if (action == MainMenuAction::LoadComponentsFromCs)
-		{
-			ScriptableGameObjectManager::GetInstance().LoadDll();
-		}
-		else if (action == MainMenuAction::LiberateDLL)
-		{
-			ScriptableGameObjectManager::GetInstance().UnloadDLL();
-		}
-		else if (action == MainMenuAction::AddEmpty)
+		if (action == MainMenuAction::AddEmpty)
 		{
 			CreateEmptyGameObject();
 		}
 	}
 
 
+
+
+
 	//C# REFLECTIONS
-	MonoObject* ScriptableGameObjectManager::CreateCsComponent(const std::string& className)
+	/*MonoObject* ScriptableGameObjectManager::CreateCsComponent(const std::string& className)
 	{
 		MonoClass* monoClass = mono_class_from_name(m_ptrCsEngineAssemblyImage, "CsEngineScript.ECS", className.c_str());
 		if (monoClass)
@@ -115,22 +63,22 @@ namespace Scripting
 		}
 
 		return nullptr;
-	}
+	}*/
 
 	void ScriptableGameObjectManager::InvokeMethod(const std::string& className, const std::string& methodName, void** params, int paramCount)
 	{
-		if (m_Instances.find(className) != m_Instances.end())
+		/*if (m_Instances.find(className) != m_Instances.end())
 		{
 			MonoMethod* method = mono_class_get_method_from_name(m_Classes[className], methodName.c_str(), paramCount);
 			if (method)
 			{
 				mono_runtime_invoke(method, m_Instances[className], params, nullptr);
 			}
-		}
+		}*/
 	}
 	MonoObject* ScriptableGameObjectManager::GetCsComponentProperty(const std::string& className, const std::string& propertyName)
 	{
-		if (m_Instances.find(className) != m_Instances.end())
+		/*if (m_Instances.find(className) != m_Instances.end())
 		{
 			MonoMethod* getPropertyMethod = mono_class_get_method_from_name(m_Classes[className], "GetSerializableProperty", 1);
 			if (getPropertyMethod)
@@ -141,12 +89,12 @@ namespace Scripting
 
 				return mono_runtime_invoke(getPropertyMethod, m_Instances[className], args, nullptr);
 			}
-		}
+		}*/
 		return nullptr;
 	}
 	void ScriptableGameObjectManager::SetCsComponentProperty(const std::string& className, const std::string& propertyName, MonoObject* value)
 	{
-		if (m_Instances.find(className) != m_Instances.end())
+		/*if (m_Instances.find(className) != m_Instances.end())
 		{
 			MonoMethod* setPropertyMethod = mono_class_get_method_from_name(m_Classes[className], "SetSerializableProperty", 2);
 			if (setPropertyMethod)
@@ -158,8 +106,10 @@ namespace Scripting
 
 				mono_runtime_invoke(setPropertyMethod, m_Instances[className], args, nullptr);
 			}
-		}
+		}*/
 	}
+
+
 
 
 
@@ -321,11 +271,9 @@ namespace Scripting
 	{
 		return false;
 	}
-
 	void ScriptableGameObjectManager::SaveSceneToFile(const std::string& filename)
 	{
 	}
-
 	void ScriptableGameObjectManager::LoadSceneFromFile(const std::string& filename, std::vector<ECS_SCRIPTING::ScriptableEntity*>& entitiesInScene, ECS_SCRIPTING::ScriptableManager& manager)
 	{
 	}
