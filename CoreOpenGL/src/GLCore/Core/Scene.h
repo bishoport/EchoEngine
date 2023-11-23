@@ -2,7 +2,7 @@
 
 #include "../Render/Shader.h"
 
-#include "../../ECS/Entity.h"
+//#include "../../ECS/Entity.h"
 
 #include "AssetsPanel.h"
 
@@ -133,7 +133,7 @@ namespace GLCore {
         bool pickingObj = false;
         bool selectingEntity = false;
         bool cursorOverSelectEntityDialog = false;
-        std::vector<ECS::Entity*> entitiesInRay;
+        //std::vector<ECS::Entity*> entitiesInRay;
         void CheckIfPointerIsOverObject();
         bool rayIntersectsBoundingBox(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, glm::vec3 boxMin, glm::vec3 boxMax);
 

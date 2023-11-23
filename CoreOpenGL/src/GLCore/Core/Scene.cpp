@@ -2,20 +2,20 @@
 #include <iostream>
 #include "Application.h"
 #include "../Render/ShaderManager.h"
-#include "../Render/RendererManager.h"
+//#include "../Render/RendererManager.h"
 #include <imGizmo/ImGuizmo.h>
 
 
 #include "../Util/ModelLoader.h"
-#include "../../ECS/Transform.h"
-#include "../../ECS/MeshRenderer.h"
-#include "../../ECS/Camera.h"
+//#include "../../ECS/Transform.h"
+//#include "../../ECS/MeshRenderer.h"
+//#include "../../ECS/Camera.h"
 
 
 namespace GLCore {
 
 	std::pair<glm::vec3, float> Scene::SceneBounds = { glm::vec3(0.0f), 0.0f };
-	Render::RendererManager* rendererManager = new Render::RendererManager();
+	//Render::RendererManager* rendererManager = new Render::RendererManager();
 
     Scene::Scene() : m_EditorCamera(16.0f / 9.0f) {}
     Scene::~Scene(){shutdown();}
@@ -119,7 +119,7 @@ namespace GLCore {
 		});
 
 
-		Application::gameObjectManager->createGameObject(MainMenuAction::AddCube);
+		Application::gameObjectManager->InstantiatePrefab(MainMenuAction::AddCube);
 
         return true;
     }
@@ -145,14 +145,14 @@ namespace GLCore {
 		//------------------------------------------------------------------------------
 
 		//--ENTITIES
-		Application::gameObjectManager->manager.refresh();
+		/*Application::gameObjectManager->manager.refresh();
 		Application::gameObjectManager->manager.update(deltaTime);
-		rendererManager->entitiesInScene = Application::gameObjectManager->manager.getAllEntities();
+		rendererManager->entitiesInScene = Application::gameObjectManager->manager.getAllEntities();*/
 
-		if (rendererManager->entitiesInScene.size() > 0)
+		/*if (rendererManager->entitiesInScene.size() > 0)
 		{
 			CalcSceneBundle();
-		}
+		}*/
 		//----------------------------------------------------------------------------------------------------------------------------
 
 
@@ -164,10 +164,10 @@ namespace GLCore {
         //----------------------------------------------------------------------------------------------------------------------------
 
 		//--GAME CAMERAS
-		for (int i = 0; i < Application::gameObjectManager->cameras.size(); i++)
+		/*for (int i = 0; i < Application::gameObjectManager->cameras.size(); i++)
 		{
 			Application::gameObjectManager->cameras[i]->SetProjection(Application::gameObjectManager->cameras[i]->GetFov(), gameSize.x / gameSize.y, 0.1f, 100.0f);
-		}
+		}*/
     }
     void Scene::render()
     {
@@ -190,7 +190,7 @@ namespace GLCore {
 
 
 		//--GAME CAMERAS
-		for (int i = 0; i < Application::gameObjectManager->cameras.size(); i++)
+		/*for (int i = 0; i < Application::gameObjectManager->cameras.size(); i++)
 		{
 			glm::mat4 cameraProjectionMatrix = Application::gameObjectManager->cameras[i]->GetProjectionMatrix();
 			glm::mat4 cameraViewMatrix = Application::gameObjectManager->cameras[i]->GetViewMatrix();
@@ -204,14 +204,14 @@ namespace GLCore {
 			fboData.drawSize = gameSize;
 			fboData.drawPos = gamePos;
 			RenderPipeline(cameraProjectionMatrix, cameraViewMatrix, cameraPosition, fboData);
-		}
+		}*/
 
 
 		//-ACTIVE SELECTED ENTITY
-		if (Application::gameObjectManager->m_SelectedEntity != nullptr && Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>())
+		/*if (Application::gameObjectManager->m_SelectedEntity != nullptr && Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>())
 		{
 			Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = true;
-		}
+		}*/
 		CheckIfPointerIsOverObject();
 		//-------------------------------------------------------------------------------------------------------------------------------------------
     }
@@ -239,7 +239,7 @@ namespace GLCore {
 		//--RENDER-PIPELINE
 
 		//__1.-SHADOW PASS
-		rendererManager->passShadow();
+		//rendererManager->passShadow();
 
 		//clear
 		glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
@@ -300,11 +300,11 @@ namespace GLCore {
 
 
 			//__2.-LIGHT PASS
-			rendererManager->passLights();
+			//rendererManager->passLights();
 
 			//__3.-GEOMETRY PASS
 			gridWorldRef->Render();
-			rendererManager->passGeometry();
+			//rendererManager->passGeometry();
 
 			//__4.-POSTPROCESING
 			postproManager->RenderWithPostProcess();
@@ -371,9 +371,9 @@ namespace GLCore {
 			//------------------------------------------------------------------------------------------------------------------------------
 
 			//RenderPipeline
-			rendererManager->passLights();
+			//rendererManager->passLights();
 			gridWorldRef->Render();
-			rendererManager->passGeometry();
+			//rendererManager->passGeometry();
 
 			glActiveTexture(GL_TEXTURE5);
 			glBindTexture(GL_TEXTURE_2D, fboData.colorBuffers[0]);
@@ -497,7 +497,7 @@ namespace GLCore {
 
 	void Scene::CalcSceneBundle() { 
 
-		glm::vec3 sceneMinBounds = glm::vec3(FLT_MAX);
+		/*glm::vec3 sceneMinBounds = glm::vec3(FLT_MAX);
 		glm::vec3 sceneMaxBounds = glm::vec3(-FLT_MAX);
 
 		for (ECS::Entity* entity : rendererManager->entitiesInScene)
@@ -526,73 +526,73 @@ namespace GLCore {
 
 		if (!std::isinf(sceneRadius)) {
 			SceneBounds = std::make_pair(sceneCenter, sceneRadius);
-		}
+		}*/
 	}
 
 	void Scene::checkGizmo()
 	{
-		//---------------------------ImGUIZMO------------------------------------------
-		if (Application::gameObjectManager->m_SelectedEntity != nullptr)
-		{
-			if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::Transform>())
-			{
-				ImGuizmo::SetOrthographic(false);
-				ImGuizmo::SetDrawlist();
-				ImGuizmo::SetRect(scenePos.x, scenePos.y, sceneSize.x, sceneSize.y);
+		////---------------------------ImGUIZMO------------------------------------------
+		//if (Application::gameObjectManager->m_SelectedEntity != nullptr)
+		//{
+		//	if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::Transform>())
+		//	{
+		//		ImGuizmo::SetOrthographic(false);
+		//		ImGuizmo::SetDrawlist();
+		//		ImGuizmo::SetRect(scenePos.x, scenePos.y, sceneSize.x, sceneSize.y);
 
-				glm::mat4 camera_view = m_EditorCamera.GetCamera().GetViewMatrix();
-				glm::mat4 camera_projection = m_EditorCamera.GetCamera().GetProjectionMatrix();
+		//		glm::mat4 camera_view = m_EditorCamera.GetCamera().GetViewMatrix();
+		//		glm::mat4 camera_projection = m_EditorCamera.GetCamera().GetProjectionMatrix();
 
-				glm::mat4 entity_transform = Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().getLocalModelMatrix();
+		//		glm::mat4 entity_transform = Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().getLocalModelMatrix();
 
-				// Comprobación de parentesco
-				if (Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent != nullptr) {
-					entity_transform = Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent->getComponent<ECS::Transform>().getLocalModelMatrix() * entity_transform;
-				}
+		//		// Comprobación de parentesco
+		//		if (Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent != nullptr) {
+		//			entity_transform = Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent->getComponent<ECS::Transform>().getLocalModelMatrix() * entity_transform;
+		//		}
 
-				switch (m_GizmoOperation)
-				{
-				case GizmoOperation::Translate:
-					ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_projection),
-						ImGuizmo::TRANSLATE, ImGuizmo::LOCAL, glm::value_ptr(entity_transform));
-					break;
-				case GizmoOperation::Rotate3D:
-					ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_projection),
-						ImGuizmo::ROTATE, ImGuizmo::LOCAL, glm::value_ptr(entity_transform));
-					break;
-				case GizmoOperation::Scale:
-					ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_projection),
-						ImGuizmo::SCALE, ImGuizmo::LOCAL, glm::value_ptr(entity_transform));
-					break;
-				}
+		//		switch (m_GizmoOperation)
+		//		{
+		//		case GizmoOperation::Translate:
+		//			ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_projection),
+		//				ImGuizmo::TRANSLATE, ImGuizmo::LOCAL, glm::value_ptr(entity_transform));
+		//			break;
+		//		case GizmoOperation::Rotate3D:
+		//			ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_projection),
+		//				ImGuizmo::ROTATE, ImGuizmo::LOCAL, glm::value_ptr(entity_transform));
+		//			break;
+		//		case GizmoOperation::Scale:
+		//			ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_projection),
+		//				ImGuizmo::SCALE, ImGuizmo::LOCAL, glm::value_ptr(entity_transform));
+		//			break;
+		//		}
 
-				if (ImGuizmo::IsUsing())
-				{
-					glm::vec3 translation, rotation, scale, skew;
-					glm::quat orientation;
-					glm::vec4 perspective;
+		//		if (ImGuizmo::IsUsing())
+		//		{
+		//			glm::vec3 translation, rotation, scale, skew;
+		//			glm::quat orientation;
+		//			glm::vec4 perspective;
 
-					glm::decompose(entity_transform, scale, orientation, translation, skew, perspective);
+		//			glm::decompose(entity_transform, scale, orientation, translation, skew, perspective);
 
-					// Cálculo de la transformación local
-					if (Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent != nullptr) {
-						glm::mat4 parent_transform = Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent->getComponent<ECS::Transform>().getLocalModelMatrix();
-						glm::mat4 local_transform = glm::inverse(parent_transform) * entity_transform;
-						glm::decompose(local_transform, scale, orientation, translation, skew, perspective);
-					}
+		//			// Cálculo de la transformación local
+		//			if (Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent != nullptr) {
+		//				glm::mat4 parent_transform = Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent->getComponent<ECS::Transform>().getLocalModelMatrix();
+		//				glm::mat4 local_transform = glm::inverse(parent_transform) * entity_transform;
+		//				glm::decompose(local_transform, scale, orientation, translation, skew, perspective);
+		//			}
 
-					Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().rotation = orientation;
-					Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().position = translation;
-					Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().scale = scale;
-				}
-			}
-		}
+		//			Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().rotation = orientation;
+		//			Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().position = translation;
+		//			Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().scale = scale;
+		//		}
+		//	}
+		//}
 	}
 
 	void Scene::renderGUI()
     {
 		//------------------------------------------HIERARCHY PANEL-----------------------------------------------------
-		Application::gameObjectManager->drawHierarchy();
+		//Application::gameObjectManager->drawHierarchy();
 		//---------------------------------------------------------------------------------------------------------------
 
 		//-------------------------------------------EVIROMENT LIGHT PANEL-----------------------------------------------
@@ -677,7 +677,7 @@ namespace GLCore {
 
 
 		//-------------------------------------------INSPECTOR PANEL--------------------------------------
-		ImGui::Begin("Inspector", nullptr);
+		/*ImGui::Begin("Inspector", nullptr);
 		if (Application::gameObjectManager->m_SelectedEntity != nullptr)
 		{
 			const auto& comps = Application::gameObjectManager->m_SelectedEntity->getComponents();
@@ -688,7 +688,7 @@ namespace GLCore {
 				}
 			}
 		}
-		ImGui::End();
+		ImGui::End();*/
 		//------------------------------------------------------------------------------------------------
 
 		//-------------------------------------------ASSETS PANEL--------------------------------------
@@ -725,14 +725,14 @@ namespace GLCore {
 		
 		EventManager::getOnPanelResizedEvent().trigger("GAME", gameSize, gamePos);
 
-		if (Application::gameObjectManager->cameras.size() > 0)
+		/*if (Application::gameObjectManager->cameras.size() > 0)
 		{
 			ImGui::Image((void*)(intptr_t)Application::gameObjectManager->cameras[0]->colorBuffers[0], ImVec2(gameSize.x, gameSize.y), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
 		}
 		else
 		{
 			ImGui::Text("No camera/s added in scene");
-		}
+		}*/
 		
 		
 		mouseInGame = false;
@@ -772,14 +772,14 @@ namespace GLCore {
 
 			for (size_t i = 0; i < entitiesInRay.size(); ++i)
 			{
-				if (ImGui::Selectable(entitiesInRay[i]->name.c_str()))
-				{
-					Application::gameObjectManager->m_SelectedEntity = entitiesInRay[i];
-					selectingEntity = false;
-					if (Application::gameObjectManager->m_SelectedEntity) //Si hemos obtenido un objeto, revisamos si tiene posibilidad de drawable y en ese caso activamos su BB
-						if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>()) 
-							Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = true;
-				}
+				//if (ImGui::Selectable(entitiesInRay[i]->name.c_str()))
+				//{
+				//	Application::gameObjectManager->m_SelectedEntity = entitiesInRay[i];
+				//	selectingEntity = false;
+				//	if (Application::gameObjectManager->m_SelectedEntity) //Si hemos obtenido un objeto, revisamos si tiene posibilidad de drawable y en ese caso activamos su BB
+				//		if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>()) 
+				//			Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = true;
+				//}
 			}
 			ImGui::EndPopup();
 		}
@@ -789,105 +789,105 @@ namespace GLCore {
 
 	void Scene::getModelPathFromAssets(ImportOptions importOptions)
 	{
-		importOptions.modelID = rendererManager->entitiesInScene.size() + 1;
-		Application::gameObjectManager->loadFileModel(importOptions);
+		/*importOptions.modelID = rendererManager->entitiesInScene.size() + 1;
+		Application::gameObjectManager->loadFileModel(importOptions);*/
 	}
 	
 
 
 	void Scene::CheckIfPointerIsOverObject()
 	{
-		float mouseX, mouseY;
-		std::tie(mouseX, mouseY) = InputManager::Instance().GetMousePosition();
+		//float mouseX, mouseY;
+		//std::tie(mouseX, mouseY) = InputManager::Instance().GetMousePosition();
 
-		mouseX += scenePos.x;
-		mouseY -= scenePos.y;
+		//mouseX += scenePos.x;
+		//mouseY -= scenePos.y;
 
-		if (ImGuizmo::IsOver() || ImGuizmo::IsUsing())
-		{
-			return;
-		}
+		//if (ImGuizmo::IsOver() || ImGuizmo::IsUsing())
+		//{
+		//	return;
+		//}
 
-		if (selectingEntity == true)
-		{
-			return;
-		}
+		//if (selectingEntity == true)
+		//{
+		//	return;
+		//}
 
-		selectingEntity = false;
-
-
-		if (InputManager::Instance().IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_LEFT) && mouseInScene)
-		{
-			pickingObj = false;
-		}
-
-		// Aquí empieza el raycasting
-		if (InputManager::Instance().IsMouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) && mouseInScene)
-		{
-			if (pickingObj) return; //Si esta bool está a true, retornará, y significa que hemos pulsado ya el mouse y hasta que no soltemos el boton, no se devuelve a false
-
-			if (Application::gameObjectManager->m_SelectedEntity != nullptr) //Si ya existe un objeto seleccionado y tiene drawable, desactivamos su BB
-				if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>()) Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = false;
-
-			Application::gameObjectManager->m_SelectedEntity = nullptr; //Reset de la variable que almacena la entity seleccioanda preparandola para recibit o no una nueva selección
-
-			//llevamos un punto 2D a un espacio 3D (mouse position -> escene)
-			float normalizedX = (2.0f * mouseX) / currentPanelSize.x - 1.0f;
-			float normalizedY = ((2.0f * mouseY) / currentPanelSize.y - 1.0f) * -1.0f;
-			glm::vec3 clipSpaceCoordinates(normalizedX, normalizedY, 1.0);
-
-			glm::vec4 homogenousCoordinates = glm::inverse(m_EditorCamera.GetCamera().GetProjectionMatrix() *
-				m_EditorCamera.GetCamera().GetViewMatrix()) * glm::vec4(clipSpaceCoordinates, 1.0);
-			glm::vec3 worldCoordinates = glm::vec3(homogenousCoordinates / homogenousCoordinates.w);
+		//selectingEntity = false;
 
 
-			//Preparamos el rayo para lanzarlo desde la camara hasta la posicion del mouse ya convertido al espacio 3D
-			glm::vec3 rayOrigin = m_EditorCamera.GetCamera().GetPosition();
-			glm::vec3 rayDirection = glm::normalize(worldCoordinates - rayOrigin);
-			glm::vec3 rayEnd = glm::vec3(0.0);
+		//if (InputManager::Instance().IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_LEFT) && mouseInScene)
+		//{
+		//	pickingObj = false;
+		//}
+
+		//// Aquí empieza el raycasting
+		//if (InputManager::Instance().IsMouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) && mouseInScene)
+		//{
+		//	if (pickingObj) return; //Si esta bool está a true, retornará, y significa que hemos pulsado ya el mouse y hasta que no soltemos el boton, no se devuelve a false
+
+		//	if (Application::gameObjectManager->m_SelectedEntity != nullptr) //Si ya existe un objeto seleccionado y tiene drawable, desactivamos su BB
+		//		if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>()) Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = false;
+
+		//	Application::gameObjectManager->m_SelectedEntity = nullptr; //Reset de la variable que almacena la entity seleccioanda preparandola para recibit o no una nueva selección
+
+		//	//llevamos un punto 2D a un espacio 3D (mouse position -> escene)
+		//	float normalizedX = (2.0f * mouseX) / currentPanelSize.x - 1.0f;
+		//	float normalizedY = ((2.0f * mouseY) / currentPanelSize.y - 1.0f) * -1.0f;
+		//	glm::vec3 clipSpaceCoordinates(normalizedX, normalizedY, 1.0);
+
+		//	glm::vec4 homogenousCoordinates = glm::inverse(m_EditorCamera.GetCamera().GetProjectionMatrix() *
+		//		m_EditorCamera.GetCamera().GetViewMatrix()) * glm::vec4(clipSpaceCoordinates, 1.0);
+		//	glm::vec3 worldCoordinates = glm::vec3(homogenousCoordinates / homogenousCoordinates.w);
 
 
-			//La lista de entidades actual que vamos a comprobar si atraviensan el rayo
-			std::vector<ECS::Entity*> entities = Application::gameObjectManager->manager.getAllEntities();
+		//	//Preparamos el rayo para lanzarlo desde la camara hasta la posicion del mouse ya convertido al espacio 3D
+		//	glm::vec3 rayOrigin = m_EditorCamera.GetCamera().GetPosition();
+		//	glm::vec3 rayDirection = glm::normalize(worldCoordinates - rayOrigin);
+		//	glm::vec3 rayEnd = glm::vec3(0.0);
 
 
-			entitiesInRay.clear();
-			//Recorremos la lista de entidades 
-			for (int i = 0; i < entities.size(); i++)
-			{
-				if (entities[i]->hascomponent<ECS::MeshRenderer>())
-				{
-					// Obtener la matriz de transformación actual
-					const glm::mat4& transform = entities[i]->getComponent<ECS::MeshRenderer>().model_transform_matrix;
+		//	//La lista de entidades actual que vamos a comprobar si atraviensan el rayo
+		//	std::vector<ECS::Entity*> entities = Application::gameObjectManager->manager.getAllEntities();
 
-					// Transformar los vértices min y max de la Bounding Box
-					glm::vec3 transformedMin = glm::vec3(transform * glm::vec4(entities[i]->getComponent<ECS::MeshRenderer>().meshData.minBounds, 1.0f));
-					glm::vec3 transformedMax = glm::vec3(transform * glm::vec4(entities[i]->getComponent<ECS::MeshRenderer>().meshData.maxBounds, 1.0f));
 
-					// Verificar la intersección del rayo
-					if (rayIntersectsBoundingBox(rayOrigin, rayDirection, transformedMin, transformedMax))
-					{
-						entitiesInRay.push_back(entities[i]);
-					}
-				}
-			}
+		//	entitiesInRay.clear();
+		//	//Recorremos la lista de entidades 
+		//	for (int i = 0; i < entities.size(); i++)
+		//	{
+		//		if (entities[i]->hascomponent<ECS::MeshRenderer>())
+		//		{
+		//			// Obtener la matriz de transformación actual
+		//			const glm::mat4& transform = entities[i]->getComponent<ECS::MeshRenderer>().model_transform_matrix;
 
-			
-			if (entitiesInRay.size() > 1)
-			{
-				selectingEntity = true;
-			}
-			else if (entitiesInRay.size() > 0)
-			{
-				Application::gameObjectManager->m_SelectedEntity = entitiesInRay[0];
-				entitiesInRay.clear();
-				if (Application::gameObjectManager->m_SelectedEntity) //Si hemos obtenido un objeto, revisamos si tiene posibilidad de drawable y en ese caso activamos su BB
-					if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>()) Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = true;
-			}
+		//			// Transformar los vértices min y max de la Bounding Box
+		//			glm::vec3 transformedMin = glm::vec3(transform * glm::vec4(entities[i]->getComponent<ECS::MeshRenderer>().meshData.minBounds, 1.0f));
+		//			glm::vec3 transformedMax = glm::vec3(transform * glm::vec4(entities[i]->getComponent<ECS::MeshRenderer>().meshData.maxBounds, 1.0f));
 
-			//Flag para evitar que se vuelva a pasar por esta funcion hasta que se levante el dedo del boton del mouse
-			pickingObj = true;
-		}
+		//			// Verificar la intersección del rayo
+		//			if (rayIntersectsBoundingBox(rayOrigin, rayDirection, transformedMin, transformedMax))
+		//			{
+		//				entitiesInRay.push_back(entities[i]);
+		//			}
+		//		}
+		//	}
+
+		//	
+		//	if (entitiesInRay.size() > 1)
+		//	{
+		//		selectingEntity = true;
+		//	}
+		//	else if (entitiesInRay.size() > 0)
+		//	{
+		//		Application::gameObjectManager->m_SelectedEntity = entitiesInRay[0];
+		//		entitiesInRay.clear();
+		//		if (Application::gameObjectManager->m_SelectedEntity) //Si hemos obtenido un objeto, revisamos si tiene posibilidad de drawable y en ese caso activamos su BB
+		//			if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>()) Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = true;
+		//	}
+
+		//	//Flag para evitar que se vuelva a pasar por esta funcion hasta que se levante el dedo del boton del mouse
+		//	pickingObj = true;
+		//}
 	}
 	bool Scene::rayIntersectsBoundingBox(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, glm::vec3 boxMin, glm::vec3 boxMax)
 	{
