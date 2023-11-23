@@ -1,8 +1,9 @@
 #pragma once
 
+
+
 #include "../../ECS/Entity.h"
 #include "../../ECS/Manager.h"
-
 #include "../../ECS/Camera.h"
 
 #define YAML_CPP_STATIC_DEFINE
@@ -10,6 +11,7 @@
 #include "yaml-cpp/eventhandler.h"
 #include "yaml-cpp/yaml.h"  // IWYU pragma: keep
 
+#include <entt.hpp>
 
 namespace GLCore 
 {
