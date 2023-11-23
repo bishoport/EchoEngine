@@ -11,10 +11,6 @@
 #include "yaml-cpp/yaml.h"  // IWYU pragma: keep
 
 
-#include "../../ECS/ExternalComponentManager.h"
-
-
-
 namespace GLCore 
 {
 
@@ -42,9 +38,6 @@ namespace GLCore
 		float pi = 3.1415926535f;
 		
 		int idGenerated = 0;
-
-		ECS::ExternalComponentManager externalComponentManager;
-		//std::vector<ECS::Entity*> entitiesInScene;
 	};
 }
 

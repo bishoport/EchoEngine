@@ -150,31 +150,6 @@ namespace GLCore
 				m_SelectedEntity->addComponent<ECS::Car>();
 			}
 		}
-		else if (action == MainMenuAction::ReloadComponents)
-		{
-			if (!externalComponentManager.loadComponentLibrary("PRUEBA_DLL_2.dll")) {
-				std::cout << "Error cargando DLL" << std::endl;
-				return;
-			}
-
-			ECS::Component* component = externalComponentManager.createComponentInstance();
-			if (component) 
-			{
-				gameObject = CreateEntity();
-				gameObject->addComponentByPointer(component);
-				gameObject->name = "TestGameObject_" + std::to_string(idGenerated);
-
-				for (int i = 0; i < gameObject->components.size(); i++)
-				{
-					if (gameObject->components[i] != NULL)
-						std::cout << "getTypeID from components->" << gameObject->components[i]->getTypeID() << std::endl;;
-				}
-			}
-		}
-		else if (action == MainMenuAction::LiberateDLL)
-		{
-			externalComponentManager.unloadComponentLibrary();
-		}
 		else if (action == MainMenuAction::SaveProject)
 		{
 			std::cout << "GUARDANDO..." << std::endl;

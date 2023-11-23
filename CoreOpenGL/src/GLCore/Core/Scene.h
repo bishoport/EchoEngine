@@ -39,8 +39,6 @@ namespace GLCore {
         bool isWireframe = false;
 
         //--ENTITIES
-        /*ECS::Entity* m_SelectedEntity = nullptr;*/
-        //ECS::Entity* gridWorldReference = nullptr;
         void CalcSceneBundle();
         //---------------------------------------------------
 

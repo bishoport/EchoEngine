@@ -176,7 +176,6 @@
     <ClInclude Include="src\ECS\Component.h" />
     <ClInclude Include="src\ECS\ComponentsIncludes.h" />
     <ClInclude Include="src\ECS\DirectionalLight.h" />
-    <ClInclude Include="src\ECS\ExternalComponentManager.h" />
     <ClInclude Include="src\GLCore\Core\GameObjectManager.h" />
     <ClInclude Include="src\ECS\Entity.h" />
     <ClInclude Include="src\ECS\Manager.h" />
