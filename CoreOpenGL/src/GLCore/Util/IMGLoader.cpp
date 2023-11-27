@@ -2,27 +2,26 @@
 
 namespace GLCore::Utils {
 
-    std::unordered_map<std::string, Image> ImageLoader::loadedImages;
+    std::unordered_map<std::string, Ref<Image>> ImageLoader::loadedImages;
 
-    Image ImageLoader::loadImage(const std::string& filepath, const std::string carpetaBase)
+    Ref<Image> ImageLoader::loadImage(const std::string& filepath, const std::string carpetaBase)
     {
         // Verifica si la imagen ya ha sido cargada
         auto found = loadedImages.find(filepath);
 
         if (found != loadedImages.end()) {
+            //std::cout << "No es necesario cargar " << filepath << " porque ya existe" << std::endl;
             return found->second;
         }
 
-
-
         std::string finalFilepath = filepath;
-        
-        if (carpetaBase != "")
+
+        if (!carpetaBase.empty())
         {
             std::filesystem::path rutaPath(filepath);
-            // Obtener el nombre del archivo con su extensión
             std::string nombreArchivo = rutaPath.filename().string();
             std::string rutaTextura = buscarTextura(nombreArchivo, carpetaBase);
+
             std::cout << "nombreArchivo: " << nombreArchivo << std::endl;
             if (!rutaTextura.empty()) {
                 std::cout << "Textura encontrada en: " << rutaTextura << std::endl;
@@ -34,22 +33,25 @@ namespace GLCore::Utils {
             std::cout << "-------------------------------------------------" << std::endl;
         }
 
-
-        Image image;
+        // Crear un nuevo Image en el heap
+        auto image = std::make_shared<Image>();
         stbi_set_flip_vertically_on_load(false);
-        image.pixels = stbi_load(finalFilepath.c_str(), &(image.width), &(image.height), &(image.channels), 0);
+        image->pixels = stbi_load(finalFilepath.c_str(), &(image->width), &(image->height), &(image->channels), 0);
 
-        if (!image.pixels)
+        if (!image->pixels)
         {
-            std::cout << "Image failed to load at path: " << finalFilepath.c_str() << std::endl;
+            std::cout << "Image failed to load at path: " << finalFilepath << std::endl;
+            // Aquí podrías manejar el error como consideres necesario
+            // Por ejemplo, podrías devolver un shared_ptr vacío: return nullptr;
         }
-        image.path = finalFilepath.c_str();
-        loadedImages[finalFilepath.c_str()] = image;
+
+        image->path = finalFilepath;
+
+        // Guardar en el mapa
+        loadedImages[finalFilepath] = image;
+
         return image;
     }
-
-
-
 
     GLuint ImageLoader::loadImagesForCubemap(std::vector<const char*> faces)
     {
@@ -182,9 +184,6 @@ namespace GLCore::Utils {
         return texID;
     }
 
-
-
-
     GLuint ImageLoader::load3DLUTTexture(const char* filepath) {
         int width, height, channels;
         unsigned char* img = stbi_load(filepath, &width, &height, &channels, 0);
@@ -236,20 +235,6 @@ namespace GLCore::Utils {
         return texID;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     std::string ImageLoader::buscarTextura(const std::string& nombreArchivo, const std::string& carpetaBase)
     {
         // Intentar cargar la textura desde la ruta completa
@@ -273,8 +258,6 @@ namespace GLCore::Utils {
         // No se encontró la textura
         return "";
     }
-
-
 
     void ImageLoader::freeImage(Image& img) {
         if (img.pixels) {

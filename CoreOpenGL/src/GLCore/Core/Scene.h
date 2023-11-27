@@ -2,8 +2,6 @@
 
 #include "../Render/Shader.h"
 
-//#include "../../ECS/Entity.h"
-
 #include "AssetsPanel.h"
 
 #include "../Util/PerspectiveCameraController.h"
@@ -13,14 +11,41 @@
 #include "../Util/GridWorldReference.h"
 #include "../Util/IBLManager.h"
 
+//#include "entt.hpp"
+#include "RegistrySingleton.h"
+#include "UUID.h"
 
 
 namespace GLCore {
+
+    class Entity;
 
     class Scene {
     public:
         Scene();
         ~Scene();
+
+        //GameObjects
+        void CreateEmptyGameObject();
+        void InstantiatePrefab(MainMenuAction action);
+
+
+        Entity CreateEntity(const std::string& name = std::string());
+        Entity CreateEntityWithUUID(UUID uuid, const std::string& name = std::string()); 
+        Entity DuplicateEntity(Entity entity);
+        void DestroyEntity(Entity entity);
+
+        Entity FindEntityByName(std::string_view name);
+        Entity GetEntityByUUID(UUID uuid);
+
+        Entity GetPrimaryCameraEntity();
+
+        template<typename... Components>
+        auto GetAllEntitiesWith()
+        {
+            return RegistrySingleton::getRegistry().view<Components...>();
+        }
+        //-----------------------------------------------------------------------------------------
 
         bool initialize();
         void update(Timestep deltaTime);
@@ -34,10 +59,18 @@ namespace GLCore {
 
         static std::pair<glm::vec3, float> SceneBounds;
 
-    private:
+        
 
+    private:
+        template<typename T>
+        void OnComponentAdded(Entity entity, T& component);
+
+
+    private:
+        std::unordered_map<UUID, entt::entity> m_EntityMap;
         bool isWireframe = false;
 
+        
         //--ENTITIES
         void CalcSceneBundle();
         //---------------------------------------------------
@@ -105,9 +138,9 @@ namespace GLCore {
         //--Lights
         glm::vec3 globalAmbient = glm::vec3(0.055f, 0.055f, 0.055f);
         ImVec4 clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-        /*bool useDirectionalLight = false;*/
-        /*int totalPointLight = 0;
-        int totalSpotLight = 0;*/
+        bool useDirectionalLight = false;
+        int totalPointLight = 0;
+        int totalSpotLight = 0;
         //---------------------------------------------------
 
 
@@ -126,21 +159,23 @@ namespace GLCore {
             Scale
         };
         GizmoOperation m_GizmoOperation;
+
+        //
         //---------------------------------------------------
 
 
-        //ModelParent loadFileModel(ImportOptions importOptions);
+        void loadFileModel(ImportOptions importOptions);
         bool pickingObj = false;
         bool selectingEntity = false;
         bool cursorOverSelectEntityDialog = false;
-        //std::vector<ECS::Entity*> entitiesInRay;
+        
+        std::vector<Entity> entitiesInRay;
         void CheckIfPointerIsOverObject();
         bool rayIntersectsBoundingBox(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, glm::vec3 boxMin, glm::vec3 boxMax);
 
 
 
-
-
-
+        friend class Entity;
+        friend class SceneHierarchyPanel;
     };
 }

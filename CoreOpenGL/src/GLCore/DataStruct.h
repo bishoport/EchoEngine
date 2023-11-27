@@ -60,51 +60,26 @@ namespace GLCore
         std::string path = "NONE";
     };
 
+
+
+
     //LA VERSION EN GPU
     struct Texture {
         GLuint textureID = 0;
         TEXTURE_TYPES type;
         std::string typeString;
-        Image image;
+        Ref<Image> image;
         bool hasMap = false;
-    };
 
-    struct Material {
+        void Bind() {
+            if (hasMap) {
 
-        float shininess;
-        float hdrMultiply = 0.0f;
-        float hdrIntensity = 0.3f;
-        float exposure = 1.0f;
-        float gamma = 2.2f;
-        //-------------------------------------------------------
-
-        std::vector<Texture*> textures;
-
-        Texture albedoMap;
-        Texture normalMap;
-        Texture metallicMap;
-        Texture rougnessMap;
-        Texture aOMap;
-
-        //VALUES
-        glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
-        float normalIntensity = 0.5f;
-        float metallicValue = 0.0f;
-        float roughnessValue = 0.05f;
-        float reflectanceValue = 0.04f;
-        float fresnelCoefValue = 5.0f;
-        //-------------------------------------------------------
-
-
-        void loadTextureData(Texture& map) {
-            if (map.hasMap) {
-
-                if (map.textureID != 0) {
-                    glDeleteTextures(1, &map.textureID);
+                if (textureID != 0) {
+                    glDeleteTextures(1, &textureID);
                 }
 
-                glGenTextures(1, &map.textureID);
-                glBindTexture(GL_TEXTURE_2D, map.textureID);
+                glGenTextures(1, &textureID);
+                glBindTexture(GL_TEXTURE_2D, textureID);
 
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -112,88 +87,36 @@ namespace GLCore
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
                 GLenum format{};
-                if (map.image.channels == 1)
+                if (image->channels == 1)
                     format = GL_RED;
-                else if (map.image.channels == 3)
+                else if (image->channels == 3)
                     format = GL_RGB;
-                else if (map.image.channels == 4)
+                else if (image->channels == 4)
                     format = GL_RGBA;
 
-                glTexImage2D(GL_TEXTURE_2D, 0, format, map.image.width, map.image.height, 0, format, GL_UNSIGNED_BYTE, map.image.pixels);
-
+                glTexImage2D(GL_TEXTURE_2D, 0, format, image->width, image->height, 0, format, GL_UNSIGNED_BYTE, image->pixels);
                 glGenerateMipmap(GL_TEXTURE_2D);
-
                 glBindTexture(GL_TEXTURE_2D, 0);
             }
         }
+    };
 
-        void prepare_PBRMaterials()
-        {
-            if (textures.size() == 0)
-            {
-                albedoMap.typeString = "ALBEDO";
-                normalMap.typeString = "NORMAL";
-                metallicMap.typeString = "METALLIC";
-                rougnessMap.typeString = "ROUGHNESS";
-                aOMap.typeString = "AO";
 
-                albedoMap.type = TEXTURE_TYPES::ALBEDO;
-                normalMap.type = TEXTURE_TYPES::NORMAL;
-                metallicMap.type = TEXTURE_TYPES::METALLIC;
-                rougnessMap.type = TEXTURE_TYPES::ROUGHNESS;
-                aOMap.type = TEXTURE_TYPES::AO;
 
-                textures.push_back(&albedoMap);
-                textures.push_back(&normalMap);
-                textures.push_back(&metallicMap);
-                textures.push_back(&rougnessMap);
-                textures.push_back(&aOMap);
-            }
-            
 
-            loadTextureData(albedoMap);
-            loadTextureData(normalMap);
-            loadTextureData(metallicMap);
-            loadTextureData(rougnessMap);
-            loadTextureData(aOMap);
-        }
 
-        void bindTextures(const std::string shaderName)
-        {
-            GLCore::Render::ShaderManager::Get(shaderName)->use();
-            int textureChannelInit = 3;
+    struct MaterialData
+    {
+        //ALBEDO COLOR
+        glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
 
-            // Nombres de los mapas
-            std::vector<std::string> mapNames = { "albedo", "normal", "metallic", "roughness", "ao" };
-
-            // Iteramos sobre cada mapa en el vector 'textures'
-            for (size_t i = 0; i < textures.size(); i++) {
-                if (textures[i]->hasMap) {
-                    glActiveTexture(GL_TEXTURE0 + textureChannelInit);
-                    glBindTexture(GL_TEXTURE_2D, textures[i]->textureID);
-                    GLCore::Render::ShaderManager::Get(shaderName)->setInt("material." + mapNames[i] + "Map", textureChannelInit);
-                    GLCore::Render::ShaderManager::Get(shaderName)->setBool("material.has" + std::string(1, toupper(mapNames[i][0])) + mapNames[i].substr(1) + "Map", true);
-                }
-                else {
-                    GLCore::Render::ShaderManager::Get(shaderName)->setBool("material.has" + std::string(1, toupper(mapNames[i][0])) + mapNames[i].substr(1) + "Map", false);
-                    glActiveTexture(GL_TEXTURE0 + textureChannelInit);
-                    glBindTexture(GL_TEXTURE_2D, 0);
-                }
-                textureChannelInit++;
-            }
-
-            // Establece los valores comunes
-            GLCore::Render::ShaderManager::Get(shaderName)->setVec3("material.albedo", color);
-            GLCore::Render::ShaderManager::Get(shaderName)->setFloat("material.hdrMultiply", hdrMultiply);
-            GLCore::Render::ShaderManager::Get(shaderName)->setFloat("material.metallic", metallicValue);
-            GLCore::Render::ShaderManager::Get(shaderName)->setFloat("material.roughness", roughnessValue);
-            GLCore::Render::ShaderManager::Get(shaderName)->setFloat("material.normalIntensity", normalIntensity);
-            GLCore::Render::ShaderManager::Get(shaderName)->setFloat("material.reflectance", reflectanceValue);
-            GLCore::Render::ShaderManager::Get(shaderName)->setFloat("material.fresnelCoef", fresnelCoefValue);
-            GLCore::Render::ShaderManager::Get(shaderName)->setFloat("material.hdrIntensity", hdrIntensity);
-            GLCore::Render::ShaderManager::Get(shaderName)->setFloat("material.exposure", exposure);
-            GLCore::Render::ShaderManager::Get(shaderName)->setFloat("material.gamma", gamma);
-        }
+        //TEXTURES
+        Ref<Texture> albedoMap;
+        Ref<Texture> normalMap;
+        Ref<Texture> metallicMap;
+        Ref<Texture> rougnessMap;
+        Ref<Texture> aOMap;
+        //-------------------------------------------------------
     };
 
 
@@ -266,7 +189,6 @@ namespace GLCore
             glVertexArrayAttribBinding(VAO_BB, 0, 0);
             //-------------------------------------------------------------------------------------------------
         }
-
         void UpdateAABB(const glm::mat4& modelMatrix)
         {
             glm::vec3 originalVertices[8] = {
@@ -285,6 +207,7 @@ namespace GLCore
 
             glNamedBufferSubData(VBO_BB, 0, sizeof(transformedVertices), transformedVertices);
         }
+
     };
 
     struct ModelInfo
@@ -292,8 +215,8 @@ namespace GLCore
         // Constructor predeterminado
         ModelInfo() = default;
 
-        MeshData meshData;
-        Material model_material;
+        Ref<GLCore::MeshData> meshData;
+        Ref<GLCore::MaterialData> model_textures;
 
         MODEL_TYPES modelType;
     };

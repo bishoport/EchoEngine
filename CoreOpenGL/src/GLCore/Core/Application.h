@@ -12,6 +12,7 @@
 namespace GLCore {
 
     class Application {
+
     public:
         Application();
         ~Application();

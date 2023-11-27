@@ -100,7 +100,8 @@ namespace GLCore {
 
     void Application::acctionPresedFromTopMenu(const MainMenuAction& action)
     {
-        gameObjectManager->InstantiatePrefab(action);
+        scene->InstantiatePrefab(action);
+        //gameObjectManager->InstantiatePrefab(action);
     }
 
 

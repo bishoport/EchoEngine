@@ -40,8 +40,7 @@ vec2 adjustedTexCoords;
 //-------------------
 
 // IBL
-uniform float exposure;
-uniform float gamma;
+uniform bool useIBL;
 uniform samplerCube irradianceMap;
 uniform samplerCube prefilterMap;
 uniform sampler2D brdfLUT;
@@ -139,33 +138,45 @@ void main()
 
 
     // ambient lighting (we now use IBL as the ambient term)
+    //vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+    //vec3 kS = F;
+    //vec3 kD = 1.0 - kS;
+    //kD *= 1.0 - metallic;
+    //vec3 irradiance = texture(irradianceMap, N).rgb;
+    //vec3 diffuse = mix(albedo, irradiance * albedo * material.iblIntensity, material.hdrIntensity);
+    //vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * material.max_reflection_lod).rgb;     
+    //vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+    //vec3 specular = prefilteredColor * (F * brdf.x + brdf.y) * material.iblIntensity;
+    //vec3 ambient = (((kD * diffuse * globalAmbient) + specular) * ao);
+
+    vec3 ambient;
+if (useIBL) {
     vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
-    
     vec3 kS = F;
     vec3 kD = 1.0 - kS;
     kD *= 1.0 - metallic;
     
     vec3 irradiance = texture(irradianceMap, N).rgb;
-    vec3 diffuse = mix(albedo, irradiance * albedo, material.hdrIntensity);
+    vec3 diffuse = mix(albedo, irradiance * albedo * material.iblIntensity, material.hdrIntensity);
+    vec3 prefilteredColor = textureLod(prefilterMap, R, roughness * material.max_reflection_lod).rgb;
+    vec2 brdf = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+    vec3 specular = prefilteredColor * (F * brdf.x + brdf.y) * material.iblIntensity;
 
-    // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
-    const float MAX_REFLECTION_LOD = 4.0;
-    vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;     
-    vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
-    vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
-    
-
-
-    //COMBINAMOS TODO
-    vec3 ambient = (((kD * diffuse * globalAmbient) + specular) * ao);
+    ambient = (((kD * diffuse * globalAmbient) + specular) * ao);
+} else {
+    ambient = albedo * globalAmbient * ao; // O alguna otra definición de ambiente sin IBL
+}
      
+
+
+
+
+
+
     vec3 color = ambient + Lo;
 
-    //// Ajustar la exposición antes del tonemapping
+    //Ajustar la exposición antes del tonemapping
     color *= pow(2.0, material.exposure);
-    //// HDR tonemapping
-    //color = color / (color + vec3(1.0));
-    //// Aplicar la corrección gamma
     color = pow(color, vec3(1.0 / material.gamma));
 
     FragColor = vec4(color, 1.0);
@@ -375,20 +386,6 @@ vec3 getNormalFromMap()
     mat3 TBN = mat3(T, B, N);
 
     return normalize(TBN * tangentNormal);
-
-    //vec3 tangentNormal = texture(material.normalMap, adjustedTexCoords).xyz * 2.0 - 1.0;
-
-    //vec3 Q1  = dFdx(FragPos);
-    //vec3 Q2  = dFdy(FragPos);
-    //vec2 st1 = dFdx(adjustedTexCoords);
-    //vec2 st2 = dFdy(adjustedTexCoords);
-
-    //vec3 N   = normalize(Normal);
-    //vec3 T   = normalize(Q1*st2.t - Q2*st1.t);
-    //vec3 B   = -normalize(cross(N, T));
-    //mat3 TBN = mat3(T, B, N);
-
-    //return normalize(TBN * tangentNormal);
 }
 // ----------------------------------------------------------------------------
 float DistributionGGX(vec3 N, vec3 H, float roughness)

@@ -2,23 +2,207 @@
 #include <iostream>
 #include "Application.h"
 #include "../Render/ShaderManager.h"
-//#include "../Render/RendererManager.h"
+
 #include <imGizmo/ImGuizmo.h>
 
-
 #include "../Util/ModelLoader.h"
-//#include "../../ECS/Transform.h"
-//#include "../../ECS/MeshRenderer.h"
-//#include "../../ECS/Camera.h"
+
+#include "Entity.h"
+#include "../Render/PrimitivesHelper.h"
+
+#include "SceneHierarchyPanel.h"
+#include "../Util/IMGLoader.h"
+#include "../Render/MaterialHelper.h"
 
 
 namespace GLCore {
 
 	std::pair<glm::vec3, float> Scene::SceneBounds = { glm::vec3(0.0f), 0.0f };
-	//Render::RendererManager* rendererManager = new Render::RendererManager();
 
+	//ENTT
+	SceneHierarchyPanel* sceneHierarchyPanel;
+
+	//CONSTRUCTOR
     Scene::Scene() : m_EditorCamera(16.0f / 9.0f) {}
     Scene::~Scene(){shutdown();}
+
+
+	//--GAME OBJECTS
+	void Scene::CreateEmptyGameObject()
+	{
+		Entity entity = CreateEntity("Empty Entity");
+	}
+	void Scene::InstantiatePrefab(MainMenuAction action)
+	{
+		if (action == MainMenuAction::AddCube)
+		{
+			auto meshData = GLCore::Render::PrimitivesHelper::CreateCube();
+				
+			Entity entity = CreateEntity("Cube");
+			RegistrySingleton::getRegistry().emplace<MeshFilterComponent>(entity, meshData,PRIMIVITE_CUBE);
+			RegistrySingleton::getRegistry().emplace<MeshRendererComponent>(entity);
+
+			MeshRendererComponent* meshRendererComponent = &RegistrySingleton::getRegistry().get<MeshRendererComponent>(entity);
+			TransformComponent* transformComponent = &RegistrySingleton::getRegistry().get<TransformComponent>(entity);
+
+			meshRendererComponent->meshData = meshData;
+			meshRendererComponent->meshData->meshPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+			meshRendererComponent->meshData->meshRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+			meshRendererComponent->meshData->meshScale = glm::vec3(1.0f, 1.0f, 1.0f);
+
+			transformComponent->position = meshRendererComponent->meshData->meshLocalPosition;
+
+			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entity).setDefaultMaterial();
+		}
+		else if (action == MainMenuAction::AddSegmentedCube)
+		{
+			auto meshData = GLCore::Render::PrimitivesHelper::CreateSegmentedCube();
+
+			Entity entity = CreateEntity("SegmentedCube");
+			RegistrySingleton::getRegistry().emplace<MeshFilterComponent>(entity, meshData, PRIMIVITE_SEGMENTED_CUBE);
+			RegistrySingleton::getRegistry().emplace<MeshRendererComponent>(entity);
+
+			MeshRendererComponent* meshRendererComponent = &RegistrySingleton::getRegistry().get<MeshRendererComponent>(entity);
+			TransformComponent* transformComponent = &RegistrySingleton::getRegistry().get<TransformComponent>(entity);
+
+			meshRendererComponent->meshData = meshData;
+
+			meshRendererComponent->meshData->meshPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+			meshRendererComponent->meshData->meshRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+			meshRendererComponent->meshData->meshScale = glm::vec3(1.0f, 1.0f, 1.0f);
+			transformComponent->position = meshRendererComponent->meshData->meshLocalPosition;
+
+			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entity).setDefaultMaterial();
+		}
+		else if (action == MainMenuAction::AddPlane)
+		{
+			auto meshData = GLCore::Render::PrimitivesHelper::CreatePlane();
+
+			Entity entity = CreateEntity("Plane");
+			RegistrySingleton::getRegistry().emplace<MeshFilterComponent>(entity, meshData, PRIMIVITE_PLANE);
+			RegistrySingleton::getRegistry().emplace<MeshRendererComponent>(entity);
+
+			MeshRendererComponent* meshRendererComponent = &RegistrySingleton::getRegistry().get<MeshRendererComponent>(entity);
+			TransformComponent* transformComponent = &RegistrySingleton::getRegistry().get<TransformComponent>(entity);
+
+			meshRendererComponent->meshData = meshData;
+
+			meshRendererComponent->meshData->meshPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+			meshRendererComponent->meshData->meshRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+			meshRendererComponent->meshData->meshScale = glm::vec3(1.0f, 1.0f, 1.0f);
+
+			transformComponent->position = meshRendererComponent->meshData->meshLocalPosition;
+
+			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entity).setDefaultMaterial();
+		}
+		else if (action == MainMenuAction::AddSphere)
+		{
+			auto meshData = GLCore::Render::PrimitivesHelper::CreateSphere(1, 20, 20);
+
+			Entity entity = CreateEntity("Sphere");
+			RegistrySingleton::getRegistry().emplace<MeshFilterComponent>(entity, meshData, PRIMIVITE_SPHERE);
+			RegistrySingleton::getRegistry().emplace<MeshRendererComponent>(entity);
+
+			MeshRendererComponent* meshRendererComponent = &RegistrySingleton::getRegistry().get<MeshRendererComponent>(entity);
+			TransformComponent* transformComponent = &RegistrySingleton::getRegistry().get<TransformComponent>(entity);
+
+			meshRendererComponent->meshData = meshData;
+
+			meshRendererComponent->meshData->meshPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+			meshRendererComponent->meshData->meshRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+			meshRendererComponent->meshData->meshScale = glm::vec3(1.0f, 1.0f, 1.0f);
+
+			transformComponent->position = meshRendererComponent->meshData->meshLocalPosition;
+
+			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entity).setDefaultMaterial();
+		}
+		else if (action == MainMenuAction::AddQuad)
+		{
+			auto meshData = GLCore::Render::PrimitivesHelper::CreateQuad();
+
+			Entity entity = CreateEntity("Quad");
+			RegistrySingleton::getRegistry().emplace<MeshFilterComponent>(entity, meshData, PRIMIVITE_QUAD);
+			RegistrySingleton::getRegistry().emplace<MeshRendererComponent>(entity);
+
+			MeshRendererComponent* meshRendererComponent = &RegistrySingleton::getRegistry().get<MeshRendererComponent>(entity);
+			TransformComponent* transformComponent = &RegistrySingleton::getRegistry().get<TransformComponent>(entity);
+
+			meshRendererComponent->meshData = meshData;
+
+			meshRendererComponent->meshData->meshPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+			meshRendererComponent->meshData->meshRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+			meshRendererComponent->meshData->meshScale = glm::vec3(1.0f, 1.0f, 1.0f);
+
+			transformComponent->position = meshRendererComponent->meshData->meshLocalPosition;
+
+			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entity).setDefaultMaterial();
+		}
+		else if (action == MainMenuAction::AddDirectionalLight)
+		{
+			Entity entity = CreateEntity("Directiona Light");
+			DirectionalLightComponent* directionalLightComponent = &RegistrySingleton::getRegistry().emplace<DirectionalLightComponent>(entity);
+			//directionalLightComponent->prepareShadows();
+			useDirectionalLight = true;
+		}
+	}
+	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+	//--ENTITIES
+	Entity Scene::CreateEntity(const std::string& name)
+	{
+		return CreateEntityWithUUID(UUID(), name);
+	}
+
+	Entity Scene::CreateEntityWithUUID(UUID uuid, const std::string& name)
+	{
+		Entity entity = { RegistrySingleton::getRegistry().create(), this };
+		entity.AddComponent<IDComponent>(uuid);
+		entity.AddComponent<TransformComponent>();
+		auto& tag = entity.AddComponent<TagComponent>();
+		tag.Tag = name.empty() ? "Entity" : name;
+
+		m_EntityMap[uuid] = entity;
+
+		return entity;
+	}
+
+	Entity Scene::DuplicateEntity(Entity entity)
+	{
+		return Entity();
+	}
+
+	void Scene::DestroyEntity(Entity entity)
+	{
+		entity.RemoveAllComponents();
+
+		//size_t numElements = m_EntityMap->size();
+		//std::cout << "m_EntityMap-> " << numElements << std::endl;
+
+		// Elimina la entidad de la lista de entidades mapeadas por UUID ???
+		/*m_EntityMap.erase(entity.GetUUID());
+		*/
+	}
+
+
+	Entity Scene::FindEntityByName(std::string_view name)
+	{
+		return Entity();
+	}
+
+	Entity Scene::GetEntityByUUID(UUID uuid)
+	{
+		return Entity();
+	}
+
+	Entity Scene::GetPrimaryCameraEntity()
+	{
+		return Entity();
+	}
+	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
 
 	//-INIT
     bool Scene::initialize()
@@ -31,44 +215,9 @@ namespace GLCore {
         //----------------------------------------------------------------------------------------------------------------------------
 
 
-      //--LOAD SHADERS
-	  GLCore::Render::ShaderManager::LoadAllShaders();
-		 
-		 
-  //      GLCore::Render::ShaderManager::Load("pbr",           "assets/shaders/Default.vert",		       "assets/shaders/pbr.fs");
-		//GLCore::Render::ShaderManager::Load("pbr_ibl",       "assets/shaders/Default.vert",            "assets/shaders/pbr_ibl.fs");
-  //      GLCore::Render::ShaderManager::Load("debug",         "assets/shaders/Debug.vert",              "assets/shaders/Debug.frag");
-  //      GLCore::Render::ShaderManager::Load("skybox",        "assets/shaders/skybox/skybox.vs",        "assets/shaders/skybox/skybox.fs");
-  //      GLCore::Render::ShaderManager::Load("dynamicSkybox", "assets/shaders/skybox/dynamicSkybox.vs", "assets/shaders/skybox/dynamicSkybox.fs");
-
-
-  //      GLCore::Render::ShaderManager::Load("direct_light_depth_shadows",      
-		//									"assets/shaders/shadows/directLight_shadow_mapping_depth_shader.vs", 
-		//									"assets/shaders/shadows/directLight_shadow_mapping_depth_shader.fs");
-
-		//GLCore::Render::ShaderManager::Load("spotLight_depth_shadows",
-		//									"assets/shaders/shadows/spotLight_shadow_map_depth.vs",
-		//									"assets/shaders/shadows/spotLight_shadow_map_depth.fs");
-
-		//GLCore::Render::ShaderManager::Load("pointLight_depth_shadows",
-		//									"assets/shaders/shadows/pointLight_shadow_mapping_depth_shader.vs",
-		//									"assets/shaders/shadows/pointLight_shadow_mapping_depth_shader.fs",
-		//									"assets/shaders/shadows/pointLight_shadow_mapping_depth_shader.gs");
-
-		//GLCore::Render::ShaderManager::Load("postprocessing", "assets/shaders/postpro/postprocessing.vs", "assets/shaders/postpro/postprocessing.fs");
-		//GLCore::Render::ShaderManager::Load("main_output_FBO", "assets/shaders/main_output_FBO.vs", "assets/shaders/main_output_FBO.fs");
-
-
-		////--IBL
-		//GLCore::Render::ShaderManager::Load("equirectangularToCubemap","assets/shaders/IBL/cubemap.vs","assets/shaders/IBL/equirectangular_to_cubemap.fs");
-		//GLCore::Render::ShaderManager::Load("irradiance","assets/shaders/IBL/cubemap.vs","assets/shaders/IBL/irradiance_convolution.fs");
-		//GLCore::Render::ShaderManager::Load("prefilter","assets/shaders/IBL/cubemap.vs","assets/shaders/IBL/prefilter.fs");
-		//GLCore::Render::ShaderManager::Load("brdf","assets/shaders/IBL/brdf.vs","assets/shaders/IBL/brdf.fs");
-		//GLCore::Render::ShaderManager::Load("background","assets/shaders/IBL/background.vs","assets/shaders/IBL/background.fs");
-        //----------------------------------------------------------------------------------------------------------------------------
-
-
-
+		//--LOAD SHADERS
+		GLCore::Render::ShaderManager::LoadAllShaders();
+	
 		//--SKYBOX
 		std::vector<const char*> faces
 		{
@@ -83,9 +232,11 @@ namespace GLCore {
 		dynamicSkybox = new Utils::DynamicSkybox(faces);
 		//----------------------------------------------------------------------------------------------------------------------------
 
+
 		//--GRID WORLD REFENRENCE
 		gridWorldRef = new Utils::GridWorldReference();
 		//----------------------------------------------------------------------------------------------------------------------------
+
 
 		//--IBL
 		iblManager.prepare_PBR_IBL(800, 600);
@@ -119,11 +270,14 @@ namespace GLCore {
 		});
 
 
-		Application::gameObjectManager->InstantiatePrefab(MainMenuAction::AddCube);
+		sceneHierarchyPanel = new SceneHierarchyPanel(this);
+
+		//Application::gameObjectManager->InstantiatePrefab(MainMenuAction::AddCube);
 
         return true;
     }
 	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 
 	//-MAIN LOOP
@@ -144,15 +298,59 @@ namespace GLCore {
 		}
 		//------------------------------------------------------------------------------
 
-		//--ENTITIES
-		/*Application::gameObjectManager->manager.refresh();
-		Application::gameObjectManager->manager.update(deltaTime);
-		rendererManager->entitiesInScene = Application::gameObjectManager->manager.getAllEntities();*/
-
-		/*if (rendererManager->entitiesInScene.size() > 0)
+		if (m_EntityMap.size() > 0)
 		{
 			CalcSceneBundle();
-		}*/
+		}
+
+
+		//--ENTITIES UPDATE
+		auto viewTransform_UPDATE = RegistrySingleton::getRegistry().view<TransformComponent,MeshRendererComponent>();
+		for (auto entity : viewTransform_UPDATE)
+		{
+			auto [transform,meshRenderer] = viewTransform_UPDATE.get<TransformComponent, MeshRendererComponent>(entity);
+
+			// Ahora, directamente podemos obtener la matriz de transformación del objeto
+			meshRenderer.model_transform_matrix = transform.getLocalModelMatrix();
+
+			// Si hay un padre, combinamos nuestras transformaciones con las de él.
+			Entity entityCheck{ entity, this };
+			if (entityCheck.HasComponent<ParentComponent>()) {
+				Entity entityParent{ entityCheck.GetComponent<ParentComponent>().parentEntity, this };
+				meshRenderer.model_transform_matrix = entityParent.GetComponent<TransformComponent>().getLocalModelMatrix() * meshRenderer.model_transform_matrix;
+			}
+		}
+
+
+		auto viewDirectionalLight_UPDATE = RegistrySingleton::getRegistry().view<TransformComponent, DirectionalLightComponent>();
+		for (auto entity : viewDirectionalLight_UPDATE)
+		{
+			auto [transform, directionalLightComponent] = viewDirectionalLight_UPDATE.get<TransformComponent, DirectionalLightComponent>(entity);
+
+			auto [sceneCenter, sceneRadius] = SceneBounds;
+
+			directionalLightComponent.currentSceneRadius = sceneRadius;
+
+			if (sceneRadius > 0.0f)
+			{
+				sceneRadius += directionalLightComponent.sceneRadiusOffset;
+
+				directionalLightComponent.orthoLeft = -sceneRadius;
+				directionalLightComponent.orthoRight = sceneRadius;
+				directionalLightComponent.orthoBottom = -sceneRadius;
+				directionalLightComponent.orthoTop = sceneRadius;
+				directionalLightComponent.orthoNear = -sceneRadius - directionalLightComponent.orthoNearOffset;
+				directionalLightComponent.orthoFar = (2 * sceneRadius) + directionalLightComponent.orthoFarOffset;
+
+				// Calcula la posición de la luz basada en los ángulos y la distancia al centro de la escena
+				transform.position.x = sceneCenter.x + sceneRadius * sin(directionalLightComponent.angleX) * cos(directionalLightComponent.angleY);
+				transform.position.y = sceneCenter.y + sceneRadius * cos(directionalLightComponent.angleX);
+				transform.position.z = sceneCenter.z + sceneRadius * sin(directionalLightComponent.angleX) * sin(directionalLightComponent.angleY);
+
+				// Actualiza la dirección de la luz
+				directionalLightComponent.direction = glm::normalize(sceneCenter - transform.position);
+			}
+		}
 		//----------------------------------------------------------------------------------------------------------------------------
 
 
@@ -208,10 +406,14 @@ namespace GLCore {
 
 
 		//-ACTIVE SELECTED ENTITY
-		/*if (Application::gameObjectManager->m_SelectedEntity != nullptr && Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>())
+		Entity selectedEntity = sceneHierarchyPanel->GetSelectedEntity();
+		if (selectedEntity)
 		{
-			Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = true;
-		}*/
+			if (selectedEntity.HasComponent<MeshRendererComponent>())
+			{
+				selectedEntity.GetComponent<MeshRendererComponent>().drawLocalBB = true;
+			}
+		}
 		CheckIfPointerIsOverObject();
 		//-------------------------------------------------------------------------------------------------------------------------------------------
     }
@@ -222,9 +424,9 @@ namespace GLCore {
 		{
 			GLCore::Render::ShaderManager::Get(name.c_str())->use();
 
-			GLCore::Render::ShaderManager::Get(name.c_str())->setBool("useDirLight", Application::gameObjectManager->useDirectionalLight);
-			GLCore::Render::ShaderManager::Get(name.c_str())->setInt("numPointLights", Application::gameObjectManager->totalPointLight);
-			GLCore::Render::ShaderManager::Get(name.c_str())->setInt("numSpotLights", Application::gameObjectManager->totalSpotLight);
+			GLCore::Render::ShaderManager::Get(name.c_str())->setBool("useDirLight", useDirectionalLight);
+			GLCore::Render::ShaderManager::Get(name.c_str())->setInt("numPointLights", totalPointLight);
+			GLCore::Render::ShaderManager::Get(name.c_str())->setInt("numSpotLights", totalSpotLight);
 
 			GLCore::Render::ShaderManager::Get(name.c_str())->setVec3("globalAmbient", globalAmbient);
 
@@ -240,10 +442,49 @@ namespace GLCore {
 
 		//__1.-SHADOW PASS
 		//rendererManager->passShadow();
+		auto viewDirectionalLight = RegistrySingleton::getRegistry().view<TransformComponent,DirectionalLightComponent>();
+		for (auto entity : viewDirectionalLight)
+		{
+			auto [transformComponent,directionalLightComponent] = viewDirectionalLight.get<TransformComponent,DirectionalLightComponent>(entity);
+
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			glBindFramebuffer(GL_FRAMEBUFFER, directionalLightComponent.shadowFBO);
+			glViewport(0, 0, directionalLightComponent.shadowMapResolution, directionalLightComponent.shadowMapResolution);
+			glClearColor(1, 1, 1, 1);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+			glm::mat4 shadowProjMat = glm::ortho(directionalLightComponent.orthoLeft, directionalLightComponent.orthoRight, directionalLightComponent.orthoBottom, directionalLightComponent.orthoTop, directionalLightComponent.orthoNear, directionalLightComponent.orthoFar);
+			glm::mat4 shadowViewMat = glm::lookAt(transformComponent.position, directionalLightComponent.direction, glm::vec3(0, 1, 0));
+
+			directionalLightComponent.shadowMVP = shadowProjMat * shadowViewMat;
+
+			GLCore::Render::ShaderManager::Get("direct_light_depth_shadows")->use();
+
+			auto viewDirectionalLightShadowPass = RegistrySingleton::getRegistry().view<MeshRendererComponent>();
+			for (auto entity : viewDirectionalLightShadowPass)
+			{
+				auto meshRendererComponent = viewDirectionalLightShadowPass.get<MeshRendererComponent>(entity);
+
+				if (meshRendererComponent.dropShadow)
+				{
+					glm::mat4 entityShadowMVP = directionalLightComponent.shadowMVP * meshRendererComponent.model_transform_matrix;
+					GLCore::Render::ShaderManager::Get("direct_light_depth_shadows")->setMat4("shadowMVP", entityShadowMVP);
+					GLCore::Render::DrawMesh(&meshRendererComponent);
+				}
+			}
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		}
+
 
 		//clear
 		glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+
+		int SlotTextureCounter = 0;
 
 		if (usePostprocessing)
 		{
@@ -253,58 +494,70 @@ namespace GLCore {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-			//--------------------------------------------IBL
-			if (useIBL == true)
+			//RenderPipeline
+			//PASS LIGHTS
+			auto viewDirectionalLight = RegistrySingleton::getRegistry().view<TransformComponent, DirectionalLightComponent>();
+			for (auto entity : viewDirectionalLight)
 			{
-				glDepthFunc(GL_LEQUAL);
+				auto [transformComponent, directionalLightComponent] = viewDirectionalLight.get<TransformComponent, DirectionalLightComponent>(entity);
 
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.envCubemap);
-				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.irradianceMap); // display irradiance map
-				glActiveTexture(GL_TEXTURE2);
-				glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.prefilterMap);  // display prefilter map
-
-				GLCore::Render::ShaderManager::Get("pbr_ibl")->use();
-				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("irradianceMap", 0);
-				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("prefilterMap", 1);
-				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("brdfLUT", 2);
-
-				if (showIBLSkybox == true)
-				{
-					glm::mat4 viewHDR = glm::mat4(glm::mat3(cameraViewMatrix));
-
-					// Escala la matriz de vista para hacer el skybox más grande
-					float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
-					viewHDR = glm::scale(viewHDR, glm::vec3(scale, scale, scale));
-					GLCore::Render::ShaderManager::Get("background")->use();
-					GLCore::Render::ShaderManager::Get("background")->setMat4("view", viewHDR);
-					GLCore::Render::ShaderManager::Get("background")->setMat4("projection", cameraProjectionMatrix);
-					GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 0);
-					renderCube();
-				}
+				GLCore::Render::DrawDirectionalLight(&directionalLightComponent, &transformComponent);
 			}
-			else
+
+			//GEOMETRY PASS
+			gridWorldRef->Render();
+
+			auto viewMaterialPass = RegistrySingleton::getRegistry().view<TransformComponent, MaterialComponent, MeshRendererComponent>();
+
+			for (auto entity : viewMaterialPass)
 			{
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-				glActiveTexture(GL_TEXTURE2);
-				glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+				auto [transform, matComponent, meshRendererComponent] = viewMaterialPass.get<TransformComponent, MaterialComponent, MeshRendererComponent>(entity);
+
+				GLCore::Render::ActiveTextures(&matComponent, 1);
+				GLCore::Render::DrawMesh(&meshRendererComponent);
+				GLCore::Render::DrawBoundingBox(&meshRendererComponent);
+			}
+
+			SlotTextureCounter = 5;
+			//--------------------------------------------IBL
+			glDepthFunc(GL_LEQUAL);
+
+			GLCore::Render::ShaderManager::Get("pbr_ibl")->use();
+
+			glActiveTexture(GL_TEXTURE0 + SlotTextureCounter);
+			GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("brdfLUT", SlotTextureCounter);
+			SlotTextureCounter++;
+			glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.envCubemap);
+
+			glActiveTexture(GL_TEXTURE0 + SlotTextureCounter);
+			GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("irradianceMap", SlotTextureCounter);
+			SlotTextureCounter++;
+			glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.irradianceMap); // display irradiance map
+
+			glActiveTexture(GL_TEXTURE0 + SlotTextureCounter);
+			GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("prefilterMap", SlotTextureCounter);
+			SlotTextureCounter++;
+			glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.prefilterMap);  // display prefilter map
+
+			GLCore::Render::ShaderManager::Get("pbr_ibl")->setBool("useIBL", useIBL);
+
+			glm::mat4 viewHDR = glm::mat4(glm::mat3(cameraViewMatrix));
+
+			// Escala la matriz de vista para hacer el skybox más grande
+			float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
+			viewHDR = glm::scale(viewHDR, glm::vec3(scale, scale, scale));
+			GLCore::Render::ShaderManager::Get("background")->use();
+			GLCore::Render::ShaderManager::Get("background")->setMat4("view", viewHDR);
+			GLCore::Render::ShaderManager::Get("background")->setMat4("projection", cameraProjectionMatrix);
+			GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 0);
+			SlotTextureCounter += 1;
+
+			if (showIBLSkybox == true)
+			{
+				renderCube();
 			}
 			//------------------------------------------------------------------------------------------------------------------------------
 
-			
-
-
-
-			//__2.-LIGHT PASS
-			//rendererManager->passLights();
-
-			//__3.-GEOMETRY PASS
-			gridWorldRef->Render();
-			//rendererManager->passGeometry();
 
 			//__4.-POSTPROCESING
 			postproManager->RenderWithPostProcess();
@@ -328,52 +581,77 @@ namespace GLCore {
 			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			//--------------------------------------------IBL
-			if (useIBL == true)
-			{
-				glDepthFunc(GL_LEQUAL);
-
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.envCubemap);
-				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.irradianceMap); // display irradiance map
-				glActiveTexture(GL_TEXTURE2);
-				glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.prefilterMap);  // display prefilter map
-
-				GLCore::Render::ShaderManager::Get("pbr_ibl")->use();
-				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("irradianceMap", 0);
-				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("prefilterMap", 1);
-				GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("brdfLUT", 2);
-
-				if (showIBLSkybox == true)
-				{
-					glm::mat4 viewHDR = glm::mat4(glm::mat3(cameraViewMatrix));
-
-					// Escala la matriz de vista para hacer el skybox más grande
-					float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
-					viewHDR = glm::scale(viewHDR, glm::vec3(scale, scale, scale));
-					GLCore::Render::ShaderManager::Get("background")->use();
-					GLCore::Render::ShaderManager::Get("background")->setMat4("view", viewHDR);
-					GLCore::Render::ShaderManager::Get("background")->setMat4("projection", cameraProjectionMatrix);
-					GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 0);
-					renderCube();
-				}
-			}
-			else
-			{
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-				glActiveTexture(GL_TEXTURE2);
-				glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-			}
-			//------------------------------------------------------------------------------------------------------------------------------
 
 			//RenderPipeline
-			//rendererManager->passLights();
+			//PASS LIGHTS
+			auto viewDirectionalLight = RegistrySingleton::getRegistry().view<TransformComponent, DirectionalLightComponent>();
+			for (auto entity : viewDirectionalLight)
+			{
+				auto [transformComponent, directionalLightComponent] = viewDirectionalLight.get<TransformComponent, DirectionalLightComponent>(entity);
+
+				GLCore::Render::DrawDirectionalLight(&directionalLightComponent, &transformComponent);
+			}
+
+			//GEOMETRY PASS
 			gridWorldRef->Render();
-			//rendererManager->passGeometry();
+
+			auto viewMaterialPass = RegistrySingleton::getRegistry().view<TransformComponent, MaterialComponent, MeshRendererComponent>();
+			
+			for (auto entity : viewMaterialPass)
+			{
+				auto [transform, matComponent, meshRendererComponent] = viewMaterialPass.get<TransformComponent, MaterialComponent, MeshRendererComponent>(entity);
+				
+				GLCore::Render::ActiveTextures(&matComponent, 1);
+				GLCore::Render::DrawMesh(&meshRendererComponent);
+				GLCore::Render::DrawBoundingBox(&meshRendererComponent);
+			}
+
+			SlotTextureCounter = 5;
+			//--------------------------------------------IBL
+			glDepthFunc(GL_LEQUAL);
+
+			GLCore::Render::ShaderManager::Get("pbr_ibl")->use();
+
+			glActiveTexture(GL_TEXTURE0 + SlotTextureCounter);
+			GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("brdfLUT", SlotTextureCounter);
+			SlotTextureCounter++;
+			glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.envCubemap);
+
+			glActiveTexture(GL_TEXTURE0 + SlotTextureCounter);
+			GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("irradianceMap", SlotTextureCounter);
+			SlotTextureCounter++;
+			glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.irradianceMap); // display irradiance map
+
+			glActiveTexture(GL_TEXTURE0 + SlotTextureCounter);
+			GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("prefilterMap", SlotTextureCounter);
+			SlotTextureCounter++;
+			glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.prefilterMap);  // display prefilter map
+
+			GLCore::Render::ShaderManager::Get("pbr_ibl")->setBool("useIBL", useIBL);
+
+			glm::mat4 viewHDR = glm::mat4(glm::mat3(cameraViewMatrix));
+
+			// Escala la matriz de vista para hacer el skybox más grande
+			float scale = 1.0f; // Ajusta este valor para obtener el tamaño deseado para tu skybox
+			viewHDR = glm::scale(viewHDR, glm::vec3(scale, scale, scale));
+			GLCore::Render::ShaderManager::Get("background")->use();
+			GLCore::Render::ShaderManager::Get("background")->setMat4("view", viewHDR);
+			GLCore::Render::ShaderManager::Get("background")->setMat4("projection", cameraProjectionMatrix);
+			GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 0);
+			SlotTextureCounter += 1;
+
+			if (showIBLSkybox == true)
+			{
+				renderCube();
+			}
+
+			//------------------------------------------------------------------------------------------------------------------------------
+
+			//RENDER FINAL QUAD
+			glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
+			glViewport(0, 0, fboData.drawSize.x, fboData.drawSize.y);
+			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			glActiveTexture(GL_TEXTURE5);
 			glBindTexture(GL_TEXTURE_2D, fboData.colorBuffers[0]);
@@ -381,22 +659,204 @@ namespace GLCore {
 			GLCore::Render::ShaderManager::Get("main_output_FBO")->use();
 			GLCore::Render::ShaderManager::Get("main_output_FBO")->setInt("colorBuffer_0", 5);
 
-
-			glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
-			glViewport(0, 0, fboData.drawSize.x, fboData.drawSize.y);
-			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 			renderQuad();
 		}
 		//-------------------------------------------------------------------------------------------------------------------------------------------
 
 	}
+	void Scene::renderGUI()
+	{
+		//------------------------------------------HIERARCHY PANEL-----------------------------------------------------
+		sceneHierarchyPanel->OnImGuiRender();
+		//---------------------------------------------------------------------------------------------------------------
+
+
+		//-------------------------------------------EVIROMENT LIGHT PANEL-----------------------------------------------
+		if (ImGui::Begin("Enviroment Panel"))
+		{
+			//--WIRE-FRAME
+			if (ImGui::Checkbox("Wireframe Mode", &isWireframe))
+			{
+				if (isWireframe)
+				{
+					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Habilita modo wireframe
+				}
+				else
+				{
+					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Vuelve al modo normal
+				}
+			}
+			ImGui::Separator();
+			ImGui::Dummy(ImVec2(0.0f, 5.0f));
+			//----------------------------------------------------------------
+
+			//--IBL
+			ImGui::Checkbox("Use IBL", &useIBL);
+			if (useIBL == true)
+			{
+				ImGui::Checkbox("Show HDR SkyBox", &showIBLSkybox);
+			}
+			ImGui::Separator();
+			ImGui::Dummy(ImVec2(0.0f, 5.0f));
+			//----------------------------------------------------------------
+
+			//--CLEAR COLOR
+			ImGui::ColorEdit3("Clear color", (float*)&clearColor);
+			ImGui::Separator();
+			ImGui::Dummy(ImVec2(0.0f, 5.0f));
+			//----------------------------------------------------------------
+
+			//--AMBIENT COLOR
+			ImGui::ColorEdit3("Global Ambient", &globalAmbient[0]);
+			ImGui::Separator();
+			ImGui::Dummy(ImVec2(0.0f, 5.0f));
+			//----------------------------------------------------------------
+
+			//--POST-PROCESSING
+			ImGui::Checkbox("PostPro", &usePostprocessing);
+
+			if (usePostprocessing == true)
+			{
+				postproManager->DrawGUI_Inspector();
+			}
+			ImGui::Separator();
+			ImGui::Dummy(ImVec2(0.0f, 5.0f));
+			//----------------------------------------------------------------
+
+
+			//ImGui::Checkbox("Skybox", &skybox->isActive);
+			//ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+			//ImGui::Text("Dynamic Skybox");
+			//ImGui::ColorEdit3("dayLightColor", (float*)&dynamicSkybox->dayLightColor);
+			//ImGui::ColorEdit3("sunsetColor", (float*)&dynamicSkybox->sunsetColor);
+			//ImGui::ColorEdit3("dayNightColor", (float*)&dynamicSkybox->dayNightColor);
+			//ImGui::ColorEdit3("groundColor", (float*)&dynamicSkybox->groundColor);
+			//ImGui::Dummy(ImVec2(0.0f, 3.0f));
+
+			//float sunDiskSizeValue = dynamicSkybox->m_sunDiskSize.x;  // Asumimos que todos los valores son iguales
+			//if (ImGui::SliderFloat("Sun disk size", &sunDiskSizeValue, 0.0f, 1.0f, "%.4f")) {
+			//	dynamicSkybox->m_sunDiskSize = glm::vec3(sunDiskSizeValue, sunDiskSizeValue, sunDiskSizeValue);
+			//}
+			//ImGui::Dummy(ImVec2(0.0f, 3.0f));
+			//ImGui::SliderFloat("Sun disk m_gradientIntensity", &dynamicSkybox->m_gradientIntensity, 0.0f, 10.0f, "%.4f");
+			//ImGui::SliderFloat("Sun disk auraIntensity", &dynamicSkybox->auraIntensity, 0.0f, 1.0f, "%.4f");
+			//ImGui::SliderFloat("Sun disk auraSize", &dynamicSkybox->auraSize, 0.0f, 1.0f, "%.4f");
+			//ImGui::SliderFloat("Sun disk edgeSoftness", &dynamicSkybox->edgeSoftness, 0.0001f, 0.1f, "%.4f");
+			//ImGui::Dummy(ImVec2(0.0f, 3.0f));
+			//ImGui::SliderFloat("Sun disk upperBound", &dynamicSkybox->upperBound, 0.00001f, 0.1f, "%.4f");
+			//ImGui::SliderFloat("Sun disk lowerBound", &dynamicSkybox->lowerBound, 0.00001f, 0.1f, "%.4f");
+
+		}
+		ImGui::End();
+		//------------------------------------------------------------------------------------------------
+
+
+		//-------------------------------------------ASSETS PANEL--------------------------------------
+		assetsPanel.OnImGuiRender();
+		//------------------------------------------------------------------------------------------------
+
+
+
+		//-------------------------------------------SCENE PANEL--------------------------------------------
+		ImGui::Begin("SCENE", nullptr);
+		sceneSize = ImGui::GetWindowSize();
+		scenePos = ImGui::GetWindowPos();
+
+		EventManager::getOnPanelResizedEvent().trigger("SCENE", sceneSize, scenePos);
+
+		ImGui::Image((void*)(intptr_t)scene_colorBuffers[0], ImVec2(sceneSize.x, sceneSize.y), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
+		mouseInScene = false;
+
+		if (ImGui::IsWindowHovered())
+		{
+			currentPanelSize = sceneSize;
+			currentPanelPos = scenePos;
+
+			mouseInScene = true;
+			checkGizmo();
+		}
+		ImGui::End();
+		//---------------------------------------------------------------------------------------------------
+
+
+		//-------------------------------------------GAME PANEL--------------------------------------------
+		ImGui::Begin("GAME", nullptr);
+		gameSize = ImGui::GetWindowSize();
+		gamePos = ImGui::GetWindowPos();
+
+		EventManager::getOnPanelResizedEvent().trigger("GAME", gameSize, gamePos);
+
+		/*if (Application::gameObjectManager->cameras.size() > 0)
+		{
+			ImGui::Image((void*)(intptr_t)Application::gameObjectManager->cameras[0]->colorBuffers[0], ImVec2(gameSize.x, gameSize.y), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
+		}
+		else
+		{
+			ImGui::Text("No camera/s added in scene");
+		}*/
+
+
+		mouseInGame = false;
+		if (ImGui::IsWindowHovered())
+		{
+			currentPanelSize = gameSize;
+			currentPanelPos = gamePos;
+
+			mouseInGame = true;
+			checkGizmo();
+		}
+
+		ImGui::End();
+		//---------------------------------------------------------------------------------------------------
+
+
+
+		//--SHADER EDITOR PANEL
+		GLCore::Render::ShaderManager::DrawShaderEditorPanel();
+		//---------------------------------------------------------------------------------------------------
+
+		//-------------------------------------------------DIALOGS--------------------------------------
+		if (selectingEntity == true)
+		{
+			ImGui::OpenPopup("Seleccionar Entidad");
+		}
+		if (ImGui::BeginPopup("Seleccionar Entidad") && selectingEntity == true)
+		{
+			if (ImGui::IsWindowHovered())
+			{
+				cursorOverSelectEntityDialog = true;
+			}
+			else
+			{
+				cursorOverSelectEntityDialog = false;
+			}
+
+			for (size_t i = 0; i < entitiesInRay.size(); ++i)
+			{
+				if (ImGui::Selectable(entitiesInRay[i].GetName().c_str()))
+				{
+					sceneHierarchyPanel->SetSelectedEntity(entitiesInRay[i]);
+					selectingEntity = false;
+					
+					Entity selectedEntity = sceneHierarchyPanel->GetSelectedEntity();
+					if (selectedEntity)
+					{
+						selectedEntity.GetComponent<MeshRendererComponent>().drawLocalBB = true;
+					}
+				}
+			}
+
+			ImGui::EndPopup();
+		}
+		//---------------------------------------------------------------------------------------------------
+	}
 	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+	
 
-
+	//--HELPERS
 	void Scene::renderQuad()
 	{
 		if (quadVAO == 0)
@@ -423,7 +883,6 @@ namespace GLCore {
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		glBindVertexArray(0);
 	}
-
 	void Scene::renderCube()
 	{
 		// initialize (if necessary)
@@ -494,16 +953,43 @@ namespace GLCore {
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
 	}
-
 	void Scene::CalcSceneBundle() { 
 
-		/*glm::vec3 sceneMinBounds = glm::vec3(FLT_MAX);
+		glm::vec3 sceneMinBounds = glm::vec3(FLT_MAX);
 		glm::vec3 sceneMaxBounds = glm::vec3(-FLT_MAX);
 
-		for (ECS::Entity* entity : rendererManager->entitiesInScene)
+
+		auto viewDirectionalLightShadowPass = RegistrySingleton::getRegistry().view<MeshRendererComponent>();
+		for (auto entity : viewDirectionalLightShadowPass)
+		{
+			auto meshRendererComponent = viewDirectionalLightShadowPass.get<MeshRendererComponent>(entity);
+
+			if (meshRendererComponent.dropShadow)
+			{
+
+				glm::mat4 transform = meshRendererComponent.model_transform_matrix;
+
+				for (int i = 0; i < 8; ++i) {
+					glm::vec3 corner = glm::vec3(
+						(i & 1) ? meshRendererComponent.meshData->maxBounds.x : meshRendererComponent.meshData->minBounds.x,
+						(i & 2) ? meshRendererComponent.meshData->maxBounds.y : meshRendererComponent.meshData->minBounds.y,
+						(i & 4) ? meshRendererComponent.meshData->maxBounds.z : meshRendererComponent.meshData->minBounds.z
+					);
+					glm::vec3 worldCorner = transform * glm::vec4(corner, 1.0f);
+					sceneMinBounds = glm::min(sceneMinBounds, worldCorner);
+					sceneMaxBounds = glm::max(sceneMaxBounds, worldCorner);
+				}
+			}
+		}
+
+
+
+		/*for (ECS::Entity* entity : rendererManager->entitiesInScene)
 		{
 			if (entity->hascomponent<ECS::MeshRenderer>()) {
+
 				ECS::MeshRenderer& renderer = entity->getComponent<ECS::MeshRenderer>();
+
 				GLCore::MeshData& meshData = renderer.meshData;
 
 				glm::mat4 transform = renderer.model_transform_matrix;
@@ -519,375 +1005,260 @@ namespace GLCore {
 					sceneMaxBounds = glm::max(sceneMaxBounds, worldCorner);
 				}
 			}
-		}
+		}*/
 
 		glm::vec3 sceneCenter = (sceneMinBounds + sceneMaxBounds) * 0.5f;
 		float sceneRadius = glm::length(sceneMaxBounds - sceneMinBounds) * 0.5f;
 
 		if (!std::isinf(sceneRadius)) {
 			SceneBounds = std::make_pair(sceneCenter, sceneRadius);
-		}*/
+		}
 	}
-
 	void Scene::checkGizmo()
 	{
-		////---------------------------ImGUIZMO------------------------------------------
-		//if (Application::gameObjectManager->m_SelectedEntity != nullptr)
-		//{
-		//	if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::Transform>())
-		//	{
-		//		ImGuizmo::SetOrthographic(false);
-		//		ImGuizmo::SetDrawlist();
-		//		ImGuizmo::SetRect(scenePos.x, scenePos.y, sceneSize.x, sceneSize.y);
+		Entity selectedEntity = sceneHierarchyPanel->GetSelectedEntity();
 
-		//		glm::mat4 camera_view = m_EditorCamera.GetCamera().GetViewMatrix();
-		//		glm::mat4 camera_projection = m_EditorCamera.GetCamera().GetProjectionMatrix();
+		//---------------------------ImGUIZMO------------------------------------------
+		if (selectedEntity)
+		{
+			ImGuizmo::SetOrthographic(false);
+			ImGuizmo::SetDrawlist();
+			ImGuizmo::SetRect(scenePos.x, scenePos.y, sceneSize.x, sceneSize.y);
 
-		//		glm::mat4 entity_transform = Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().getLocalModelMatrix();
+			glm::mat4 camera_view = m_EditorCamera.GetCamera().GetViewMatrix();
+			glm::mat4 camera_projection = m_EditorCamera.GetCamera().GetProjectionMatrix();
 
-		//		// Comprobación de parentesco
-		//		if (Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent != nullptr) {
-		//			entity_transform = Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent->getComponent<ECS::Transform>().getLocalModelMatrix() * entity_transform;
-		//		}
+			glm::mat4 entity_transform = selectedEntity.GetComponent<TransformComponent>().getLocalModelMatrix();
 
-		//		switch (m_GizmoOperation)
-		//		{
-		//		case GizmoOperation::Translate:
-		//			ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_projection),
-		//				ImGuizmo::TRANSLATE, ImGuizmo::LOCAL, glm::value_ptr(entity_transform));
-		//			break;
-		//		case GizmoOperation::Rotate3D:
-		//			ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_projection),
-		//				ImGuizmo::ROTATE, ImGuizmo::LOCAL, glm::value_ptr(entity_transform));
-		//			break;
-		//		case GizmoOperation::Scale:
-		//			ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_projection),
-		//				ImGuizmo::SCALE, ImGuizmo::LOCAL, glm::value_ptr(entity_transform));
-		//			break;
-		//		}
+			// Comprobación de parentesco
+			bool hasParent = false;
+			if (selectedEntity.HasComponent<ParentComponent>()) {
+				Entity entityParent{ selectedEntity.GetComponent<ParentComponent>().parentEntity, this };
+				entity_transform = entityParent.GetComponent<TransformComponent>().getLocalModelMatrix() * entity_transform;
+				hasParent = true;
+			}
 
-		//		if (ImGuizmo::IsUsing())
-		//		{
-		//			glm::vec3 translation, rotation, scale, skew;
-		//			glm::quat orientation;
-		//			glm::vec4 perspective;
 
-		//			glm::decompose(entity_transform, scale, orientation, translation, skew, perspective);
+			switch (m_GizmoOperation)
+			{
+			case GizmoOperation::Translate:
+				ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_projection),
+					ImGuizmo::TRANSLATE, ImGuizmo::LOCAL, glm::value_ptr(entity_transform));
+				break;
+			case GizmoOperation::Rotate3D:
+				ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_projection),
+					ImGuizmo::ROTATE, ImGuizmo::LOCAL, glm::value_ptr(entity_transform));
+				break;
+			case GizmoOperation::Scale:
+				ImGuizmo::Manipulate(glm::value_ptr(camera_view), glm::value_ptr(camera_projection),
+					ImGuizmo::SCALE, ImGuizmo::LOCAL, glm::value_ptr(entity_transform));
+				break;
+			}
 
-		//			// Cálculo de la transformación local
-		//			if (Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent != nullptr) {
-		//				glm::mat4 parent_transform = Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().parent->getComponent<ECS::Transform>().getLocalModelMatrix();
-		//				glm::mat4 local_transform = glm::inverse(parent_transform) * entity_transform;
-		//				glm::decompose(local_transform, scale, orientation, translation, skew, perspective);
-		//			}
+			if (ImGuizmo::IsUsing())
+			{
+				glm::vec3 translation, rotation, scale, skew;
+				glm::quat orientation;
+				glm::vec4 perspective;
 
-		//			Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().rotation = orientation;
-		//			Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().position = translation;
-		//			Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::Transform>().scale = scale;
-		//		}
-		//	}
-		//}
+				glm::decompose(entity_transform, scale, orientation, translation, skew, perspective);
+
+				// Cálculo de la transformación local
+				if (hasParent) 
+				{
+
+					Entity entityParent{ selectedEntity.GetComponent<ParentComponent>().parentEntity, this };
+					glm::mat4 parent_transform = entityParent.GetComponent<TransformComponent>().getLocalModelMatrix();
+					glm::mat4 local_transform = glm::inverse(parent_transform) * entity_transform;
+					glm::decompose(local_transform, scale, orientation, translation, skew, perspective);
+				}
+
+				selectedEntity.GetComponent<TransformComponent>().rotation = orientation;
+				selectedEntity.GetComponent<TransformComponent>().position = translation;
+				selectedEntity.GetComponent<TransformComponent>().scale = scale;
+			}
+		}
 	}
+	void Scene::getModelPathFromAssets(ImportOptions importOptions)
+	{
+		importOptions.modelID = 0;
+		loadFileModel(importOptions);
+	}
+	void Scene::loadFileModel(ImportOptions importOptions)
+	{
+		ModelParent modelParent = {};
 
-	void Scene::renderGUI()
-    {
-		//------------------------------------------HIERARCHY PANEL-----------------------------------------------------
-		//Application::gameObjectManager->drawHierarchy();
-		//---------------------------------------------------------------------------------------------------------------
+		//try {
+		modelParent = GLCore::Utils::ModelLoader::LoadModel(importOptions);
 
-		//-------------------------------------------EVIROMENT LIGHT PANEL-----------------------------------------------
-		if (ImGui::Begin("Enviroment Panel"))
+		Entity entityParent = CreateEntity(modelParent.name);
+
+		if (modelParent.modelInfos.size() > 1)
 		{
-			//--WIRE-FRAME
-			if (ImGui::Checkbox("Wireframe Mode", &isWireframe))
+			auto& parentChildrenComponent = RegistrySingleton::getRegistry().get_or_emplace<ChildrenComponent>(entityParent);
+
+			for (int i = 0; i < modelParent.modelInfos.size(); i++)
 			{
-				if (isWireframe)
-				{
-					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Habilita modo wireframe
-				}
-				else
-				{
-					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // Vuelve al modo normal
-				}
+				Entity entityChild = CreateEntity(modelParent.modelInfos[i].meshData->meshName + std::to_string(i));
+
+				// Emplace el componente ParentComponent que apunta al padre
+				auto& childParentComponent = RegistrySingleton::getRegistry().emplace<ParentComponent>(entityChild, entityParent);
+
+				// Agregar la entidad del hijo al componente ChildrenComponent del padre
+				parentChildrenComponent.childEntities.push_back(entityChild);
+
+				auto& meshFilterComponent = RegistrySingleton::getRegistry().emplace<MeshFilterComponent>(entityChild, modelParent.modelInfos[i].meshData, EXTERNAL_FILE);
+				auto& meshRendererComponent = RegistrySingleton::getRegistry().emplace<MeshRendererComponent>(entityChild);
+				auto& transformComponent = RegistrySingleton::getRegistry().get<TransformComponent>(entityChild);
+
+				meshFilterComponent.modelPath = importOptions.filePath + importOptions.fileName;
+				meshRendererComponent.meshData = modelParent.modelInfos[i].meshData;
+				meshRendererComponent.meshData->meshPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+				meshRendererComponent.meshData->meshRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+				meshRendererComponent.meshData->meshScale = glm::vec3(1.0f, 1.0f, 1.0f);
+				transformComponent.position = meshRendererComponent.meshData->meshLocalPosition;
+
+				RegistrySingleton::getRegistry().emplace<MaterialComponent>(entityChild).materialData = modelParent.modelInfos[i].model_textures;
 			}
-			ImGui::Separator();
-			ImGui::Dummy(ImVec2(0.0f, 5.0f));
-			//----------------------------------------------------------------
-			
-			//--IBL
-			ImGui::Checkbox("Use IBL", &useIBL);
-			if (useIBL == true)
-			{
-				ImGui::Checkbox("Show HDR SkyBox", &showIBLSkybox);
-			}
-			ImGui::Separator();
-			ImGui::Dummy(ImVec2(0.0f, 5.0f));
-			//----------------------------------------------------------------
-
-			//--CLEAR COLOR
-			ImGui::ColorEdit3("Clear color", (float*)&clearColor);
-			ImGui::Separator();
-			ImGui::Dummy(ImVec2(0.0f, 5.0f));
-			//----------------------------------------------------------------
-
-			//--AMBIENT COLOR
-			ImGui::ColorEdit3("Global Ambient", &globalAmbient[0]);
-			ImGui::Separator();
-			ImGui::Dummy(ImVec2(0.0f, 5.0f));
-			//----------------------------------------------------------------
-
-			//--POST-PROCESSING
-			ImGui::Checkbox("PostPro", &usePostprocessing);
-
-			if (usePostprocessing == true)
-			{
-				postproManager->DrawGUI_Inspector();
-			}
-			ImGui::Separator();
-			ImGui::Dummy(ImVec2(0.0f, 5.0f));
-			//----------------------------------------------------------------
-
-
-			//ImGui::Checkbox("Skybox", &skybox->isActive);
-			//ImGui::Dummy(ImVec2(0.0f, 5.0f));
-
-			//ImGui::Text("Dynamic Skybox");
-			//ImGui::ColorEdit3("dayLightColor", (float*)&dynamicSkybox->dayLightColor);
-			//ImGui::ColorEdit3("sunsetColor", (float*)&dynamicSkybox->sunsetColor);
-			//ImGui::ColorEdit3("dayNightColor", (float*)&dynamicSkybox->dayNightColor);
-			//ImGui::ColorEdit3("groundColor", (float*)&dynamicSkybox->groundColor);
-			//ImGui::Dummy(ImVec2(0.0f, 3.0f));
-
-			//float sunDiskSizeValue = dynamicSkybox->m_sunDiskSize.x;  // Asumimos que todos los valores son iguales
-			//if (ImGui::SliderFloat("Sun disk size", &sunDiskSizeValue, 0.0f, 1.0f, "%.4f")) {
-			//	dynamicSkybox->m_sunDiskSize = glm::vec3(sunDiskSizeValue, sunDiskSizeValue, sunDiskSizeValue);
-			//}
-			//ImGui::Dummy(ImVec2(0.0f, 3.0f));
-			//ImGui::SliderFloat("Sun disk m_gradientIntensity", &dynamicSkybox->m_gradientIntensity, 0.0f, 10.0f, "%.4f");
-			//ImGui::SliderFloat("Sun disk auraIntensity", &dynamicSkybox->auraIntensity, 0.0f, 1.0f, "%.4f");
-			//ImGui::SliderFloat("Sun disk auraSize", &dynamicSkybox->auraSize, 0.0f, 1.0f, "%.4f");
-			//ImGui::SliderFloat("Sun disk edgeSoftness", &dynamicSkybox->edgeSoftness, 0.0001f, 0.1f, "%.4f");
-			//ImGui::Dummy(ImVec2(0.0f, 3.0f));
-			//ImGui::SliderFloat("Sun disk upperBound", &dynamicSkybox->upperBound, 0.00001f, 0.1f, "%.4f");
-			//ImGui::SliderFloat("Sun disk lowerBound", &dynamicSkybox->lowerBound, 0.00001f, 0.1f, "%.4f");
-
-		}
-		ImGui::End();
-		//------------------------------------------------------------------------------------------------
-
-
-		//-------------------------------------------INSPECTOR PANEL--------------------------------------
-		/*ImGui::Begin("Inspector", nullptr);
-		if (Application::gameObjectManager->m_SelectedEntity != nullptr)
-		{
-			const auto& comps = Application::gameObjectManager->m_SelectedEntity->getComponents();
-			for (const auto& component : comps) 
-			{
-				if (component) {
-					component->drawGUI_Inspector();
-				}
-			}
-		}
-		ImGui::End();*/
-		//------------------------------------------------------------------------------------------------
-
-		//-------------------------------------------ASSETS PANEL--------------------------------------
-		assetsPanel.OnImGuiRender();
-		//------------------------------------------------------------------------------------------------
-
-
-		//-------------------------------------------SCENE PANEL--------------------------------------------
-		ImGui::Begin("SCENE", nullptr);
-		sceneSize = ImGui::GetWindowSize();
-		scenePos = ImGui::GetWindowPos();
-		
-		EventManager::getOnPanelResizedEvent().trigger("SCENE", sceneSize, scenePos);
-
-		ImGui::Image((void*)(intptr_t)scene_colorBuffers[0], ImVec2(sceneSize.x, sceneSize.y), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
-		mouseInScene = false;
-
-		if (ImGui::IsWindowHovered())
-		{
-			currentPanelSize = sceneSize;
-			currentPanelPos = scenePos;
-			
-			mouseInScene = true;
-			checkGizmo();
-		}
-		ImGui::End();
-		//---------------------------------------------------------------------------------------------------
-
-
-		//-------------------------------------------GAME PANEL--------------------------------------------
-		ImGui::Begin("GAME", nullptr);
-		gameSize = ImGui::GetWindowSize();
-		gamePos  = ImGui::GetWindowPos();
-		
-		EventManager::getOnPanelResizedEvent().trigger("GAME", gameSize, gamePos);
-
-		/*if (Application::gameObjectManager->cameras.size() > 0)
-		{
-			ImGui::Image((void*)(intptr_t)Application::gameObjectManager->cameras[0]->colorBuffers[0], ImVec2(gameSize.x, gameSize.y), ImVec2(0, 1), ImVec2(1, 0), ImColor(255, 255, 255, 255));
 		}
 		else
 		{
-			ImGui::Text("No camera/s added in scene");
-		}*/
-		
-		
-		mouseInGame = false;
-		if (ImGui::IsWindowHovered())
-		{
-			currentPanelSize = gameSize;
-			currentPanelPos = gamePos;
+			RegistrySingleton::getRegistry().emplace<MeshFilterComponent>(entityParent, modelParent.modelInfos[0].meshData, EXTERNAL_FILE);
+			RegistrySingleton::getRegistry().emplace<MeshRendererComponent>(entityParent);
 
-			mouseInGame = true;
-			checkGizmo();
+			MeshFilterComponent* meshFilterComponent = &RegistrySingleton::getRegistry().get<MeshFilterComponent>(entityParent);
+			MeshRendererComponent* meshRendererComponent = &RegistrySingleton::getRegistry().get<MeshRendererComponent>(entityParent);
+			TransformComponent* transformComponent = &RegistrySingleton::getRegistry().get<TransformComponent>(entityParent);
+
+			meshFilterComponent->modelPath = importOptions.filePath + importOptions.fileName;
+
+			meshRendererComponent->meshData = modelParent.modelInfos[0].meshData;
+
+			meshRendererComponent->meshData->meshPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+			meshRendererComponent->meshData->meshRotation = glm::vec3(0.0f, 0.0f, 0.0f);
+			meshRendererComponent->meshData->meshScale = glm::vec3(1.0f, 1.0f, 1.0f);
+
+			transformComponent->position = meshRendererComponent->meshData->meshLocalPosition;
+
+			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entityParent).materialData = modelParent.modelInfos[0].model_textures;
 		}
 
-		ImGui::End();
-		//---------------------------------------------------------------------------------------------------
+		
 
+		/*if (entityParent != nullptr)
+		{
+			m_SelectedEntity = entityParent;
+		}
+		}
+		catch (std::runtime_error& e) {
+			std::cerr << "Error cargando el modelo: " << e.what() << std::endl;
+		}*/
+	}
+	void Scene::CheckIfPointerIsOverObject()
+	{
+		float mouseX, mouseY;
+		std::tie(mouseX, mouseY) = InputManager::Instance().GetMousePosition();
 
+		mouseX += scenePos.x;
+		mouseY -= scenePos.y;
 
-		//--SHADER EDITOR PANEL
-		GLCore::Render::ShaderManager::DrawShaderEditorPanel();
-		//---------------------------------------------------------------------------------------------------
+		if (ImGuizmo::IsOver() || ImGuizmo::IsUsing())
+		{
+			return;
+		}
 
-		//-------------------------------------------------DIALOGS--------------------------------------
 		if (selectingEntity == true)
 		{
-			ImGui::OpenPopup("Seleccionar Entidad");
+			return;
 		}
-		if (ImGui::BeginPopup("Seleccionar Entidad") && selectingEntity == true)
+
+		selectingEntity = false;
+
+
+		if (InputManager::Instance().IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_LEFT) && mouseInScene)
 		{
-			if (ImGui::IsWindowHovered())
+			pickingObj = false;
+		}
+
+		// Aquí empieza el raycasting
+		if (InputManager::Instance().IsMouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) && mouseInScene)
+		{
+			if (pickingObj) return; //Si esta bool está a true, retornará, y significa que hemos pulsado ya el mouse y hasta que no soltemos el boton, no se devuelve a false
+
+			//llevamos un punto 2D a un espacio 3D (mouse position -> escene)
+			float normalizedX = (2.0f * mouseX) / currentPanelSize.x - 1.0f;
+			float normalizedY = ((2.0f * mouseY) / currentPanelSize.y - 1.0f) * -1.0f;
+			glm::vec3 clipSpaceCoordinates(normalizedX, normalizedY, 1.0);
+
+			glm::vec4 homogenousCoordinates = glm::inverse(m_EditorCamera.GetCamera().GetProjectionMatrix() *
+				m_EditorCamera.GetCamera().GetViewMatrix()) * glm::vec4(clipSpaceCoordinates, 1.0);
+			glm::vec3 worldCoordinates = glm::vec3(homogenousCoordinates / homogenousCoordinates.w);
+
+
+			//Preparamos el rayo para lanzarlo desde la camara hasta la posicion del mouse ya convertido al espacio 3D
+			glm::vec3 rayOrigin = m_EditorCamera.GetCamera().GetPosition();
+			glm::vec3 rayDirection = glm::normalize(worldCoordinates - rayOrigin);
+			glm::vec3 rayEnd = glm::vec3(0.0);
+
+
+			entitiesInRay.clear();
+
+			auto viewMeshRendererComponent = RegistrySingleton::getRegistry().view<MeshRendererComponent>();
+			for (auto entity : viewMeshRendererComponent)
 			{
-				cursorOverSelectEntityDialog = true;
+				MeshRendererComponent meshRendererComponent = viewMeshRendererComponent.get<MeshRendererComponent>(entity);
+
+				// Obtener la matriz de transformación actual
+				const glm::mat4& transform = meshRendererComponent.model_transform_matrix;
+
+				// Transformar los vértices min y max de la Bounding Box
+				glm::vec3 transformedMin = glm::vec3(transform * glm::vec4(meshRendererComponent.meshData->minBounds, 1.0f));
+				glm::vec3 transformedMax = glm::vec3(transform * glm::vec4(meshRendererComponent.meshData->maxBounds, 1.0f));
+
+				// Verificar la intersección del rayo
+				if (rayIntersectsBoundingBox(rayOrigin, rayDirection, transformedMin, transformedMax))
+				{
+					Entity selectedEntity(entity, this);
+					entitiesInRay.push_back(selectedEntity);
+				}
+			}
+
+			int entitiesInRaySize = entitiesInRay.size();
+
+
+			//Si ya hay algo seleccionado lo apaga
+			Entity selectedEntity = sceneHierarchyPanel->GetSelectedEntity();
+			if (selectedEntity)
+			{
+				if (selectedEntity.HasComponent<MeshRendererComponent>())
+				{
+					selectedEntity.GetComponent<MeshRendererComponent>().drawLocalBB = false;
+				}
+			}
+			sceneHierarchyPanel->SetSelectedEntity({});
+
+
+			if (entitiesInRaySize == 0)
+			{
+				selectingEntity = false;
 			}
 			else
 			{
-				cursorOverSelectEntityDialog = false;
+				if (entitiesInRaySize == 1)
+				{
+					sceneHierarchyPanel->SetSelectedEntity(entitiesInRay[0]);
+					entitiesInRay[0].GetComponent<MeshRendererComponent>().drawLocalBB = true;
+					selectingEntity = false;
+				}
+				else if (entitiesInRaySize > 1)
+				{
+					selectingEntity = true;
+				}
 			}
-
-			for (size_t i = 0; i < entitiesInRay.size(); ++i)
-			{
-				//if (ImGui::Selectable(entitiesInRay[i]->name.c_str()))
-				//{
-				//	Application::gameObjectManager->m_SelectedEntity = entitiesInRay[i];
-				//	selectingEntity = false;
-				//	if (Application::gameObjectManager->m_SelectedEntity) //Si hemos obtenido un objeto, revisamos si tiene posibilidad de drawable y en ese caso activamos su BB
-				//		if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>()) 
-				//			Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = true;
-				//}
-			}
-			ImGui::EndPopup();
+			
+			//Flag para evitar que se vuelva a pasar por esta funcion hasta que se levante el dedo del boton del mouse
+			pickingObj = true;
 		}
-		//---------------------------------------------------------------------------------------------------
-    }
-
-
-	void Scene::getModelPathFromAssets(ImportOptions importOptions)
-	{
-		/*importOptions.modelID = rendererManager->entitiesInScene.size() + 1;
-		Application::gameObjectManager->loadFileModel(importOptions);*/
-	}
-	
-
-
-	void Scene::CheckIfPointerIsOverObject()
-	{
-		//float mouseX, mouseY;
-		//std::tie(mouseX, mouseY) = InputManager::Instance().GetMousePosition();
-
-		//mouseX += scenePos.x;
-		//mouseY -= scenePos.y;
-
-		//if (ImGuizmo::IsOver() || ImGuizmo::IsUsing())
-		//{
-		//	return;
-		//}
-
-		//if (selectingEntity == true)
-		//{
-		//	return;
-		//}
-
-		//selectingEntity = false;
-
-
-		//if (InputManager::Instance().IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_LEFT) && mouseInScene)
-		//{
-		//	pickingObj = false;
-		//}
-
-		//// Aquí empieza el raycasting
-		//if (InputManager::Instance().IsMouseButtonDown(GLFW_MOUSE_BUTTON_LEFT) && mouseInScene)
-		//{
-		//	if (pickingObj) return; //Si esta bool está a true, retornará, y significa que hemos pulsado ya el mouse y hasta que no soltemos el boton, no se devuelve a false
-
-		//	if (Application::gameObjectManager->m_SelectedEntity != nullptr) //Si ya existe un objeto seleccionado y tiene drawable, desactivamos su BB
-		//		if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>()) Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = false;
-
-		//	Application::gameObjectManager->m_SelectedEntity = nullptr; //Reset de la variable que almacena la entity seleccioanda preparandola para recibit o no una nueva selección
-
-		//	//llevamos un punto 2D a un espacio 3D (mouse position -> escene)
-		//	float normalizedX = (2.0f * mouseX) / currentPanelSize.x - 1.0f;
-		//	float normalizedY = ((2.0f * mouseY) / currentPanelSize.y - 1.0f) * -1.0f;
-		//	glm::vec3 clipSpaceCoordinates(normalizedX, normalizedY, 1.0);
-
-		//	glm::vec4 homogenousCoordinates = glm::inverse(m_EditorCamera.GetCamera().GetProjectionMatrix() *
-		//		m_EditorCamera.GetCamera().GetViewMatrix()) * glm::vec4(clipSpaceCoordinates, 1.0);
-		//	glm::vec3 worldCoordinates = glm::vec3(homogenousCoordinates / homogenousCoordinates.w);
-
-
-		//	//Preparamos el rayo para lanzarlo desde la camara hasta la posicion del mouse ya convertido al espacio 3D
-		//	glm::vec3 rayOrigin = m_EditorCamera.GetCamera().GetPosition();
-		//	glm::vec3 rayDirection = glm::normalize(worldCoordinates - rayOrigin);
-		//	glm::vec3 rayEnd = glm::vec3(0.0);
-
-
-		//	//La lista de entidades actual que vamos a comprobar si atraviensan el rayo
-		//	std::vector<ECS::Entity*> entities = Application::gameObjectManager->manager.getAllEntities();
-
-
-		//	entitiesInRay.clear();
-		//	//Recorremos la lista de entidades 
-		//	for (int i = 0; i < entities.size(); i++)
-		//	{
-		//		if (entities[i]->hascomponent<ECS::MeshRenderer>())
-		//		{
-		//			// Obtener la matriz de transformación actual
-		//			const glm::mat4& transform = entities[i]->getComponent<ECS::MeshRenderer>().model_transform_matrix;
-
-		//			// Transformar los vértices min y max de la Bounding Box
-		//			glm::vec3 transformedMin = glm::vec3(transform * glm::vec4(entities[i]->getComponent<ECS::MeshRenderer>().meshData.minBounds, 1.0f));
-		//			glm::vec3 transformedMax = glm::vec3(transform * glm::vec4(entities[i]->getComponent<ECS::MeshRenderer>().meshData.maxBounds, 1.0f));
-
-		//			// Verificar la intersección del rayo
-		//			if (rayIntersectsBoundingBox(rayOrigin, rayDirection, transformedMin, transformedMax))
-		//			{
-		//				entitiesInRay.push_back(entities[i]);
-		//			}
-		//		}
-		//	}
-
-		//	
-		//	if (entitiesInRay.size() > 1)
-		//	{
-		//		selectingEntity = true;
-		//	}
-		//	else if (entitiesInRay.size() > 0)
-		//	{
-		//		Application::gameObjectManager->m_SelectedEntity = entitiesInRay[0];
-		//		entitiesInRay.clear();
-		//		if (Application::gameObjectManager->m_SelectedEntity) //Si hemos obtenido un objeto, revisamos si tiene posibilidad de drawable y en ese caso activamos su BB
-		//			if (Application::gameObjectManager->m_SelectedEntity->hascomponent<ECS::MeshRenderer>()) Application::gameObjectManager->m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = true;
-		//	}
-
-		//	//Flag para evitar que se vuelva a pasar por esta funcion hasta que se levante el dedo del boton del mouse
-		//	pickingObj = true;
-		//}
 	}
 	bool Scene::rayIntersectsBoundingBox(const glm::vec3& rayOrigin, const glm::vec3& rayDirection, glm::vec3 boxMin, glm::vec3 boxMax)
 	{
@@ -926,6 +1297,51 @@ namespace GLCore {
 
 		return true;
 	}
-
 	void Scene::shutdown() {}
+
+
+
+
+	template<typename T>
+	void Scene::OnComponentAdded(Entity entity, T& component)
+	{
+		//static_assert(sizeof(T) == 0);
+	}
+
+	template<>
+	void Scene::OnComponentAdded<IDComponent>(Entity entity, IDComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentAdded<TransformComponent>(Entity entity, TransformComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentAdded<MeshFilterComponent>(Entity entity, MeshFilterComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentAdded<MeshRendererComponent>(Entity entity, MeshRendererComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentAdded<MaterialComponent>(Entity entity, MaterialComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentAdded<DirectionalLightComponent>(Entity entity, DirectionalLightComponent& component)
+	{
+		
+	}	
+
+	template<>
+	void Scene::OnComponentAdded<ParentComponent>(Entity entity, ParentComponent& component){}
+
+	template<>
+	void Scene::OnComponentAdded<ChildrenComponent>(Entity entity, ChildrenComponent& component){}
 }

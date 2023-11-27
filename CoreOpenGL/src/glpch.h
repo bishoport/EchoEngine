@@ -2,6 +2,21 @@
 
 #include <iostream>
 #include <memory>
+
+
+template<typename T>
+using Ref = std::shared_ptr<T>;
+template<typename T, typename ... Args>
+constexpr Ref<T> CreateRef(Args&& ... args)
+{
+    return std::make_shared<T>(std::forward<Args>(args)...);
+}
+
+
+
+
+
+
 #include <utility>
 #include <algorithm>
 #include <functional>
@@ -30,6 +45,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+
 
 
 #include "GLCore/Core/Events/EventManager.h"
@@ -70,3 +86,4 @@ enum class MainMenuAction {
     ReloadComponents,
     LiberateDLL
 };
+

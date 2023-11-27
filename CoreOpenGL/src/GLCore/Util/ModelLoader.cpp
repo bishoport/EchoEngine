@@ -75,7 +75,7 @@ namespace GLCore::Utils
             ModelInfo modelInfo;
             
             modelInfo.meshData = ModelLoader::ProcessMesh(mesh, scene, finalTransform, importOptions);
-            modelInfo.model_material = ModelLoader::ProcessMaterials(mesh, scene, finalTransform, importOptions);
+            modelInfo.model_textures = ModelLoader::ProcessMaterials(mesh, scene, finalTransform, importOptions);
             
             modelParent.modelInfos.push_back(modelInfo);
         }
@@ -86,11 +86,12 @@ namespace GLCore::Utils
         }
     }
 
-    GLCore::MeshData ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, aiMatrix4x4 finalTransform, ImportOptions importOptions) {
+    Ref<GLCore::MeshData> ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, aiMatrix4x4 finalTransform, ImportOptions importOptions) {
 
-        MeshData meshData;
+        //MeshData meshData;
+        auto meshData = std::make_shared<GLCore::MeshData>();
 
-        meshData.meshLocalPosition = glm::vec3(finalTransform.a4, finalTransform.b4, finalTransform.c4);
+        meshData->meshLocalPosition = glm::vec3(finalTransform.a4, finalTransform.b4, finalTransform.c4);
 
         //Reset de la posicion original para que nos devuelva la matriz en la posicion 0,0,0
         finalTransform.a4 = 0.0;
@@ -104,8 +105,8 @@ namespace GLCore::Utils
                 mesh->mVertices[0].y,
                 mesh->mVertices[0].z,
                 1);
-            meshData.minBounds = glm::vec3(firstVertex.x, firstVertex.y, firstVertex.z);
-            meshData.maxBounds = meshData.minBounds;
+            meshData->minBounds = glm::vec3(firstVertex.x, firstVertex.y, firstVertex.z);
+            meshData->maxBounds = meshData->minBounds;
         }
 
 
@@ -119,9 +120,9 @@ namespace GLCore::Utils
                 mesh->mVertices[i].z,
                 1);
 
-            meshData.vertexBuffer.push_back(pos.x);
-            meshData.vertexBuffer.push_back(pos.y);
-            meshData.vertexBuffer.push_back(pos.z);
+            meshData->vertexBuffer.push_back(pos.x);
+            meshData->vertexBuffer.push_back(pos.y);
+            meshData->vertexBuffer.push_back(pos.z);
 
 
             //-Coordenadas de textura
@@ -133,8 +134,8 @@ namespace GLCore::Utils
                     mesh->mTextureCoords[0][i].y
                 };
             }
-            meshData.vertexBuffer.push_back(texcoord.x);
-            meshData.vertexBuffer.push_back(texcoord.y);
+            meshData->vertexBuffer.push_back(texcoord.x);
+            meshData->vertexBuffer.push_back(texcoord.y);
 
 
             //-Normales
@@ -144,9 +145,9 @@ namespace GLCore::Utils
                 mesh->mNormals[i].z,
                 1);
 
-            meshData.vertexBuffer.push_back(norm.x);
-            meshData.vertexBuffer.push_back(norm.y);
-            meshData.vertexBuffer.push_back(norm.z);
+            meshData->vertexBuffer.push_back(norm.x);
+            meshData->vertexBuffer.push_back(norm.y);
+            meshData->vertexBuffer.push_back(norm.z);
 
 
 
@@ -158,8 +159,8 @@ namespace GLCore::Utils
                 mesh->mVertices[i].z,
                 1);
             glm::vec3 transformedVertex = glm::vec3(posFinal.x, posFinal.y, posFinal.z);
-            meshData.minBounds = glm::min(meshData.minBounds, transformedVertex);
-            meshData.maxBounds = glm::max(meshData.maxBounds, transformedVertex);
+            meshData->minBounds = glm::min(meshData->minBounds, transformedVertex);
+            meshData->maxBounds = glm::max(meshData->maxBounds, transformedVertex);
         }
 
 
@@ -167,67 +168,75 @@ namespace GLCore::Utils
         for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
             aiFace face = mesh->mFaces[i];
             for (unsigned int j = 0; j < face.mNumIndices; j++) {
-                meshData.indices.push_back(face.mIndices[j]);
+                meshData->indices.push_back(face.mIndices[j]);
             }
         }
-        meshData.indexCount = meshData.indices.size();
+        meshData->indexCount = meshData->indices.size();
 
 
         //-MESH ID
         std::string meshNameBase = mesh->mName.C_Str();
         meshNameBase.append(" id:");
-        meshData.meshName = meshNameBase + std::to_string(importOptions.modelID);
+        meshData->meshName = meshNameBase + std::to_string(importOptions.modelID);
 
+
+        GLCore::Render::PrimitivesHelper::GenerateBuffers(*meshData);
+        GLCore::Render::PrimitivesHelper::SetupMeshAttributes(*meshData);
+        meshData->PrepareAABB();
 
         return meshData;
     }
 
-    GLCore::Material ModelLoader::ProcessMaterials(aiMesh* mesh, const aiScene* scene, aiMatrix4x4 finalTransform, ImportOptions importOptions)
+    Ref<MaterialData> ModelLoader::ProcessMaterials(aiMesh* mesh, const aiScene* scene, aiMatrix4x4 finalTransform, ImportOptions importOptions)
     {
         //EMPIEZAN LOS MATERIALES
-        const aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
-
-        Material material;
-
-        aiString texturePath;
+        Ref<MaterialData> materialData  = std::make_shared<GLCore::MaterialData>();
+        
 
         //COLOR DIFUSSE
         aiColor3D color(0.f, 0.f, 0.f);
+        const aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
         mat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
-        material.color.r = color.r;
-        material.color.g = color.g;
-        material.color.b = color.b;
+
+        materialData->color.r = color.r;
+        materialData->color.g = color.g;
+        materialData->color.b = color.b;
 
 
         // Agregamos la carga de la textura ALBEDO aquí
+        aiString texturePath;
         if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath) == AI_SUCCESS)
         {
             std::string completePathTexture = importOptions.filePath + texturePath.C_Str();
-            Texture texture;
+            
+            //Texture texture;
+            Ref<Texture> texture = std::make_shared<GLCore::Texture>();
+            
             auto loadedImage = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str(), importOptions.filePath);
-            if (loadedImage.pixels != nullptr) {
-                texture.image = std::move(loadedImage);
-                texture.image.path = completePathTexture;
-                texture.hasMap = true;
-                material.albedoMap = texture;
+            
+            if (loadedImage->pixels != nullptr) {
+                texture->image = std::move(loadedImage);
+                texture->image->path = completePathTexture;
+                texture->hasMap = true;
+                materialData->albedoMap = texture;
             }
             else
             {
                 std::string defaultPathTexture = "assets/default/default_white.jpg";
-                texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
-                texture.image.path = defaultPathTexture;
-                texture.hasMap = true;
-                material.albedoMap = texture;
+                texture->image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
+                texture->image->path = defaultPathTexture;
+                texture->hasMap = true;
+                materialData->albedoMap = texture;
             }
         }
         else
         {
-            Texture texture;
+            Ref<Texture> texture = std::make_shared<GLCore::Texture>();
             std::string defaultPathTexture = "assets/default/default_white.jpg";
-            texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
-            texture.image.path = defaultPathTexture;
-            texture.hasMap = true;
-            material.albedoMap = texture;
+            texture->image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
+            texture->image->path = defaultPathTexture;
+            texture->hasMap = true;
+            materialData->albedoMap = texture;
         }
 
 
@@ -238,33 +247,33 @@ namespace GLCore::Utils
         {
             std::string completePathTexture = importOptions.filePath + texturePath.C_Str();
 
-            Texture texture;
+            Ref<Texture> texture = std::make_shared<GLCore::Texture>();
 
             auto loadedImage = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str(), importOptions.filePath);
 
-            if (loadedImage.pixels != nullptr) {
-                texture.image = std::move(loadedImage);
-                texture.image.path = completePathTexture;
-                texture.hasMap = true;
-                material.normalMap = texture;
+            if (loadedImage->pixels != nullptr) {
+                texture->image = std::move(loadedImage);
+                texture->image->path = completePathTexture;
+                texture->hasMap = true;
+                materialData->normalMap = texture;
             }
             else 
             {
                 std::string defaultPathTexture = "assets/default/default_normal.jpg";
-                texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
-                texture.image.path = defaultPathTexture;
-                texture.hasMap = true;
-                material.normalMap = texture;
+                texture->image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
+                texture->image->path = defaultPathTexture;
+                texture->hasMap = true;
+                materialData->normalMap = texture;
             }
         }
         else
         {
             std::string defaultPathTexture = "assets/default/default_normal.jpg";
-            Texture texture;
-            texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
-            texture.image.path = defaultPathTexture;
-            texture.hasMap = true;
-            material.normalMap = texture;
+            Ref<Texture> texture = std::make_shared<GLCore::Texture>();
+            texture->image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
+            texture->image->path = defaultPathTexture;
+            texture->hasMap = true;
+            materialData->normalMap = texture;
         }
 
 
@@ -274,31 +283,31 @@ namespace GLCore::Utils
         if (mat->GetTexture(aiTextureType_METALNESS, 0, &texturePath) == AI_SUCCESS)
         {
             std::string completePathTexture = importOptions.filePath + texturePath.C_Str();
-            Texture texture;
+            Ref<Texture> texture = std::make_shared<GLCore::Texture>();
             auto loadedImage = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str(), importOptions.filePath);
-            if (loadedImage.pixels != nullptr) {
-                texture.image = std::move(loadedImage);
-                texture.image.path = completePathTexture;
-                texture.hasMap = true;
-                material.metallicMap = texture;
+            if (loadedImage->pixels != nullptr) {
+                texture->image = std::move(loadedImage);
+                texture->image->path = completePathTexture;
+                texture->hasMap = true;
+                materialData->metallicMap = texture;
             }
             else
             {
                 std::string defaultPathTexture = "assets/default/default_black.jpg";
-                texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
-                texture.image.path = defaultPathTexture;
-                texture.hasMap = true;
-                material.metallicMap = texture;
+                texture->image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
+                texture->image->path = defaultPathTexture;
+                texture->hasMap = true;
+                materialData->metallicMap = texture;
             }
         }
         else
         {
-            Texture texture;
+            Ref<Texture> texture = std::make_shared<GLCore::Texture>();
             std::string defaultPathTexture = "assets/default/default_black.jpg";
-            texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
-            texture.image.path = defaultPathTexture;
-            texture.hasMap = true;
-            material.metallicMap = texture;
+            texture->image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
+            texture->image->path = defaultPathTexture;
+            texture->hasMap = true;
+            materialData->metallicMap = texture;
         }
 
 
@@ -308,31 +317,31 @@ namespace GLCore::Utils
         if (mat->GetTexture(aiTextureType_SHININESS, 0, &texturePath) == AI_SUCCESS)
         {
             std::string completePathTexture = importOptions.filePath + texturePath.C_Str();
-            Texture texture;
+            Ref<Texture> texture = std::make_shared<GLCore::Texture>();
             auto loadedImage = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str(), importOptions.filePath);
-            if (loadedImage.pixels != nullptr) {
-                texture.image = std::move(loadedImage);
-                texture.image.path = completePathTexture;
-                texture.hasMap = true;
-                material.rougnessMap = texture;
+            if (loadedImage->pixels != nullptr) {
+                texture->image = std::move(loadedImage);
+                texture->image->path = completePathTexture;
+                texture->hasMap = true;
+                materialData->rougnessMap = texture;
             } 
             else
             {
                 std::string defaultPathTexture = "assets/default/default_black.jpg";
-                texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
-                texture.image.path = defaultPathTexture;
-                texture.hasMap = true;
-                material.rougnessMap = texture;
+                texture->image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
+                texture->image->path = defaultPathTexture;
+                texture->hasMap = true;
+                materialData->rougnessMap = texture;
             }
         }
         else
         {
-            Texture texture;
+            Ref<Texture> texture = std::make_shared<GLCore::Texture>();
             std::string defaultPathTexture = "assets/default/default_black.jpg";
-            texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
-            texture.image.path = defaultPathTexture;
-            texture.hasMap = true;
-            material.rougnessMap = texture;
+            texture->image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
+            texture->image->path = defaultPathTexture;
+            texture->hasMap = true;
+            materialData->rougnessMap = texture;
         }
 
 
@@ -344,37 +353,55 @@ namespace GLCore::Utils
         {
             std::string completePathTexture = importOptions.filePath + texturePath.C_Str();
 
-            Texture texture;
+            Ref<Texture> texture = std::make_shared<GLCore::Texture>();
 
             auto loadedImage = GLCore::Utils::ImageLoader::loadImage(completePathTexture.c_str(), importOptions.filePath);
 
-            if (loadedImage.pixels != nullptr) {
-                texture.image = std::move(loadedImage);
-                texture.image.path = completePathTexture;
-                texture.hasMap = true;
-                material.aOMap = texture;
+            if (loadedImage->pixels != nullptr) {
+                texture->image = std::move(loadedImage);
+                texture->image->path = completePathTexture;
+                texture->hasMap = true;
+                materialData->aOMap = texture;
             }  
             else
             {
                 std::string defaultPathTexture = "assets/default/default_withe.jpg";
-                texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
-                texture.image.path = defaultPathTexture;
-                texture.hasMap = true;
-                material.aOMap = texture;
+                texture->image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
+                texture->image->path = defaultPathTexture;
+                texture->hasMap = true;
+                materialData->aOMap = texture;
             }
         }
         else
         {
-            Texture texture;
+            Ref<Texture> texture = std::make_shared<GLCore::Texture>();
             std::string defaultPathTexture = "assets/default/default_white.jpg";
-            texture.image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
-            texture.image.path = defaultPathTexture;
-            texture.hasMap = true;
-            material.aOMap = texture;
+            texture->image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture);
+            texture->image->path = defaultPathTexture;
+            texture->hasMap = true;
+            materialData->aOMap = texture;
         }
 
-        material.shininess = 32.0f;
-        return material;
+        materialData->albedoMap->typeString   = "ALBEDO";
+        materialData->normalMap->typeString   = "NORMAL";
+        materialData->metallicMap->typeString = "METALLIC";
+        materialData->rougnessMap->typeString = "ROUGHNESS";
+        materialData->aOMap->typeString       = "AO";
+
+        materialData->albedoMap->type          = TEXTURE_TYPES::ALBEDO;
+        materialData->normalMap->type          = TEXTURE_TYPES::NORMAL;
+        materialData->metallicMap->type        = TEXTURE_TYPES::METALLIC;
+        materialData->rougnessMap->type        = TEXTURE_TYPES::ROUGHNESS;
+        materialData->aOMap->type              = TEXTURE_TYPES::AO;
+
+        materialData->albedoMap->Bind();
+        materialData->normalMap->Bind();
+        materialData->metallicMap->Bind();
+        materialData->rougnessMap->Bind();
+        materialData->aOMap->Bind();
+
+
+        return materialData;
     }
 
     glm::mat4 ModelLoader::aiMatrix4x4ToGlm(const aiMatrix4x4& from)

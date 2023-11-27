@@ -14,50 +14,6 @@
 namespace GLCore 
 {
 
-	struct TransformComponent
-	{
-		glm::vec3 position;
-		glm::quat rotation;
-		glm::vec3 scale;
-		glm::mat4 m_modelMatrix;
-	};
-
-
-	struct MeshFilterComponent
-	{
-		GLCore::MeshData meshData;
-		GLCore::MODEL_TYPES modelType = GLCore::MODEL_TYPES::NONE;
-		std::string modelPath = "none";
-	};
-
-	struct MeshRendererComponent
-	{
-		GLCore::MeshData meshData;
-		std::string currentShaderName = "pbr_ibl";
-		bool visibleModel = true;
-		bool drawLocalBB = false;
-		bool dropShadow = true;
-	};
-
-	struct MaterialComponent
-	{
-		std::unique_ptr<GLCore::Material> material = nullptr;
-		std::string currentShaderName = "pbr_ibl";
-		glm::ivec2 repetitionFactor = glm::ivec2(1, 1);
-
-		//Defaults
-		glm::vec3 defaultColor = glm::vec3(1.0f, 1.0f, 1.0f);
-		
-		std::string defaultAlbedoMap    = "assets/default/default_white.jpg";
-		std::string defaultNormalMap	= "assets/default/default_normal.jpg";
-		std::string defaultMetallicMap  = "assets/default/default_black.jpg";
-		std::string defaultRoughnessMap = "assets/default/default_black.jpg";
-		std::string defaultAOMap		= "assets/default/default_white.jpg";
-	};
-
-
-
-
 	class GameObjectManager
 	{
 	public:

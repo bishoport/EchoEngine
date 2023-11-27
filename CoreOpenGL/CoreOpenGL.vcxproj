@@ -135,15 +135,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\ECS\Entity.cpp" />
-    <ClCompile Include="src\ECS\Manager.cpp" />
-    <ClCompile Include="src\ECS\Transform.cpp" />
     <ClCompile Include="src\GLCore\Core\Application.cpp" />
     <ClCompile Include="src\GLCore\Core\AssetsPanel.cpp" />
+    <ClCompile Include="src\GLCore\Core\Entity.cpp" />
     <ClCompile Include="src\GLCore\Core\GameObjectManager.cpp" />
     <ClCompile Include="src\GLCore\Core\GuiLayer.cpp" />
     <ClCompile Include="src\GLCore\Core\Input\InputManager.cpp" />
     <ClCompile Include="src\GLCore\Core\Log.cpp" />
+    <ClCompile Include="src\GLCore\Core\SceneHierarchyPanel.cpp" />
+    <ClCompile Include="src\GLCore\Core\UUID.cpp" />
     <ClCompile Include="src\GLCore\Render\FBOManager.cpp" />
     <ClCompile Include="src\GLCore\Render\RendererManager.cpp" />
     <ClCompile Include="src\GLCore\Util\DynamicSkybox.cpp" />
@@ -170,23 +170,10 @@
     <ClCompile Include="vendor\imgui\imgui_widgets.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\ECS\Camera.h" />
-    <ClInclude Include="src\ECS\Car.h" />
-    <ClInclude Include="src\ECS\CharacterController.h" />
-    <ClInclude Include="src\ECS\Component.h" />
-    <ClInclude Include="src\ECS\ComponentsIncludes.h" />
-    <ClInclude Include="src\ECS\DirectionalLight.h" />
+    <ClInclude Include="src\GLCore\Core\Components.h" />
+    <ClInclude Include="src\GLCore\Core\Entity.h" />
     <ClInclude Include="src\GLCore\Core\GameObjectManager.h" />
-    <ClInclude Include="src\ECS\Entity.h" />
-    <ClInclude Include="src\ECS\Manager.h" />
-    <ClInclude Include="src\ECS\Material.h" />
-    <ClInclude Include="src\ECS\PointLight.h" />
-    <ClInclude Include="src\ECS\SpotLight.h" />
-    <ClInclude Include="src\ECS\Transform.h" />
     <ClInclude Include="src\GLCore\Core\Application.h" />
-    <ClInclude Include="src\ECS\ECS.h" />
-    <ClInclude Include="src\ECS\MeshFilter.h" />
-    <ClInclude Include="src\ECS\MeshRenderer.h" />
     <ClInclude Include="src\GLCore\Core\AssetsPanel.h" />
     <ClInclude Include="src\GLCore\Core\Core.h" />
     <ClInclude Include="src\GLCore\Core\Events\EventManager.h" />
@@ -194,14 +181,17 @@
     <ClInclude Include="src\GLCore\Core\Input\KeyCodes.h" />
     <ClInclude Include="src\GLCore\Core\Log.h" />
     <ClInclude Include="src\GLCore\Core\Input\MouseButtonCodes.h" />
-    <ClInclude Include="src\ECS\ProjectManager.h" />
+    <ClInclude Include="src\GLCore\Core\RegistrySingleton.h" />
+    <ClInclude Include="src\GLCore\Core\SceneHierarchyPanel.h" />
     <ClInclude Include="src\GLCore\Core\Timestep.h" />
+    <ClInclude Include="src\GLCore\Core\UUID.h" />
     <ClInclude Include="src\GLCore\Render\FBOManager.h" />
     <ClInclude Include="src\GLCore\Render\RendererManager.h" />
     <ClInclude Include="src\GLCore\Util\DynamicSkybox.h" />
     <ClInclude Include="src\GLCore\Util\GridWorldReference.h" />
     <ClInclude Include="src\GLCore\Util\IBLManager.h" />
     <ClInclude Include="src\GLCore\Util\IMGLoader.h" />
+    <ClInclude Include="src\GLCore\Render\MaterialHelper.h" />
     <ClInclude Include="src\GLCore\Util\ModelLoader.h" />
     <ClInclude Include="src\GLCore\Util\PerspectiveCamera.h" />
     <ClInclude Include="src\GLCore\Util\PerspectiveCameraController.h" />

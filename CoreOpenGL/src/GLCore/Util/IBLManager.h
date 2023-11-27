@@ -20,7 +20,7 @@ namespace GLCore::Utils
         void prepare_PBR_IBL(int screenWidth, int screenHeight);
         //----------------------------------------------------
 
-
+        GLuint m_hdrTexture;
     private:
 
         GLuint cubeVAO = 0;
@@ -28,7 +28,7 @@ namespace GLCore::Utils
         GLuint quadVAO = 0;
         GLuint quadVBO = 0;
 
-        GLuint m_hdrTexture;
+        
 
         void renderCube();
         void renderQuad();

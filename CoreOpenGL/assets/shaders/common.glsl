@@ -25,6 +25,8 @@ struct Material {
     float hdrIntensity;
     float exposure;
     float gamma;
+    float max_reflection_lod;
+    float iblIntensity;
 };
 
 struct DirLight {

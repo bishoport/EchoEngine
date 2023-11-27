@@ -2,6 +2,7 @@
 
 #include "../Render/PrimitivesHelper.h"
 #include "../Util/ModelLoader.h"
+#include "Components.h"
 
 
 
@@ -25,7 +26,7 @@ namespace GLCore
 			glm::vec3(1.0f)  // escala inicial
 			);
 
-		if (action == MainMenuAction::AddCube)
+		/*if (action == MainMenuAction::AddCube)
 		{
 			GLCore::MeshData cube = GLCore::Render::PrimitivesHelper::CreateCube();
 
@@ -37,7 +38,7 @@ namespace GLCore
 			m_registry.emplace<MeshRendererComponent>(entity,
 				cube
 				);
-		}
+		}*/
 	}
 
 	void GameObjectManager::drawHierarchy()
@@ -46,23 +47,10 @@ namespace GLCore
 		ImGui::Begin("Hierarchy", nullptr);
 
 		auto view = m_registry.view<TransformComponent>();
+
 		for (auto entity : view)
 		{
-			std::string treeLabel = entity.
-
-			bool treeOpen = ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, treeLabel.c_str());
-
-			if (ImGui::IsItemClicked()) // Select on (left) click
-			{
-				if (m_SelectedEntity != nullptr)
-				{
-					if (m_SelectedEntity->hascomponent<ECS::MeshRenderer>())
-					{
-						m_SelectedEntity->getComponent<ECS::MeshRenderer>().drawLocalBB = false;
-					}
-				}
-				m_SelectedEntity = manager.getAllEntities()[i];
-			}
+		
 		}
 
 
@@ -352,7 +340,7 @@ namespace GLCore
 					entityChild->getComponent<ECS::MeshFilter>().modelType = EXTERNAL_FILE;
 					entityChild->getComponent<ECS::MeshFilter>().modelPath = importOptions.filePath + importOptions.fileName;
 					entityChild->addComponent<ECS::MeshRenderer>();
-					entityChild->addComponent<ECS::Material>().setMaterial(modelParent.modelInfos[i].model_material);
+					entityChild->addComponent<ECS::Material>().setMaterial(modelParent.modelInfos[i].model_textures);
 
 					entityChild->getComponent<ECS::Transform>().parent = entityParent;
 					entityParent->getComponent<ECS::Transform>().children.push_back(entityChild);
@@ -364,7 +352,7 @@ namespace GLCore
 				entityParent->getComponent<ECS::MeshFilter>().modelType = EXTERNAL_FILE;
 				entityParent->getComponent<ECS::MeshFilter>().modelPath = importOptions.filePath + importOptions.fileName;
 				entityParent->addComponent<ECS::MeshRenderer>();
-				entityParent->addComponent<ECS::Material>().setMaterial(modelParent.modelInfos[0].model_material);
+				entityParent->addComponent<ECS::Material>().setMaterial(modelParent.modelInfos[0].model_textures);
 				entityParent->name = modelParent.modelInfos[0].meshData.meshName + std::to_string(0);
 			}
 

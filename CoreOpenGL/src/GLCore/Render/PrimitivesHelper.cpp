@@ -92,9 +92,9 @@ namespace GLCore::Render {
         return bbox;
     }
 
-    GLCore::MeshData PrimitivesHelper::CreateQuad() {
+    Ref<GLCore::MeshData> PrimitivesHelper::CreateQuad() {
 
-        GLCore::MeshData meshData;
+        auto meshData = std::make_shared<GLCore::MeshData>();
 
         std::vector<GLfloat> vertexBuffer = {
              // positions        // texture Coords      // normals
@@ -109,34 +109,37 @@ namespace GLCore::Render {
             1, 3, 2
         };
 
-        meshData.vertexBuffer = vertexBuffer;
-        meshData.indices = indices;
+        meshData->vertexBuffer = vertexBuffer;
+        meshData->indices = indices;
 
-        meshData.indexCount = indices.size();
+        meshData->indexCount = indices.size();
 
         //--------------------CALCULATE AABB
         std::vector<float> posiciones;
-        for (size_t i = 0; i < meshData.vertexBuffer.size(); i += 8) {
-            posiciones.push_back(meshData.vertexBuffer[i]);
-            posiciones.push_back(meshData.vertexBuffer[i + 1]);
-            posiciones.push_back(meshData.vertexBuffer[i + 2]);
+        for (size_t i = 0; i < meshData->vertexBuffer.size(); i += 8) {
+            posiciones.push_back(meshData->vertexBuffer[i]);
+            posiciones.push_back(meshData->vertexBuffer[i + 1]);
+            posiciones.push_back(meshData->vertexBuffer[i + 2]);
         }
         BoundingBox bbox = CalculateBoundingBox(posiciones);
 
         //bbox.min.x = -0.01f; // Establecer una altura mínima
         //bbox.max.y = 0.01f;  // Establecer una altura máxima
 
-        meshData.minBounds = bbox.min;
-        meshData.maxBounds = bbox.max;
+        meshData->minBounds = bbox.min;
+        meshData->maxBounds = bbox.max;
         //-------------------------------------------------------------------
 
+        GLCore::Render::PrimitivesHelper::GenerateBuffers(*meshData);
+        GLCore::Render::PrimitivesHelper::SetupMeshAttributes(*meshData);
+        meshData->PrepareAABB();
 
         return meshData;
     }
 
-    GLCore::MeshData PrimitivesHelper::CreatePlane()
+    Ref<GLCore::MeshData> PrimitivesHelper::CreatePlane()
     {
-        GLCore::MeshData meshData;
+        auto meshData = std::make_shared<GLCore::MeshData>();
 
         const int divisions = 10;
         const float size = 10.0f; // tamaño del plano completo
@@ -146,18 +149,18 @@ namespace GLCore::Render {
         for (int i = 0; i <= divisions; i++) {
             for (int j = 0; j <= divisions; j++) {
                 // Posiciones
-                meshData.vertexBuffer.push_back(j * step - halfSize); // x
-                meshData.vertexBuffer.push_back(0.0f);                // y
-                meshData.vertexBuffer.push_back(i * step - halfSize); // z
+                meshData->vertexBuffer.push_back(j * step - halfSize); // x
+                meshData->vertexBuffer.push_back(0.0f);                // y
+                meshData->vertexBuffer.push_back(i * step - halfSize); // z
 
                 // Coordenadas de textura
-                meshData.vertexBuffer.push_back((float)j / divisions);  // u
-                meshData.vertexBuffer.push_back((float)i / divisions);  // v
+                meshData->vertexBuffer.push_back((float)j / divisions);  // u
+                meshData->vertexBuffer.push_back((float)i / divisions);  // v
 
                 // Normales
-                meshData.vertexBuffer.push_back(0.0f);
-                meshData.vertexBuffer.push_back(1.0f);
-                meshData.vertexBuffer.push_back(0.0f);
+                meshData->vertexBuffer.push_back(0.0f);
+                meshData->vertexBuffer.push_back(1.0f);
+                meshData->vertexBuffer.push_back(0.0f);
             }
         }
 
@@ -168,41 +171,45 @@ namespace GLCore::Render {
                 GLuint bottomLeft = (i + 1) * (divisions + 1) + j;
                 GLuint bottomRight = bottomLeft + 1;
 
-                meshData.indices.push_back(topLeft);
-                meshData.indices.push_back(bottomLeft);
-                meshData.indices.push_back(topRight);
+                meshData->indices.push_back(topLeft);
+                meshData->indices.push_back(bottomLeft);
+                meshData->indices.push_back(topRight);
 
-                meshData.indices.push_back(topRight);
-                meshData.indices.push_back(bottomLeft);
-                meshData.indices.push_back(bottomRight);
+                meshData->indices.push_back(topRight);
+                meshData->indices.push_back(bottomLeft);
+                meshData->indices.push_back(bottomRight);
             }
         }
 
-        meshData.indexCount = meshData.indices.size();
+        meshData->indexCount = meshData->indices.size();
 
 
         //--------------------CALCULATE AABB
         std::vector<float> posiciones;
-        for (size_t i = 0; i < meshData.vertexBuffer.size(); i += 8) {
-            posiciones.push_back(meshData.vertexBuffer[i]);
-            posiciones.push_back(meshData.vertexBuffer[i + 1]);
-            posiciones.push_back(meshData.vertexBuffer[i + 2]);
+        for (size_t i = 0; i < meshData->vertexBuffer.size(); i += 8) {
+            posiciones.push_back(meshData->vertexBuffer[i]);
+            posiciones.push_back(meshData->vertexBuffer[i + 1]);
+            posiciones.push_back(meshData->vertexBuffer[i + 2]);
         }
         BoundingBox bbox = CalculateBoundingBox(posiciones);
 
         bbox.min.y = -0.01f; // Establecer una altura mínima
         bbox.max.y = 0.01f;  // Establecer una altura máxima
 
-        meshData.minBounds = bbox.min;
-        meshData.maxBounds = bbox.max;
+        meshData->minBounds = bbox.min;
+        meshData->maxBounds = bbox.max;
         //-------------------------------------------------------------------
+
+        GLCore::Render::PrimitivesHelper::GenerateBuffers(*meshData);
+        GLCore::Render::PrimitivesHelper::SetupMeshAttributes(*meshData);
+        meshData->PrepareAABB();
 
         return meshData;
     }
 
-    GLCore::MeshData PrimitivesHelper::CreateCube() {
+    Ref<GLCore::MeshData> PrimitivesHelper::CreateCube() {
 
-        GLCore::MeshData meshData;
+        auto meshData = std::make_shared<GLCore::MeshData>();
 
         // Definiendo los 8 vértices del cubo (posición, coordenada de textura y normales)
         std::vector<float> vertexBuffer = {
@@ -250,10 +257,10 @@ namespace GLCore::Render {
             16, 17, 19,  19, 17, 18,
             20, 21, 23,  23, 21, 22
         };
-        meshData.vertexBuffer = vertexBuffer;
-        meshData.indices = indices;
+        meshData->vertexBuffer = vertexBuffer;
+        meshData->indices = indices;
 
-        meshData.indexCount = indices.size();
+        meshData->indexCount = indices.size();
 
         //--------------------CALCULATE AABB
         std::vector<float> posiciones;
@@ -264,16 +271,19 @@ namespace GLCore::Render {
         }
         BoundingBox bbox = CalculateBoundingBox(posiciones);
 
-        meshData.minBounds = bbox.min;
-        meshData.maxBounds = bbox.max;
+        meshData->minBounds = bbox.min;
+        meshData->maxBounds = bbox.max;
         //-------------------------------------------------------------------
 
+        GLCore::Render::PrimitivesHelper::GenerateBuffers(*meshData);
+        GLCore::Render::PrimitivesHelper::SetupMeshAttributes(*meshData);
+        meshData->PrepareAABB();
         return meshData;
     }
 
-    GLCore::MeshData PrimitivesHelper::CreateSegmentedCube(int subdivisions) {
+    Ref<GLCore::MeshData> PrimitivesHelper::CreateSegmentedCube(int subdivisions) {
 
-        GLCore::MeshData meshData;
+        auto meshData = std::make_shared<GLCore::MeshData>();
         float step = 1.0f / (subdivisions + 1);
         std::vector<float> vertexBuffer;
         for (int face = 0; face < 6; ++face) {
@@ -336,22 +346,23 @@ namespace GLCore::Render {
         }
         BoundingBox bbox = CalculateBoundingBox(posiciones);
 
-        meshData.minBounds = bbox.min;
-        meshData.maxBounds = bbox.max;
+        meshData->minBounds = bbox.min;
+        meshData->maxBounds = bbox.max;
 
-        meshData.vertexBuffer = vertexBuffer;
-        meshData.indices = indices;
-        meshData.indexCount = indices.size();
+        meshData->vertexBuffer = vertexBuffer;
+        meshData->indices = indices;
+        meshData->indexCount = indices.size();
+
+        GLCore::Render::PrimitivesHelper::GenerateBuffers(*meshData);
+        GLCore::Render::PrimitivesHelper::SetupMeshAttributes(*meshData);
+        meshData->PrepareAABB();
 
         return meshData;
     }
 
+    Ref<GLCore::MeshData> PrimitivesHelper::CreateSphere(float radius, unsigned int sectorCount, unsigned int stackCount) {
 
-
-
-    GLCore::MeshData PrimitivesHelper::CreateSphere(float radius, unsigned int sectorCount, unsigned int stackCount) {
-
-        GLCore::MeshData meshData;
+        auto meshData = std::make_shared<GLCore::MeshData>();
 
         std::vector<glm::vec3> positions;
         std::vector<glm::vec2> uv;
@@ -378,51 +389,55 @@ namespace GLCore::Render {
         {
             for (unsigned int x = 0; x <= sectorCount; ++x)
             {
-                meshData.indices.push_back(y * (sectorCount + 1) + x);
-                meshData.indices.push_back((y + 1) * (sectorCount + 1) + x);
-                meshData.indices.push_back((y + 1) * (sectorCount + 1) + x + 1);
+                meshData->indices.push_back(y * (sectorCount + 1) + x);
+                meshData->indices.push_back((y + 1) * (sectorCount + 1) + x);
+                meshData->indices.push_back((y + 1) * (sectorCount + 1) + x + 1);
 
-                meshData.indices.push_back(y * (sectorCount + 1) + x);
-                meshData.indices.push_back((y + 1) * (sectorCount + 1) + x + 1);
-                meshData.indices.push_back(y * (sectorCount + 1) + x + 1);
+                meshData->indices.push_back(y * (sectorCount + 1) + x);
+                meshData->indices.push_back((y + 1) * (sectorCount + 1) + x + 1);
+                meshData->indices.push_back(y * (sectorCount + 1) + x + 1);
             }
         }
 
-        meshData.indexCount = meshData.indices.size();
+        meshData->indexCount = meshData->indices.size();
 
         for (unsigned int i = 0; i < positions.size(); ++i)
         {
-            meshData.vertexBuffer.push_back(positions[i].x);
-            meshData.vertexBuffer.push_back(positions[i].y);
-            meshData.vertexBuffer.push_back(positions[i].z);
+            meshData->vertexBuffer.push_back(positions[i].x);
+            meshData->vertexBuffer.push_back(positions[i].y);
+            meshData->vertexBuffer.push_back(positions[i].z);
 
             if (uv.size() > 0)
             {
-                meshData.vertexBuffer.push_back(uv[i].x);
-                meshData.vertexBuffer.push_back(uv[i].y);
+                meshData->vertexBuffer.push_back(uv[i].x);
+                meshData->vertexBuffer.push_back(uv[i].y);
             }
 
             if (normals.size() > 0)
             {
-                meshData.vertexBuffer.push_back(normals[i].x);
-                meshData.vertexBuffer.push_back(normals[i].y);
-                meshData.vertexBuffer.push_back(normals[i].z);
+                meshData->vertexBuffer.push_back(normals[i].x);
+                meshData->vertexBuffer.push_back(normals[i].y);
+                meshData->vertexBuffer.push_back(normals[i].z);
             }
         }
 
 
         //--------------------CALCULATE AABB
         std::vector<float> posiciones;
-        for (size_t i = 0; i < meshData.vertexBuffer.size(); i += 8) {
-            posiciones.push_back(meshData.vertexBuffer[i]);
-            posiciones.push_back(meshData.vertexBuffer[i + 1]);
-            posiciones.push_back(meshData.vertexBuffer[i + 2]);
+        for (size_t i = 0; i < meshData->vertexBuffer.size(); i += 8) {
+            posiciones.push_back(meshData->vertexBuffer[i]);
+            posiciones.push_back(meshData->vertexBuffer[i + 1]);
+            posiciones.push_back(meshData->vertexBuffer[i + 2]);
         }
         BoundingBox bbox = CalculateBoundingBox(posiciones);
 
-        meshData.minBounds = bbox.min;
-        meshData.maxBounds = bbox.max;
+        meshData->minBounds = bbox.min;
+        meshData->maxBounds = bbox.max;
         //-------------------------------------------------------------------
+
+        GLCore::Render::PrimitivesHelper::GenerateBuffers(*meshData);
+        GLCore::Render::PrimitivesHelper::SetupMeshAttributes(*meshData);
+        meshData->PrepareAABB();
 
         return meshData;
     }
