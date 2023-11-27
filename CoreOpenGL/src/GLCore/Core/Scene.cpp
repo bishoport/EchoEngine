@@ -17,12 +17,13 @@
 
 namespace GLCore {
 
+	//--SCENE BOUNDS
 	std::pair<glm::vec3, float> Scene::SceneBounds = { glm::vec3(0.0f), 0.0f };
 
-	//ENTT
+	//--ENTT
 	SceneHierarchyPanel* sceneHierarchyPanel;
 
-	//CONSTRUCTOR
+	//--CONSTRUCTOR
     Scene::Scene() : m_EditorCamera(16.0f / 9.0f) {}
     Scene::~Scene(){shutdown();}
 
@@ -148,12 +149,12 @@ namespace GLCore {
 	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+
 	//--ENTITIES
 	Entity Scene::CreateEntity(const std::string& name)
 	{
 		return CreateEntityWithUUID(UUID(), name);
 	}
-
 	Entity Scene::CreateEntityWithUUID(UUID uuid, const std::string& name)
 	{
 		Entity entity = { RegistrySingleton::getRegistry().create(), this };
@@ -166,12 +167,10 @@ namespace GLCore {
 
 		return entity;
 	}
-
 	Entity Scene::DuplicateEntity(Entity entity)
 	{
 		return Entity();
 	}
-
 	void Scene::DestroyEntity(Entity entity)
 	{
 		entity.RemoveAllComponents();
@@ -183,18 +182,14 @@ namespace GLCore {
 		/*m_EntityMap.erase(entity.GetUUID());
 		*/
 	}
-
-
 	Entity Scene::FindEntityByName(std::string_view name)
 	{
 		return Entity();
 	}
-
 	Entity Scene::GetEntityByUUID(UUID uuid)
 	{
 		return Entity();
 	}
-
 	Entity Scene::GetPrimaryCameraEntity()
 	{
 		return Entity();
@@ -204,7 +199,7 @@ namespace GLCore {
 
 
 
-	//-INIT
+	//--INIT
     bool Scene::initialize()
     {
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -280,7 +275,7 @@ namespace GLCore {
 
 
 
-	//-MAIN LOOP
+	//--MAIN LOOP
     void Scene::update(Timestep deltaTime)
     {
 		//--INPUTS TOOLS
