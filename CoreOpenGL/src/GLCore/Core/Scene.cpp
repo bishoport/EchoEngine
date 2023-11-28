@@ -14,6 +14,8 @@
 #include "../Util/IMGLoader.h"
 #include "../Render/MaterialHelper.h"
 
+#include <windows.h>
+
 
 namespace GLCore {
 
@@ -142,11 +144,11 @@ namespace GLCore {
 		{
 			Entity entity = CreateEntity("Directiona Light");
 			DirectionalLightComponent* directionalLightComponent = &RegistrySingleton::getRegistry().emplace<DirectionalLightComponent>(entity);
-			//directionalLightComponent->prepareShadows();
+			directionalLightComponent->prepareShadows();
 			useDirectionalLight = true;
 		}
 	}
-	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+	//-------------------------------------------------------------------------------------------
 
 
 
@@ -173,6 +175,32 @@ namespace GLCore {
 	}
 	void Scene::DestroyEntity(Entity entity)
 	{
+		if (entity.HasComponent<MeshRendererComponent>())
+		{
+			MeshRendererComponent mr = entity.GetComponent<MeshRendererComponent>();
+			glDeleteVertexArrays(1, &mr.meshData->VAO);
+			glDeleteBuffers(1, &mr.meshData->VBO);
+			glDeleteBuffers(1, &mr.meshData->EBO);
+		}
+
+		if (entity.HasComponent<MaterialComponent>())
+		{
+			MaterialComponent mc = entity.GetComponent<MaterialComponent>();
+			std::vector<Ref<Texture>> textures;
+
+			textures.push_back(mc.materialData->albedoMap);
+			textures.push_back(mc.materialData->normalMap);
+			textures.push_back(mc.materialData->metallicMap);
+			textures.push_back(mc.materialData->rougnessMap);
+			textures.push_back(mc.materialData->aOMap);
+
+			for (size_t i = 0; i < textures.size(); i++)
+			{
+				glDeleteTextures(1, &textures[i]->textureID);
+				textures[i]->hasMap = false;
+			}
+		}
+
 		entity.RemoveAllComponents();
 
 		//size_t numElements = m_EntityMap->size();
@@ -194,7 +222,7 @@ namespace GLCore {
 	{
 		return Entity();
 	}
-	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+	//-----------------------------------------------------------------------------
 
 
 
@@ -213,29 +241,28 @@ namespace GLCore {
 		//--LOAD SHADERS
 		GLCore::Render::ShaderManager::LoadAllShaders();
 	
-		//--SKYBOX
-		std::vector<const char*> faces
-		{
-			"assets/default/Skybox/right.jpg",
-			"assets/default/Skybox/left.jpg",
-			"assets/default/Skybox/top.jpg",
-			"assets/default/Skybox/bottom.jpg",
-			"assets/default/Skybox/front.jpg",
-			"assets/default/Skybox/back.jpg"
-		};
-		skybox = new Utils::Skybox(faces);
-		dynamicSkybox = new Utils::DynamicSkybox(faces);
+		//--IBL
+		iblManager.prepare_PBR_IBL(800, 600);
+		//--------------------------------------------------------------------------------------------------------------------------------
+
+		////--SKYBOX
+		//std::vector<const char*> faces
+		//{
+		//	"assets/default/Skybox/right.jpg",
+		//	"assets/default/Skybox/left.jpg",
+		//	"assets/default/Skybox/top.jpg",
+		//	"assets/default/Skybox/bottom.jpg",
+		//	"assets/default/Skybox/front.jpg",
+		//	"assets/default/Skybox/back.jpg"
+		//};
+		//skybox = new Utils::Skybox(faces);
+		//dynamicSkybox = new Utils::DynamicSkybox(faces);
 		//----------------------------------------------------------------------------------------------------------------------------
 
 
 		//--GRID WORLD REFENRENCE
 		gridWorldRef = new Utils::GridWorldReference();
 		//----------------------------------------------------------------------------------------------------------------------------
-
-
-		//--IBL
-		iblManager.prepare_PBR_IBL(800, 600);
-		//--------------------------------------------------------------------------------------------------------------------------------
 
 
 		//--POST-PROCESS
@@ -271,7 +298,7 @@ namespace GLCore {
 
         return true;
     }
-	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+	//--------------------------------------------------------------------------------
 
 
 
@@ -433,10 +460,15 @@ namespace GLCore {
 	}
 	void GLCore::Scene::RenderPipeline(glm::mat4 cameraProjectionMatrix, glm::mat4 cameraViewMatrix, glm::vec3 cameraPosition, FBO_Data fboData)
 	{
-		//--RENDER-PIPELINE
 
+		for (int i = 0; i <= 12; ++i) {
+			glActiveTexture(GL_TEXTURE0 + i);
+			glBindTexture(GL_TEXTURE_2D, 0); // Desvincula cualquier textura 2D
+		}
+
+		//--RENDER-PIPELINE
+		// 
 		//__1.-SHADOW PASS
-		//rendererManager->passShadow();
 		auto viewDirectionalLight = RegistrySingleton::getRegistry().view<TransformComponent,DirectionalLightComponent>();
 		for (auto entity : viewDirectionalLight)
 		{
@@ -450,7 +482,11 @@ namespace GLCore {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-			glm::mat4 shadowProjMat = glm::ortho(directionalLightComponent.orthoLeft, directionalLightComponent.orthoRight, directionalLightComponent.orthoBottom, directionalLightComponent.orthoTop, directionalLightComponent.orthoNear, directionalLightComponent.orthoFar);
+			glm::mat4 shadowProjMat = glm::ortho(directionalLightComponent.orthoLeft, 
+												 directionalLightComponent.orthoRight, 
+												 directionalLightComponent.orthoBottom, 
+												 directionalLightComponent.orthoTop, directionalLightComponent.orthoNear,   directionalLightComponent.orthoFar);
+
 			glm::mat4 shadowViewMat = glm::lookAt(transformComponent.position, directionalLightComponent.direction, glm::vec3(0, 1, 0));
 
 			directionalLightComponent.shadowMVP = shadowProjMat * shadowViewMat;
@@ -607,20 +643,24 @@ namespace GLCore {
 
 			GLCore::Render::ShaderManager::Get("pbr_ibl")->use();
 
+
 			glActiveTexture(GL_TEXTURE0 + SlotTextureCounter);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.envCubemap);
 			GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("brdfLUT", SlotTextureCounter);
 			SlotTextureCounter++;
-			glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.envCubemap);
+			
 
 			glActiveTexture(GL_TEXTURE0 + SlotTextureCounter);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.irradianceMap); // display irradiance map
 			GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("irradianceMap", SlotTextureCounter);
 			SlotTextureCounter++;
-			glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.irradianceMap); // display irradiance map
+			
 
 			glActiveTexture(GL_TEXTURE0 + SlotTextureCounter);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.prefilterMap);  // display prefilter map
 			GLCore::Render::ShaderManager::Get("pbr_ibl")->setInt("prefilterMap", SlotTextureCounter);
 			SlotTextureCounter++;
-			glBindTexture(GL_TEXTURE_CUBE_MAP, iblManager.prefilterMap);  // display prefilter map
+			
 
 			GLCore::Render::ShaderManager::Get("pbr_ibl")->setBool("useIBL", useIBL);
 
@@ -632,8 +672,9 @@ namespace GLCore {
 			GLCore::Render::ShaderManager::Get("background")->use();
 			GLCore::Render::ShaderManager::Get("background")->setMat4("view", viewHDR);
 			GLCore::Render::ShaderManager::Get("background")->setMat4("projection", cameraProjectionMatrix);
-			GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 0);
-			SlotTextureCounter += 1;
+
+			GLCore::Render::ShaderManager::Get("background")->setInt("environmentMap", 10);
+			SlotTextureCounter++;
 
 			if (showIBLSkybox == true)
 			{
@@ -648,11 +689,11 @@ namespace GLCore {
 			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			glActiveTexture(GL_TEXTURE5);
+			glActiveTexture(GL_TEXTURE0 + SlotTextureCounter);
 			glBindTexture(GL_TEXTURE_2D, fboData.colorBuffers[0]);
 
 			GLCore::Render::ShaderManager::Get("main_output_FBO")->use();
-			GLCore::Render::ShaderManager::Get("main_output_FBO")->setInt("colorBuffer_0", 5);
+			GLCore::Render::ShaderManager::Get("main_output_FBO")->setInt("colorBuffer_0", SlotTextureCounter);
 
 			renderQuad();
 		}
@@ -663,6 +704,25 @@ namespace GLCore {
 	{
 		//------------------------------------------HIERARCHY PANEL-----------------------------------------------------
 		sceneHierarchyPanel->OnImGuiRender();
+		//---------------------------------------------------------------------------------------------------------------
+
+		//------------------------------------------SYSTEM INFO PANEL
+		if (ImGui::Begin("SYSTEM INFO"))
+		{
+			MEMORYSTATUSEX memInfo;
+			memInfo.dwLength = sizeof(MEMORYSTATUSEX);
+
+			if (GlobalMemoryStatusEx(&memInfo)) {
+				ImGui::Text("Total Physical Memory (RAM): %i MB", memInfo.ullTotalPhys / (1024 * 1024));
+				ImGui::Text("Available Physical Memory: %i MB", memInfo.ullAvailPhys / (1024 * 1024));
+				ImGui::Text("Total Virtual Memory: %i MB", memInfo.ullTotalVirtual / (1024 * 1024));
+				ImGui::Text("Available Virtual Memory: %iMB", memInfo.ullAvailVirtual / (1024 * 1024));
+			}
+			else {
+				ImGui::Text("Error obtaining memory status");
+			}
+		}
+		ImGui::End();
 		//---------------------------------------------------------------------------------------------------------------
 
 

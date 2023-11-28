@@ -165,6 +165,8 @@ namespace GLCore
 		bool active = true;
 		bool debug = true;
 
+		
+
 		glm::vec3 ambient = glm::vec3(1.0f, 1.0f, 1.0f);
 		glm::vec3 diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
 		glm::vec3 specular = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -176,7 +178,7 @@ namespace GLCore
 
 		//Shadow values
 		int shadowMapResolution = 1024;
-
+		int chanelShadowTexture = 0;
 		GLuint shadowFBO = 0;
 		GLuint shadowTex = 0;
 		GLuint shadowDepth = 0;

@@ -457,6 +457,8 @@ namespace GLCore {
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 			ImGui::Checkbox("Draw Shadows", &component.drawShadows);
 
+			ImGui::SliderInt("Shdow Text Channel", &component.chanelShadowTexture, 0, 20);
+
 			if (component.drawShadows == true)
 			{
 				ImGui::SliderFloat("Shadow Intensity", &component.shadowIntensity, 0.0f, 1.0f);

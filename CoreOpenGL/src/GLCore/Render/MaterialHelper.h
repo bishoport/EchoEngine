@@ -72,16 +72,16 @@ namespace GLCore::Render {
             if (directionalLightComponent->drawShadows)
             {
                 //Texture shadow
-                glActiveTexture(GL_TEXTURE10);
+                glActiveTexture(GL_TEXTURE0 + 11);
                 glBindTexture(GL_TEXTURE_2D, directionalLightComponent->shadowTex);
-                GLCore::Render::ShaderManager::Get(name.c_str())->setInt("dirLight.shadowMap", 10);
+                GLCore::Render::ShaderManager::Get(name.c_str())->setInt("dirLight.shadowMap", 11);
                 GLCore::Render::ShaderManager::Get(name.c_str())->setMat4("dirLight.shadowBiasMVP", directionalLightComponent->shadowBias * directionalLightComponent->shadowMVP);
                 GLCore::Render::ShaderManager::Get(name.c_str())->setFloat("dirLight.shadowIntensity", directionalLightComponent->shadowIntensity);
                 GLCore::Render::ShaderManager::Get(name.c_str())->setBool("dirLight.usePoisonDisk", directionalLightComponent->usePoisonDisk);
             }
             else
             {
-                glActiveTexture(GL_TEXTURE10);
+                glActiveTexture(GL_TEXTURE0 + 11);
                 glBindTexture(GL_TEXTURE_2D, 0);
             }
         }

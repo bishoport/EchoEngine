@@ -50,12 +50,13 @@ namespace GLCore::Utils
 
 		// pbr: convert HDR equirectangular environment map to cubemap equivalent
 		// ----------------------------------------------------------------------
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, m_hdrTexture);
 		GLCore::Render::ShaderManager::Get("equirectangularToCubemap")->use();
 		GLCore::Render::ShaderManager::Get("equirectangularToCubemap")->setInt("equirectangularDayLightMap", 0);
 		GLCore::Render::ShaderManager::Get("equirectangularToCubemap")->setFloat("mixFactor", 0.0);
 		GLCore::Render::ShaderManager::Get("equirectangularToCubemap")->setMat4("projection", captureProjection);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, m_hdrTexture);
+		
 
 		glViewport(0, 0, 512, 512); // don't forget to configure the viewport to the capture dimensions.
 		glBindFramebuffer(GL_FRAMEBUFFER, IBL_FBO);
@@ -133,9 +134,9 @@ namespace GLCore::Utils
 		// pbr: run a quasi monte-carlo simulation on the environment lighting to create a prefilter (cube)map.
 		// ----------------------------------------------------------------------------------------------------
 		GLCore::Render::ShaderManager::Get("prefilter")->use();
-		GLCore::Render::ShaderManager::Get("prefilter")->setInt("environmentMap", 0);
+		GLCore::Render::ShaderManager::Get("prefilter")->setInt("environmentMap", 10);
 		GLCore::Render::ShaderManager::Get("prefilter")->setMat4("projection", captureProjection);
-		glActiveTexture(GL_TEXTURE0);
+		glActiveTexture(GL_TEXTURE10);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, IBL_FBO);
