@@ -245,9 +245,6 @@ namespace GLCore::Render {
              0.5f, -0.5f,  0.5f,           1, 0,               0.0f, -1.0f,  0.0f
         };
 
-        
-
-
         // Definiendo los índices de los triángulos
         std::vector<unsigned int> indices = {
              0,  1,  3,   3,  1,  2,
@@ -257,6 +254,7 @@ namespace GLCore::Render {
             16, 17, 19,  19, 17, 18,
             20, 21, 23,  23, 21, 22
         };
+        
         meshData->vertexBuffer = vertexBuffer;
         meshData->indices = indices;
 

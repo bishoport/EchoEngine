@@ -104,7 +104,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\bisho\Documents\PRODUCCION_2023\EngineEcho\Desarrollos\ECHO_ENGINE\CoreOpenGL\vendor\yaml-cpp\include\;vendor;vendor\imgui</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>vendor;vendor\imgui;vendor\yaml-cpp\include\</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>

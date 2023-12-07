@@ -290,6 +290,18 @@
     <ClInclude Include="src\GLCore\Core\RegistrySingleton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\GLCore\Util\SkeletalAnimation\bone.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Util\assimp_glm_helpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Util\SkeletalAnimation\Animation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GLCore\Util\SkeletalAnimation\animdata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\Default.vert" />

@@ -85,7 +85,6 @@ namespace GLCore::Render {
                 glBindTexture(GL_TEXTURE_2D, 0);
             }
         }
-
     }
 
     static void DrawMesh(MeshRendererComponent* meshRendererComponent)
