@@ -1,5 +1,13 @@
 #pragma once
 #include "../glpch.h"
+#include <map>
+#include <string>
+#include "Util/SkeletalAnimation/bone.h"
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+
+
+
 
 namespace GLCore 
 {
@@ -26,7 +34,6 @@ namespace GLCore
         default: return "Unknown Type";
         }
     }
-
 
     enum TEXTURE_TYPES {
         ALBEDO,
@@ -59,9 +66,6 @@ namespace GLCore
         int width, height, channels;
         std::string path = "NONE";
     };
-
-
-
 
     //LA VERSION EN GPU
     struct Texture {
@@ -101,10 +105,6 @@ namespace GLCore
         }
     };
 
-
-
-
-
     struct MaterialData
     {
         //ALBEDO COLOR
@@ -120,21 +120,66 @@ namespace GLCore
     };
 
 
+    //MODELS & SKELETAL ANIMATIONS
 
+    #define MAX_BONE_INFLUENCE 4
 
+    struct Vertex {
+        // position
+        glm::vec3 Position;
+        // normal
+        glm::vec3 Normal;
+        // texCoords
+        glm::vec2 TexCoords;
+        // tangent
+        glm::vec3 Tangent;
+        // bitangent
+        glm::vec3 Bitangent;
+        //bone indexes which will influence this vertex
+        int m_BoneIDs[MAX_BONE_INFLUENCE];
+        //weights from each bone
+        float m_Weights[MAX_BONE_INFLUENCE];
+    };
 
-    struct MeshData {
+    struct AssimpNodeData
+    {
+        glm::mat4 transformation;
+        std::string name;
+        int childrenCount;
+        std::vector<AssimpNodeData> children;
+    };
 
+    struct Animation;
+
+    struct BoneInfo
+    {
+        /*id is index in finalBoneMatrices*/
+        int id;
+
+        /*offset matrix transforms vertex from model space to bone space*/
+        glm::mat4 offset;
+    };
+
+    struct SkeletalInfo
+    {
+        //Skeletal
+        std::map<std::string, BoneInfo> m_BoneInfoMap;
+        int m_BoneCounter = 0;
+        std::vector<Ref<Vertex>> vertices;
+        auto& GetBoneInfoMap() { return m_BoneInfoMap; }
+        int& GetBoneCount() { return m_BoneCounter; }
+    };
+
+    struct MeshData 
+    {
         // Constructor predeterminado
         MeshData() = default;
+        ImportOptions importOptions;
 
         std::string meshName;
 
         std::vector<GLfloat> vertexBuffer;
-        std::vector<GLfloat> texcoords;
-        std::vector<GLfloat> normals;
-        std::vector<GLfloat> tangents;
-        std::vector<GLfloat> bitangents;
+        std::vector<Ref<Vertex>>  vertices;
 
         std::vector<GLuint> indices;
         GLuint VAO;
@@ -142,9 +187,11 @@ namespace GLCore
         GLuint EBO;
         unsigned int indexCount;
 
-        glm::vec3 meshLocalPosition = glm::vec3(0.0f);;
+        //glm::mat4 finalMatrixTransformer;
+        glm::vec3 meshLocalPosition = glm::vec3(0.0f);
+
         glm::vec3 meshPosition;
-        glm::vec3 meshRotation; // En ángulos de Euler
+        glm::vec3 meshRotation;
         glm::vec3 meshScale;
 
         glm::vec3 minBounds; // Esquina inferior delantero izquierda de la bounding box
@@ -208,6 +255,65 @@ namespace GLCore
             glNamedBufferSubData(VBO_BB, 0, sizeof(transformedVertices), transformedVertices);
         }
 
+        void SetupBuffers() {
+            
+            // Crear un vector contiguo para los datos de los vértices
+            std::vector<Vertex> vertexData;
+            vertexData.reserve(vertices.size());
+
+            for (const auto& vertexPtr : vertices) {
+                if (vertexPtr) {
+                    vertexData.push_back(*vertexPtr);
+                }
+            }
+
+            // Crear buffers/arrays
+            glGenVertexArrays(1, &VAO);
+            glGenBuffers(1, &VBO);
+            glGenBuffers(1, &EBO);
+
+            glBindVertexArray(VAO);
+
+            // Cargar datos en el buffer de vértices
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(Vertex), vertexData.data(), GL_STATIC_DRAW);
+
+            // Cargar datos en el buffer de elementos
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+
+            // Configurar los atributos de los vértices
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexCoords));
+
+            glEnableVertexAttribArray(2);
+            glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
+
+            glEnableVertexAttribArray(3);
+            glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
+
+            glEnableVertexAttribArray(4);
+            glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
+
+            glEnableVertexAttribArray(5);
+            glVertexAttribIPointer(5, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, m_BoneIDs));
+
+            glEnableVertexAttribArray(6);
+            glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, m_Weights));
+
+            glBindVertexArray(0);
+        }
+
+
+        void Draw()
+        {
+            glBindVertexArray(VAO);
+            glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
+            glBindVertexArray(0);
+        }
     };
 
     struct ModelInfo
@@ -225,6 +331,131 @@ namespace GLCore
     {
         std::string name;
         std::vector<ModelInfo> modelInfos;
+
+        Ref<GLCore::SkeletalInfo> skeletalInfo;
     };
+
+
+
+
+
+
+
+
+
+    struct Animation
+    {
+        float m_Duration;
+        int m_TicksPerSecond;
+        AssimpNodeData m_RootNode;
+
+        std::vector<GLCore::Util::SkeletalAnimation::Bone> m_Bones;
+        std::map<std::string, BoneInfo> m_BoneInfoMap;
+
+
+        aiMatrix4x4 glmToAiMatrix4x4(const glm::mat4& from)
+        {
+            aiMatrix4x4 to;
+
+            // Transponer y convertir a Assimp
+            to.a1 = from[0][0]; to.a2 = from[1][0]; to.a3 = from[2][0]; to.a4 = from[3][0];
+            to.b1 = from[0][1]; to.b2 = from[1][1]; to.b3 = from[2][1]; to.b4 = from[3][1];
+            to.c1 = from[0][2]; to.c2 = from[1][2]; to.c3 = from[2][2]; to.c4 = from[3][2];
+            to.d1 = from[0][3]; to.d2 = from[1][3]; to.d3 = from[2][3]; to.d4 = from[3][3];
+
+            return to;
+        }
+
+
+        Animation(std::string animationPath, Ref<GLCore::MeshData> model)
+        {
+            this->meshData = model;
+            Assimp::Importer importer;
+            const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
+            assert(scene && scene->mRootNode);
+            auto animation = scene->mAnimations[0];
+            m_Duration = animation->mDuration;
+            m_TicksPerSecond = animation->mTicksPerSecond;
+            aiMatrix4x4 globalTransformation = scene->mRootNode->mTransformation;
+            globalTransformation = globalTransformation.Inverse();
+            ReadHierarchyData(m_RootNode, scene->mRootNode);
+            ReadMissingBones(animation, *model);
+        }
+
+
+        GLCore::Util::SkeletalAnimation::Bone* FindBone(const std::string& name)
+        {
+            auto iter = std::find_if(m_Bones.begin(), m_Bones.end(),
+                [&](const GLCore::Util::SkeletalAnimation::Bone& Bone)
+                {
+                    return Bone.GetBoneName() == name;
+                }
+            );
+            if (iter == m_Bones.end()) return nullptr;
+            else return &(*iter);
+        }
+
+
+        inline float GetTicksPerSecond() { return m_TicksPerSecond; }
+        inline float GetDuration() { return m_Duration; }
+        inline const AssimpNodeData& GetRootNode() { return m_RootNode; }
+        inline const std::map<std::string, BoneInfo>& GetBoneIDMap()
+        {
+            return m_BoneInfoMap;
+        }
+
+
+
+    private:
+
+        Ref<GLCore::MeshData> meshData;
+
+
+
+        void ReadMissingBones(const aiAnimation* animation, GLCore::MeshData& model)
+        {
+            //int size = animation->mNumChannels;
+
+            //auto& boneInfoMap = model.GetBoneInfoMap();//getting m_BoneInfoMap from Model class
+            //int& boneCount = model.GetBoneCount(); //getting the m_BoneCounter from Model class
+
+            ////reading channels(bones engaged in an animation and their keyframes)
+            //for (int i = 0; i < size; i++)
+            //{
+            //    auto channel = animation->mChannels[i];
+            //    std::string boneName = channel->mNodeName.data;
+
+            //    if (boneInfoMap.find(boneName) == boneInfoMap.end())
+            //    {
+            //        boneInfoMap[boneName].id = boneCount;
+            //        boneCount++;
+            //    }
+            //    m_Bones.push_back(GLCore::Util::SkeletalAnimation::Bone(channel->mNodeName.data, boneInfoMap[channel->mNodeName.data].id, channel));
+            //}
+
+            //m_BoneInfoMap = boneInfoMap;
+        }
+
+
+        void ReadHierarchyData(AssimpNodeData& dest, const aiNode* src)
+        {
+            assert(src);
+
+            dest.name = src->mName.data;
+            dest.transformation = AssimpGLMHelpers::ConvertMatrixToGLMFormat(src->mTransformation);
+            dest.childrenCount = src->mNumChildren;
+
+            for (int i = 0; i < src->mNumChildren; i++)
+            {
+                AssimpNodeData newData;
+                ReadHierarchyData(newData, src->mChildren[i]);
+                dest.children.push_back(newData);
+            }
+        }
+    };
+
+
+
+
 }
 

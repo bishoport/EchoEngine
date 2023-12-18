@@ -21,6 +21,7 @@ namespace GLCore::Render
         // Llamadas para cargar y almacenar las fuentes de los programas de shader
         ShaderManager::shaderProgramSources.emplace_back("pbr", "assets/shaders/Default.vert", "assets/shaders/pbr.fs");
         ShaderManager::shaderProgramSources.emplace_back("pbr_ibl", "assets/shaders/Default.vert", "assets/shaders/pbr_ibl.fs");
+
         ShaderManager::shaderProgramSources.emplace_back("debug", "assets/shaders/Debug.vert", "assets/shaders/Debug.frag");
         ShaderManager::shaderProgramSources.emplace_back("skybox", "assets/shaders/skybox/skybox.vs", "assets/shaders/skybox/skybox.fs");
         ShaderManager::shaderProgramSources.emplace_back("dynamicSkybox", "assets/shaders/skybox/dynamicSkybox.vs", "assets/shaders/skybox/dynamicSkybox.fs");

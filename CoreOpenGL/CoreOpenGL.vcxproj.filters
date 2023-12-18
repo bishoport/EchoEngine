@@ -302,6 +302,9 @@
     <ClInclude Include="src\GLCore\Util\SkeletalAnimation\animdata.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\GLCore\Util\SkeletalAnimation\Animator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\Default.vert" />
@@ -329,5 +332,6 @@
     <None Include="assets\shaders\pbr_ibl.fs" />
     <None Include="assets\shaders\postpro\postprocessing.fs" />
     <None Include="assets\shaders\postpro\postprocessing.vs" />
+    <None Include="assets\shaders\Simple.fs" />
   </ItemGroup>
 </Project>

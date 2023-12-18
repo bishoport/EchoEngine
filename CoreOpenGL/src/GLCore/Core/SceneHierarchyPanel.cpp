@@ -230,6 +230,21 @@ namespace GLCore {
 		}
 	}
 
+	void ShowNodeData(const AssimpNodeData& node)
+	{
+		if (ImGui::TreeNode(node.name.c_str())) {
+			// Muestra detalles del nodo
+			// Por ejemplo, la transformación del nodo, el número de hijos, etc.
+
+			for (int i = 0; i < node.childrenCount; ++i) {
+				ShowNodeData(node.children[i]); // Llamada recursiva para mostrar datos de los hijos
+			}
+
+			ImGui::TreePop();
+		}
+	}
+
+
 	void SceneHierarchyPanel::DrawComponents(Entity entity)
 	{
 		if (entity.HasComponent<TagComponent>())
@@ -315,6 +330,101 @@ namespace GLCore {
 			ImGui::Separator();
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 		});
+		//DrawComponent<AnimatorComponent>("Animator", entity, [](auto& component)
+		//{
+		//	ImGui::Dummy(ImVec2(0.0f, 5.0f));
+		//	ImGui::Text("Bones Count: %u", component.meshData->m_BoneCounter);
+
+		//	if (ImGui::CollapsingHeader("Bone Info Map")) {
+		//		for (const auto& pair : component.meshData->m_BoneInfoMap) {
+		//			// Crea un árbol o sección para cada elemento del map
+		//			if (ImGui::TreeNode(pair.first.c_str())) {
+		//				const BoneInfo& boneInfo = pair.second;
+		//				ImGui::Text("ID: %d", boneInfo.id);
+		//				ImGui::TreePop();
+		//			}
+		//		}
+		//	}
+
+		//	if (ImGui::Button("Load Animation")) {
+		//		component.SetAnimation("assets/meshes/vampire/dancing_vampire.dae");
+		//	}
+
+		//	if (component.m_CurrentAnimation != nullptr)
+		//	{
+		//		if (ImGui::Button("Play Animation")) {
+		//			component.PlayAnimation();
+		//		}
+		//		
+		//		// Crear un desplegable para la animación
+		//		if (ImGui::CollapsingHeader("Animation Details")) {
+
+		//			// Mostrar detalles básicos de la animación
+		//			ImGui::Text("Duration: %f", component.m_CurrentAnimation->GetDuration());
+		//			ImGui::Text("Ticks Per Second: %d", component.m_CurrentAnimation->GetTicksPerSecond());
+
+		//			// Crear un desplegable para la lista de huesos
+		//			if (ImGui::CollapsingHeader("Bones")) {
+		//				for (size_t i = 0; i < component.m_CurrentAnimation->m_Bones.size(); ++i) {
+		//					auto& bone = component.m_CurrentAnimation->m_Bones[i];
+		//					if (ImGui::TreeNode(bone.GetBoneName().c_str())) {
+		//						// Mostrar ID del hueso
+		//						ImGui::Text("Bone ID: %d", bone.GetBoneID());
+
+		//						// Mostrar la matriz de transformación local
+		//						glm::mat4 localTransform = bone.GetLocalTransform();
+		//						ImGui::Text("Local Transform:");
+		//						for (int row = 0; row < 4; ++row) {
+		//							ImGui::Text("[%f, %f, %f, %f]",
+		//								localTransform[row][0], localTransform[row][1],
+		//								localTransform[row][2], localTransform[row][3]);
+		//						}
+
+		//						// ... [resto del código para mostrar otros detalles del hueso] ...
+
+		//						ImGui::TreePop();
+		//					}
+		//				}
+		//			}
+
+		//			// Crear un desplegable para el mapa de información de huesos
+		//			if (ImGui::CollapsingHeader("Bone Info Map")) {
+		//				for (const auto& pair : component.m_CurrentAnimation->GetBoneIDMap()) {
+		//					if (ImGui::TreeNode(pair.first.c_str())) {
+		//						// Muestra detalles del BoneInfo
+		//						ImGui::Text("Bone ID: %d", pair.second.id);
+		//						// Puedes agregar más detalles aquí...
+
+		//						ImGui::TreePop();
+		//					}
+		//				}
+		//			}
+
+		//			// Crear un desplegable para la estructura de nodos
+		//			if (ImGui::CollapsingHeader("Root Node")) {
+		//				ShowNodeData(component.m_CurrentAnimation->GetRootNode());
+		//			}
+		//		}
+		//	}
+
+
+		//	//if (component.m_CurrentAnimation != nullptr)
+		//	//{
+		//	//	// Crear un desplegable para la lista de huesos
+		//	//	if (ImGui::CollapsingHeader(component.m_CurrentAnimation)) {
+		//	//		for (size_t i = 0; i < component.m_CurrentAnimation->m_Bones.size(); ++i) {
+		//	//			if (ImGui::TreeNode(component.m_CurrentAnimation->m_Bones[i].GetBoneName().c_str())) {
+		//	//				ImGui::TreePop();
+		//	//			}
+		//	//		}
+		//	//	}
+		//	//}
+		//		
+
+
+		//	ImGui::Separator();
+		//	ImGui::Dummy(ImVec2(0.0f, 5.0f));
+		//});
 		DrawComponent<MeshRendererComponent>("Mesh Renderer", entity, [](auto& component)
 		{
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
@@ -380,7 +490,7 @@ namespace GLCore {
 				ImGui::Text("##%s", texture->typeString.c_str());
 				ImGui::SetWindowFontScale(1.0); // Vuelve al tamaño original
 
-			//	//--drop place
+				//--drop place
 				ImGui::Image((void*)(intptr_t)texture->textureID, ImVec2(128, 128), ImVec2(0, 0), ImVec2(1, 1), ImColor(255, 255, 255, 255));
 
 				SceneHierarchyPanel::HandleDragDropForTexture(texture, component, "ASSET_DRAG");

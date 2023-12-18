@@ -74,6 +74,8 @@ namespace GLCore::Utils
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
             ModelInfo modelInfo;
             
+            std::cout << "mNumBones->" << mesh->mNumBones << std::endl;
+
             modelInfo.meshData = ModelLoader::ProcessMesh(mesh, scene, finalTransform, importOptions);
             modelInfo.model_textures = ModelLoader::ProcessMaterials(mesh, scene, finalTransform, importOptions);
             
@@ -86,12 +88,12 @@ namespace GLCore::Utils
         }
     }
 
-    Ref<GLCore::MeshData> ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, aiMatrix4x4 finalTransform, ImportOptions importOptions) {
-
-        //MeshData meshData;
+    Ref<GLCore::MeshData> ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, aiMatrix4x4 finalTransform, ImportOptions importOptions) 
+    {
         auto meshData = std::make_shared<GLCore::MeshData>();
 
         meshData->meshLocalPosition = glm::vec3(finalTransform.a4, finalTransform.b4, finalTransform.c4);
+
 
         //Reset de la posicion original para que nos devuelva la matriz en la posicion 0,0,0
         finalTransform.a4 = 0.0;
@@ -111,45 +113,58 @@ namespace GLCore::Utils
 
 
         // Cargando los datos de los vértices y los índices
-        for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
+        for (unsigned int i = 0; i < mesh->mNumVertices; i++) 
+        {
+            
+            auto vertex = std::make_shared<Vertex>();
+            
+            SetVertexBoneDataToDefault(vertex);
 
-            //-Vertices
-            glm::vec4 pos = aiMatrix4x4ToGlm(finalTransform) * glm::vec4(
+            //--Vertex Position
+            glm::vec4 posFixed = aiMatrix4x4ToGlm(finalTransform) * glm::vec4(
                 mesh->mVertices[i].x,
                 mesh->mVertices[i].y,
                 mesh->mVertices[i].z,
                 1);
+            vertex->Position = glm::vec3(posFixed.x, posFixed.y, posFixed.z);
+            //vertex->Position = AssimpGLMHelpers::GetGLMVec(mesh->mVertices[i]);
+            meshData->vertexBuffer.push_back(posFixed.x);
+            meshData->vertexBuffer.push_back(posFixed.y);
+            meshData->vertexBuffer.push_back(posFixed.z);
+            //--------------------------------------------------------------
 
-            meshData->vertexBuffer.push_back(pos.x);
-            meshData->vertexBuffer.push_back(pos.y);
-            meshData->vertexBuffer.push_back(pos.z);
 
 
-            //-Coordenadas de textura
-            glm::vec2 texcoord = glm::vec2(0.0f, 0.0f);
-            if (mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
+            //--Texture Coords
+            if (mesh->mTextureCoords[0])
             {
-                texcoord = {
-                    mesh->mTextureCoords[0][i].x,
-                    mesh->mTextureCoords[0][i].y
-                };
+                glm::vec2 vec;
+                vec.x = mesh->mTextureCoords[0][i].x;
+                vec.y = mesh->mTextureCoords[0][i].y;
+                vertex->TexCoords = vec;
             }
-            meshData->vertexBuffer.push_back(texcoord.x);
-            meshData->vertexBuffer.push_back(texcoord.y);
+            else
+                vertex->TexCoords = glm::vec2(0.0f, 0.0f);
+
+            meshData->vertexBuffer.push_back(vertex->TexCoords.x);
+            meshData->vertexBuffer.push_back(vertex->TexCoords.y);
+            //--------------------------------------------------------------
 
 
-            //-Normales
-            glm::vec4 norm = aiMatrix4x4ToGlm(finalTransform) * glm::vec4(
+            //--Vertex Normal
+            glm::vec4 normFixed = aiMatrix4x4ToGlm(finalTransform) * glm::vec4(
                 mesh->mNormals[i].x,
                 mesh->mNormals[i].y,
                 mesh->mNormals[i].z,
                 1);
 
-            meshData->vertexBuffer.push_back(norm.x);
-            meshData->vertexBuffer.push_back(norm.y);
-            meshData->vertexBuffer.push_back(norm.z);
+            vertex->Normal = glm::vec3(normFixed.x, normFixed.y, normFixed.z);
+            meshData->vertexBuffer.push_back(normFixed.x);
+            meshData->vertexBuffer.push_back(normFixed.y);
+            meshData->vertexBuffer.push_back(normFixed.z);
+            //--------------------------------------------------------------
 
-
+            meshData->vertices.push_back(vertex);
 
 
             // Actualización de minBounds y maxBounds
@@ -179,13 +194,18 @@ namespace GLCore::Utils
         meshNameBase.append(" id:");
         meshData->meshName = meshNameBase + std::to_string(importOptions.modelID);
 
+        meshData->SetupBuffers();
 
-        GLCore::Render::PrimitivesHelper::GenerateBuffers(*meshData);
-        GLCore::Render::PrimitivesHelper::SetupMeshAttributes(*meshData);
+        //GLCore::Render::PrimitivesHelper::GenerateBuffers(*meshData);
+        //GLCore::Render::PrimitivesHelper::SetupMeshAttributes(*meshData);
+
         meshData->PrepareAABB();
+
+        ExtractBoneWeightForVertices(mesh, scene, meshData);
 
         return meshData;
     }
+
 
     Ref<MaterialData> ModelLoader::ProcessMaterials(aiMesh* mesh, const aiScene* scene, aiMatrix4x4 finalTransform, ImportOptions importOptions)
     {
@@ -201,7 +221,6 @@ namespace GLCore::Utils
         materialData->color.r = color.r;
         materialData->color.g = color.g;
         materialData->color.b = color.b;
-
 
         // Agregamos la carga de la textura ALBEDO aquí
         aiString texturePath;
@@ -404,6 +423,70 @@ namespace GLCore::Utils
         return materialData;
     }
 
+
+
+    //--Skekeletal
+    void ModelLoader::SetVertexBoneDataToDefault(Ref<Vertex> vertex)
+    {
+        for (int i = 0; i < MAX_BONE_INFLUENCE; i++)
+        {
+            vertex->m_BoneIDs[i] = -1;
+            vertex->m_Weights[i] = 0.0f;
+        }
+    }
+
+
+    void ModelLoader::SetVertexBoneData(Ref<Vertex> vertex, int boneID, float weight)
+    {
+        for (int i = 0; i < MAX_BONE_INFLUENCE; ++i)
+        {
+            if (vertex->m_BoneIDs[i] < 0)
+            {
+                vertex->m_Weights[i] = weight;
+                vertex->m_BoneIDs[i] = boneID;
+                break;
+            }
+        }
+    }
+
+
+    void ModelLoader::ExtractBoneWeightForVertices(aiMesh* mesh, const aiScene* scene, Ref<GLCore::MeshData> meshData)
+    {
+        /*auto& boneInfoMap = meshData->m_BoneInfoMap;
+        int& boneCount = meshData->m_BoneCounter;
+
+        for (int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex)
+        {
+            int boneID = -1;
+            std::string boneName = mesh->mBones[boneIndex]->mName.C_Str();
+            if (boneInfoMap.find(boneName) == boneInfoMap.end())
+            {
+                BoneInfo newBoneInfo;
+                newBoneInfo.id = boneCount;
+                newBoneInfo.offset = AssimpGLMHelpers::ConvertMatrixToGLMFormat(mesh->mBones[boneIndex]->mOffsetMatrix);
+                boneInfoMap[boneName] = newBoneInfo;
+                boneID = boneCount;
+                boneCount++;
+            }
+            else
+            {
+                boneID = boneInfoMap[boneName].id;
+            }
+            assert(boneID != -1);
+            auto weights = mesh->mBones[boneIndex]->mWeights;
+            int numWeights = mesh->mBones[boneIndex]->mNumWeights;
+
+            for (int weightIndex = 0; weightIndex < numWeights; ++weightIndex)
+            {
+                int vertexId = weights[weightIndex].mVertexId;
+                float weight = weights[weightIndex].mWeight;
+                assert(vertexId <= meshData->vertices.size());
+                SetVertexBoneData(meshData->vertices[vertexId], boneID, weight);
+            }
+        }*/
+    }
+
+    //--Tools
     glm::mat4 ModelLoader::aiMatrix4x4ToGlm(const aiMatrix4x4& from)
     {
         glm::mat4 to;

@@ -30,7 +30,9 @@ namespace GLCore::Utils
         static glm::mat4 aiMatrix4x4ToGlm(const aiMatrix4x4& from);
         static aiMatrix4x4 glmToAiMatrix4x4(const glm::mat4& from);
 
-        
+        static void SetVertexBoneDataToDefault(Ref<Vertex> vertex);
+        static void SetVertexBoneData(Ref<Vertex> vertex, int boneID, float weight);
+        static void ExtractBoneWeightForVertices(aiMesh* mesh, const aiScene* scene, Ref<GLCore::MeshData> meshData);
 
     };
 }

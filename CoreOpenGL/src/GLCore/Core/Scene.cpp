@@ -227,6 +227,7 @@ namespace GLCore {
 
 
 
+
 	//--INIT
     bool Scene::initialize()
     {
@@ -343,7 +344,16 @@ namespace GLCore {
 			}
 		}
 
+		//Animator
+		auto viewAnimator_UPDATE = RegistrySingleton::getRegistry().view<TransformComponent, AnimatorComponent>();
+		for (auto entity : viewAnimator_UPDATE)
+		{
+			auto [transform, animator] = viewAnimator_UPDATE.get<TransformComponent, AnimatorComponent>(entity);
+			animator.UpdateAnimation(deltaTime);
+		}
+		
 
+		//Directional Light
 		auto viewDirectionalLight_UPDATE = RegistrySingleton::getRegistry().view<TransformComponent, DirectionalLightComponent>();
 		for (auto entity : viewDirectionalLight_UPDATE)
 		{
@@ -374,6 +384,12 @@ namespace GLCore {
 			}
 		}
 		//----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
 
 
         //--EDITOR CAMERA
@@ -491,6 +507,8 @@ namespace GLCore {
 
 			directionalLightComponent.shadowMVP = shadowProjMat * shadowViewMat;
 
+
+
 			GLCore::Render::ShaderManager::Get("direct_light_depth_shadows")->use();
 
 			auto viewDirectionalLightShadowPass = RegistrySingleton::getRegistry().view<MeshRendererComponent>();
@@ -502,7 +520,10 @@ namespace GLCore {
 				{
 					glm::mat4 entityShadowMVP = directionalLightComponent.shadowMVP * meshRendererComponent.model_transform_matrix;
 					GLCore::Render::ShaderManager::Get("direct_light_depth_shadows")->setMat4("shadowMVP", entityShadowMVP);
-					GLCore::Render::DrawMesh(&meshRendererComponent);
+
+					GLCore::Render::ShaderManager::Get(meshRendererComponent.currentShaderName)->use();
+					GLCore::Render::ShaderManager::Get(meshRendererComponent.currentShaderName)->setMat4("model", meshRendererComponent.model_transform_matrix);
+					meshRendererComponent.meshData->Draw();
 				}
 			}
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -545,7 +566,9 @@ namespace GLCore {
 				auto [transform, matComponent, meshRendererComponent] = viewMaterialPass.get<TransformComponent, MaterialComponent, MeshRendererComponent>(entity);
 
 				GLCore::Render::ActiveTextures(&matComponent, 1);
-				GLCore::Render::DrawMesh(&meshRendererComponent);
+				GLCore::Render::ShaderManager::Get(meshRendererComponent.currentShaderName)->use();
+				GLCore::Render::ShaderManager::Get(meshRendererComponent.currentShaderName)->setMat4("model", meshRendererComponent.model_transform_matrix);
+				meshRendererComponent.meshData->Draw();
 				GLCore::Render::DrawBoundingBox(&meshRendererComponent);
 			}
 
@@ -616,6 +639,7 @@ namespace GLCore {
 			//RenderPipeline
 			//PASS LIGHTS
 			auto viewDirectionalLight = RegistrySingleton::getRegistry().view<TransformComponent, DirectionalLightComponent>();
+
 			for (auto entity : viewDirectionalLight)
 			{
 				auto [transformComponent, directionalLightComponent] = viewDirectionalLight.get<TransformComponent, DirectionalLightComponent>(entity);
@@ -633,7 +657,31 @@ namespace GLCore {
 				auto [transform, matComponent, meshRendererComponent] = viewMaterialPass.get<TransformComponent, MaterialComponent, MeshRendererComponent>(entity);
 				
 				GLCore::Render::ActiveTextures(&matComponent, 1);
-				GLCore::Render::DrawMesh(&meshRendererComponent);
+
+				Entity entityCheck{ entity, this };
+
+				GLCore::Render::ShaderManager::Get(meshRendererComponent.currentShaderName)->use();
+				GLCore::Render::ShaderManager::Get(meshRendererComponent.currentShaderName)->setBool("useBones", false);
+
+				if (entityCheck.HasComponent<AnimatorComponent>())
+				{
+					auto transforms = entityCheck.GetComponent<AnimatorComponent>().GetFinalBoneMatrices();
+					
+					if (transforms.size() > 0)
+					{
+						for (int i = 0; i < transforms.size(); ++i)
+						{
+							GLCore::Render::ShaderManager::Get(meshRendererComponent.currentShaderName)->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
+						}
+
+						GLCore::Render::ShaderManager::Get(meshRendererComponent.currentShaderName)->setBool("useBones", true);
+					}
+				}
+
+				GLCore::Render::ShaderManager::Get(meshRendererComponent.currentShaderName)->use();
+				GLCore::Render::ShaderManager::Get(meshRendererComponent.currentShaderName)->setMat4("model", meshRendererComponent.model_transform_matrix);
+				meshRendererComponent.meshData->Draw();
+
 				GLCore::Render::DrawBoundingBox(&meshRendererComponent);
 			}
 
@@ -680,8 +728,9 @@ namespace GLCore {
 			{
 				renderCube();
 			}
-
 			//------------------------------------------------------------------------------------------------------------------------------
+
+
 
 			//RENDER FINAL QUAD
 			glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
@@ -698,8 +747,9 @@ namespace GLCore {
 			renderQuad();
 		}
 		//-------------------------------------------------------------------------------------------------------------------------------------------
-
 	}
+
+
 	void Scene::renderGUI()
 	{
 		//------------------------------------------HIERARCHY PANEL-----------------------------------------------------
@@ -1164,13 +1214,23 @@ namespace GLCore {
 
 				auto& meshFilterComponent = RegistrySingleton::getRegistry().emplace<MeshFilterComponent>(entityChild, modelParent.modelInfos[i].meshData, EXTERNAL_FILE);
 				auto& meshRendererComponent = RegistrySingleton::getRegistry().emplace<MeshRendererComponent>(entityChild);
+
+				//if (modelParent.modelInfos[i].meshData->GetBoneCount() > 0)
+				//{
+				//	RegistrySingleton::getRegistry().emplace<AnimatorComponent>(entityChild);
+				//	AnimatorComponent* animatorComponent = &RegistrySingleton::getRegistry().get<AnimatorComponent>(entityChild);
+				//	animatorComponent->meshData = modelParent.modelInfos[i].meshData;
+
+				//	//animatorComponent->SetAnimation("assets/meshes/vampire/dancing_vampire.dae");
+				//}
+
 				auto& transformComponent = RegistrySingleton::getRegistry().get<TransformComponent>(entityChild);
 
 				meshFilterComponent.modelPath = importOptions.filePath + importOptions.fileName;
 				meshRendererComponent.meshData = modelParent.modelInfos[i].meshData;
 				meshRendererComponent.meshData->meshPosition = glm::vec3(0.0f, 0.0f, 0.0f);
 				meshRendererComponent.meshData->meshRotation = glm::vec3(0.0f, 0.0f, 0.0f);
-				meshRendererComponent.meshData->meshScale = glm::vec3(1.0f, 1.0f, 1.0f);
+				meshRendererComponent.meshData->meshScale = glm::vec3(0.05f, 0.05f, 0.05f);
 				transformComponent.position = meshRendererComponent.meshData->meshLocalPosition;
 
 				RegistrySingleton::getRegistry().emplace<MaterialComponent>(entityChild).materialData = modelParent.modelInfos[i].model_textures;
@@ -1180,19 +1240,26 @@ namespace GLCore {
 		{
 			RegistrySingleton::getRegistry().emplace<MeshFilterComponent>(entityParent, modelParent.modelInfos[0].meshData, EXTERNAL_FILE);
 			RegistrySingleton::getRegistry().emplace<MeshRendererComponent>(entityParent);
+			
+			//if (modelParent.modelInfos[0].meshData->GetBoneCount() > 0)
+			//{
+			//	RegistrySingleton::getRegistry().emplace<AnimatorComponent>(entityParent);
+			//	AnimatorComponent* animatorComponent = &RegistrySingleton::getRegistry().get<AnimatorComponent>(entityParent);
+			//	animatorComponent->meshData = modelParent.modelInfos[0].meshData;
+
+			//	//animatorComponent->SetAnimation("assets/meshes/vampire/dancing_vampire.dae");
+			//}
 
 			MeshFilterComponent* meshFilterComponent = &RegistrySingleton::getRegistry().get<MeshFilterComponent>(entityParent);
 			MeshRendererComponent* meshRendererComponent = &RegistrySingleton::getRegistry().get<MeshRendererComponent>(entityParent);
 			TransformComponent* transformComponent = &RegistrySingleton::getRegistry().get<TransformComponent>(entityParent);
 
 			meshFilterComponent->modelPath = importOptions.filePath + importOptions.fileName;
-
 			meshRendererComponent->meshData = modelParent.modelInfos[0].meshData;
 
 			meshRendererComponent->meshData->meshPosition = glm::vec3(0.0f, 0.0f, 0.0f);
 			meshRendererComponent->meshData->meshRotation = glm::vec3(0.0f, 0.0f, 0.0f);
 			meshRendererComponent->meshData->meshScale = glm::vec3(1.0f, 1.0f, 1.0f);
-
 			transformComponent->position = meshRendererComponent->meshData->meshLocalPosition;
 
 			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entityParent).materialData = modelParent.modelInfos[0].model_textures;
@@ -1374,29 +1441,26 @@ namespace GLCore {
 	}
 
 	template<>
-	void Scene::OnComponentAdded<MeshFilterComponent>(Entity entity, MeshFilterComponent& component)
-	{
-	}
+	void Scene::OnComponentAdded<MeshFilterComponent>(Entity entity, MeshFilterComponent& component){}
 
 	template<>
-	void Scene::OnComponentAdded<MeshRendererComponent>(Entity entity, MeshRendererComponent& component)
-	{
-	}
+	void Scene::OnComponentAdded<MeshRendererComponent>(Entity entity, MeshRendererComponent& component){}
 
 	template<>
-	void Scene::OnComponentAdded<MaterialComponent>(Entity entity, MaterialComponent& component)
-	{
-	}
+	void Scene::OnComponentAdded<MaterialComponent>(Entity entity, MaterialComponent& component){}
 
 	template<>
-	void Scene::OnComponentAdded<DirectionalLightComponent>(Entity entity, DirectionalLightComponent& component)
-	{
-		
-	}	
+	void Scene::OnComponentAdded<DirectionalLightComponent>(Entity entity, DirectionalLightComponent& component){}	
 
 	template<>
 	void Scene::OnComponentAdded<ParentComponent>(Entity entity, ParentComponent& component){}
 
 	template<>
 	void Scene::OnComponentAdded<ChildrenComponent>(Entity entity, ChildrenComponent& component){}
+
+	template<>
+	void Scene::OnComponentAdded<AnimatorComponent>(Entity entity, AnimatorComponent& component) {}
+
+	template<>
+	void Scene::OnComponentAdded<SkinedMeshComponent>(Entity entity, SkinedMeshComponent& component) {}
 }

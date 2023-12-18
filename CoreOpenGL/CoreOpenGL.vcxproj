@@ -187,6 +187,7 @@
     <ClInclude Include="src\GLCore\Core\UUID.h" />
     <ClInclude Include="src\GLCore\Render\FBOManager.h" />
     <ClInclude Include="src\GLCore\Render\RendererManager.h" />
+    <ClInclude Include="src\GLCore\Util\assimp_glm_helpers.h" />
     <ClInclude Include="src\GLCore\Util\DynamicSkybox.h" />
     <ClInclude Include="src\GLCore\Util\GridWorldReference.h" />
     <ClInclude Include="src\GLCore\Util\IBLManager.h" />
@@ -196,6 +197,10 @@
     <ClInclude Include="src\GLCore\Util\PerspectiveCamera.h" />
     <ClInclude Include="src\GLCore\Util\PerspectiveCameraController.h" />
     <ClInclude Include="src\GLCore\Util\PostProcessingManager.h" />
+    <ClInclude Include="src\GLCore\Util\SkeletalAnimation\Animation.h" />
+    <ClInclude Include="src\GLCore\Util\SkeletalAnimation\Animator.h" />
+    <ClInclude Include="src\GLCore\Util\SkeletalAnimation\animdata.h" />
+    <ClInclude Include="src\GLCore\Util\SkeletalAnimation\bone.h" />
     <ClInclude Include="src\GLCore\Util\Skybox.h" />
     <ClInclude Include="src\glpch.h" />
     <ClInclude Include="src\GLCore\Core\GuiLayer.h" />
@@ -218,6 +223,7 @@
     <ClInclude Include="vendor\imgui\imstb_truetype.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="assets\shaders\Simple.fs" />
     <None Include="assets\shaders\common.glsl" />
     <None Include="assets\shaders\Debug.frag" />
     <None Include="assets\shaders\Debug.vert" />
