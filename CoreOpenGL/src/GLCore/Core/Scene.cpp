@@ -15,6 +15,7 @@
 #include "../Render/MaterialHelper.h"
 
 #include <windows.h>
+#include "../Render/MaterialManager.h"
 
 
 namespace GLCore {
@@ -54,8 +55,10 @@ namespace GLCore {
 			meshRendererComponent->meshData->meshScale = glm::vec3(1.0f, 1.0f, 1.0f);
 
 			transformComponent->position = meshRendererComponent->meshData->meshLocalPosition;
-
-			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entity).setDefaultMaterial();
+			
+			std::string matKey =  GLCore::Render::MaterialManager::getInstance().CreateDefaultMaterial();
+			auto matD = GLCore::Render::MaterialManager::getInstance().getMaterial(matKey);
+			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entity).materialData = matD;
 		}
 		else if (action == MainMenuAction::AddSegmentedCube)
 		{
@@ -345,16 +348,17 @@ namespace GLCore {
 		}
 
 		//Animator
-		auto viewAnimator_UPDATE = RegistrySingleton::getRegistry().view<TransformComponent, AnimatorComponent>();
+		/*auto viewAnimator_UPDATE = RegistrySingleton::getRegistry().view<TransformComponent, AnimatorComponent>();
 		for (auto entity : viewAnimator_UPDATE)
 		{
 			auto [transform, animator] = viewAnimator_UPDATE.get<TransformComponent, AnimatorComponent>(entity);
 			animator.UpdateAnimation(deltaTime);
-		}
+		}*/
 		
 
 		//Directional Light
 		auto viewDirectionalLight_UPDATE = RegistrySingleton::getRegistry().view<TransformComponent, DirectionalLightComponent>();
+		
 		for (auto entity : viewDirectionalLight_UPDATE)
 		{
 			auto [transform, directionalLightComponent] = viewDirectionalLight_UPDATE.get<TransformComponent, DirectionalLightComponent>(entity);
@@ -483,7 +487,7 @@ namespace GLCore {
 		}
 
 		//--RENDER-PIPELINE
-		// 
+
 		//__1.-SHADOW PASS
 		auto viewDirectionalLight = RegistrySingleton::getRegistry().view<TransformComponent,DirectionalLightComponent>();
 		for (auto entity : viewDirectionalLight)
@@ -491,12 +495,10 @@ namespace GLCore {
 			auto [transformComponent,directionalLightComponent] = viewDirectionalLight.get<TransformComponent,DirectionalLightComponent>(entity);
 
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 			glBindFramebuffer(GL_FRAMEBUFFER, directionalLightComponent.shadowFBO);
 			glViewport(0, 0, directionalLightComponent.shadowMapResolution, directionalLightComponent.shadowMapResolution);
 			glClearColor(1, 1, 1, 1);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 
 			glm::mat4 shadowProjMat = glm::ortho(directionalLightComponent.orthoLeft, 
 												 directionalLightComponent.orthoRight, 
@@ -508,9 +510,6 @@ namespace GLCore {
 			directionalLightComponent.shadowMVP = shadowProjMat * shadowViewMat;
 
 
-
-			GLCore::Render::ShaderManager::Get("direct_light_depth_shadows")->use();
-
 			auto viewDirectionalLightShadowPass = RegistrySingleton::getRegistry().view<MeshRendererComponent>();
 			for (auto entity : viewDirectionalLightShadowPass)
 			{
@@ -519,10 +518,8 @@ namespace GLCore {
 				if (meshRendererComponent.dropShadow)
 				{
 					glm::mat4 entityShadowMVP = directionalLightComponent.shadowMVP * meshRendererComponent.model_transform_matrix;
+					GLCore::Render::ShaderManager::Get("direct_light_depth_shadows")->use();
 					GLCore::Render::ShaderManager::Get("direct_light_depth_shadows")->setMat4("shadowMVP", entityShadowMVP);
-
-					GLCore::Render::ShaderManager::Get(meshRendererComponent.currentShaderName)->use();
-					GLCore::Render::ShaderManager::Get(meshRendererComponent.currentShaderName)->setMat4("model", meshRendererComponent.model_transform_matrix);
 					meshRendererComponent.meshData->Draw();
 				}
 			}
@@ -1233,7 +1230,12 @@ namespace GLCore {
 				meshRendererComponent.meshData->meshScale = glm::vec3(0.05f, 0.05f, 0.05f);
 				transformComponent.position = meshRendererComponent.meshData->meshLocalPosition;
 
-				RegistrySingleton::getRegistry().emplace<MaterialComponent>(entityChild).materialData = modelParent.modelInfos[i].model_textures;
+				std::string matKey = modelParent.modelInfos[i].model_textures->materialName;
+				GLCore::Render::MaterialManager::getInstance().addMaterial(matKey,modelParent.modelInfos[i].model_textures);
+				auto matD = GLCore::Render::MaterialManager::getInstance().getMaterial(matKey);
+				RegistrySingleton::getRegistry().emplace<MaterialComponent>(entityChild).materialData = matD;
+
+				//RegistrySingleton::getRegistry().emplace<MaterialComponent>(entityChild).materialData = modelParent.modelInfos[i].model_textures;
 			}
 		}
 		else

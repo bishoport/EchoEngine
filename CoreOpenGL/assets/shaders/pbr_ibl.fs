@@ -150,28 +150,26 @@ void main()
     //vec3 ambient = (((kD * diffuse * globalAmbient) + specular) * ao);
 
     vec3 ambient;
-if (useIBL) {
-    vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
-    vec3 kS = F;
-    vec3 kD = 1.0 - kS;
-    kD *= 1.0 - metallic;
+    if (useIBL) 
+    {
+        vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+        vec3 kS = F;
+        vec3 kD = 1.0 - kS;
+        kD *= 1.0 - metallic;
     
-    vec3 irradiance = texture(irradianceMap, N).rgb;
-    vec3 diffuse = mix(albedo, irradiance * albedo * material.iblIntensity, material.hdrIntensity);
-    vec3 prefilteredColor = textureLod(prefilterMap, R, roughness * material.max_reflection_lod).rgb;
-    vec2 brdf = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
-    vec3 specular = prefilteredColor * (F * brdf.x + brdf.y) * material.iblIntensity;
+        vec3 irradiance = texture(irradianceMap, N).rgb;
+        vec3 diffuse = mix(albedo, irradiance * albedo * material.iblIntensity, material.hdrIntensity);
+        vec3 prefilteredColor = textureLod(prefilterMap, R, roughness * material.max_reflection_lod).rgb;
+        vec2 brdf = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+        vec3 specular = prefilteredColor * (F * brdf.x + brdf.y) * material.iblIntensity;
 
-    ambient = (((kD * diffuse * globalAmbient) + specular) * ao);
-} else {
-    ambient = albedo * globalAmbient * ao; // O alguna otra definición de ambiente sin IBL
-}
+        ambient = (((kD * diffuse * globalAmbient) + specular) * ao);
+    } 
+    else 
+    {
+        ambient = albedo * globalAmbient * ao; // O alguna otra definición de ambiente sin IBL
+    }
      
-
-
-
-
-
 
     vec3 color = ambient + Lo;
 

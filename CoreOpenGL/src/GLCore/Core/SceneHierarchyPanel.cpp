@@ -461,13 +461,15 @@ namespace GLCore {
 		});
 		DrawComponent<MaterialComponent>("Material", entity, [this](auto& component)
 		{
-			ImGui::SliderFloat("HDR INTENSITY", &component.hdrIntensity, 0.0f, 1.0f, "%.3f");
+			ImGui::Text("Material Name: %s", component.materialData->materialName.c_str());
+				
+			ImGui::SliderFloat("HDR INTENSITY", &component.materialData->hdrIntensity, 0.0f, 1.0f, "%.3f");
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
-			ImGui::SliderFloat("HDR Exposure", &component.exposure, 0.0f, 10.0f, "%.3f");
-			ImGui::SliderFloat("HDR Gamma", &component.gamma, 0.0f, 10.0f, "%.3f");
-			ImGui::SliderFloat("MAX REFLECTION LOD", &component.max_reflection_lod, 0.0f, 10.0f, "%.3f");
-			ImGui::SliderFloat("IBL Intensity", &component.iblIntensity, 0.0f, 1.0f, "%.5f");
+			ImGui::SliderFloat("HDR Exposure", &component.materialData->exposure, 0.0f, 10.0f, "%.3f");
+			ImGui::SliderFloat("HDR Gamma", &component.materialData->gamma, 0.0f, 10.0f, "%.3f");
+			ImGui::SliderFloat("MAX REFLECTION LOD", &component.materialData->max_reflection_lod, 0.0f, 10.0f, "%.3f");
+			ImGui::SliderFloat("IBL Intensity", &component.materialData->iblIntensity, 0.0f, 1.0f, "%.5f");
 
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
 			ImGui::SliderInt2("Texture Repetition", glm::value_ptr(component.repetitionFactor), 1, 20);
@@ -516,27 +518,27 @@ namespace GLCore {
 
 				if (texture->type == GLCore::TEXTURE_TYPES::ALBEDO)
 				{
-					ImGui::ColorEdit3("Color", glm::value_ptr(component.color));
-					ImGui::InputFloat("hdr Multiply", &component.hdrMultiply, 0.001f, 0.001f);
+					ImGui::ColorEdit3("Color", glm::value_ptr(component.materialData->color));
+					ImGui::InputFloat("hdr Multiply", &component.materialData->hdrMultiply, 0.001f, 0.001f);
 					ImGui::Separator();
 					ImGui::Dummy(ImVec2(10.0f, 20.0f));
 				}
 				else if (texture->type == GLCore::TEXTURE_TYPES::NORMAL)
 				{
-					ImGui::SliderFloat("Normal Intensity", &component.normalIntensity, 0.0f, 1.0f);
+					ImGui::SliderFloat("Normal Intensity", &component.materialData->normalIntensity, 0.0f, 1.0f);
 					ImGui::Separator();
 					ImGui::Dummy(ImVec2(10.0f, 20.0f));
 				}
 				else if (texture->type == GLCore::TEXTURE_TYPES::METALLIC)
 				{
-					ImGui::SliderFloat("Metallic Value", &component.metallicValue, 0.0f, 1.0f);
-					ImGui::SliderFloat("Reflectance", &component.reflectanceValue, 0.0f, 1.0f, "%.2f");
+					ImGui::SliderFloat("Metallic Value", &component.materialData->metallicValue, 0.0f, 1.0f);
+					ImGui::SliderFloat("Reflectance", &component.materialData->reflectanceValue, 0.0f, 1.0f, "%.2f");
 					ImGui::Separator();
 					ImGui::Dummy(ImVec2(10.0f, 20.0f));
 				}
 				else if (texture->type == GLCore::TEXTURE_TYPES::ROUGHNESS)
 				{
-					ImGui::SliderFloat("Roughtness Value", &component.roughnessValue, 0.05f, 1.0f);
+					ImGui::SliderFloat("Roughtness Value", &component.materialData->roughnessValue, 0.05f, 1.0f);
 					ImGui::Separator();
 					ImGui::Dummy(ImVec2(10.0f, 20.0f));
 				}

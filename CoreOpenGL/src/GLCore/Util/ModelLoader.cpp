@@ -218,6 +218,8 @@ namespace GLCore::Utils
         const aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
         mat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
 
+        materialData->materialName = mat->GetName().C_Str();
+
         materialData->color.r = color.r;
         materialData->color.g = color.g;
         materialData->color.b = color.b;

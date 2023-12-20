@@ -76,6 +76,8 @@ namespace GLCore
 
 	struct MaterialComponent
 	{
+		std::string matKey = "";
+
 		//VALUES
 		float shininess;
 		float hdrMultiply = 0.0f;

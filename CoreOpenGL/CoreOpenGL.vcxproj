@@ -186,7 +186,9 @@
     <ClInclude Include="src\GLCore\Core\Timestep.h" />
     <ClInclude Include="src\GLCore\Core\UUID.h" />
     <ClInclude Include="src\GLCore\Render\FBOManager.h" />
+    <ClInclude Include="src\GLCore\Render\MaterialManager.h" />
     <ClInclude Include="src\GLCore\Render\RendererManager.h" />
+    <ClInclude Include="src\GLCore\Render\TextureManager.h" />
     <ClInclude Include="src\GLCore\Util\assimp_glm_helpers.h" />
     <ClInclude Include="src\GLCore\Util\DynamicSkybox.h" />
     <ClInclude Include="src\GLCore\Util\GridWorldReference.h" />

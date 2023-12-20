@@ -107,15 +107,32 @@ namespace GLCore
 
     struct MaterialData
     {
-        //ALBEDO COLOR
-        glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
+
+        std::string materialName = "none";
 
         //TEXTURES
-        Ref<Texture> albedoMap;
-        Ref<Texture> normalMap;
-        Ref<Texture> metallicMap;
-        Ref<Texture> rougnessMap;
-        Ref<Texture> aOMap;
+        Ref<Texture> albedoMap   ;
+        Ref<Texture> normalMap   ;
+        Ref<Texture> metallicMap ;
+        Ref<Texture> rougnessMap ;
+        Ref<Texture> aOMap       ;
+        //-------------------------------------------------------
+
+        //VALUES
+        glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
+
+        float shininess;
+        float hdrMultiply = 0.0f;
+        float hdrIntensity = 0.3f;
+        float exposure = 1.0f;
+        float gamma = 2.2f;
+        float max_reflection_lod = 4.0;
+        float iblIntensity = 0.0;
+        float normalIntensity = 0.5f;
+        float metallicValue = 0.0f;
+        float roughnessValue = 0.05f;
+        float reflectanceValue = 0.04f;
+        float fresnelCoefValue = 5.0f;
         //-------------------------------------------------------
     };
 
@@ -331,7 +348,6 @@ namespace GLCore
     {
         std::string name;
         std::vector<ModelInfo> modelInfos;
-
         Ref<GLCore::SkeletalInfo> skeletalInfo;
     };
 
