@@ -22,14 +22,16 @@ namespace GLCore {
 
 	//--SCENE BOUNDS
 	std::pair<glm::vec3, float> Scene::SceneBounds = { glm::vec3(0.0f), 0.0f };
+	//-------------------------------------------------------------------------------------------
 
 	//--ENTT
 	SceneHierarchyPanel* sceneHierarchyPanel;
-
+	//-------------------------------------------------------------------------------------------
+	
 	//--CONSTRUCTOR
     Scene::Scene() : m_EditorCamera(16.0f / 9.0f) {}
     Scene::~Scene(){shutdown();}
-
+	//-------------------------------------------------------------------------------------------
 
 	//--GAME OBJECTS
 	void Scene::CreateEmptyGameObject()
@@ -161,8 +163,6 @@ namespace GLCore {
 	}
 	//-------------------------------------------------------------------------------------------
 
-
-
 	//--ENTITIES
 	Entity Scene::CreateEntity(const std::string& name)
 	{
@@ -181,6 +181,18 @@ namespace GLCore {
 		return entity;
 	}
 	Entity Scene::DuplicateEntity(Entity entity)
+	{
+		return Entity();
+	}
+	Entity Scene::FindEntityByName(std::string_view name)
+	{
+		return Entity();
+	}
+	Entity Scene::GetEntityByUUID(UUID uuid)
+	{
+		return Entity();
+	}
+	Entity Scene::GetPrimaryCameraEntity()
 	{
 		return Entity();
 	}
@@ -221,23 +233,7 @@ namespace GLCore {
 		/*m_EntityMap.erase(entity.GetUUID());
 		*/
 	}
-	Entity Scene::FindEntityByName(std::string_view name)
-	{
-		return Entity();
-	}
-	Entity Scene::GetEntityByUUID(UUID uuid)
-	{
-		return Entity();
-	}
-	Entity Scene::GetPrimaryCameraEntity()
-	{
-		return Entity();
-	}
 	//-----------------------------------------------------------------------------
-
-
-
-
 
 	//--INIT
     bool Scene::initialize()
@@ -284,7 +280,7 @@ namespace GLCore {
 
 
 		//--FBO SCENE
-		scene_colorBuffers = GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&scene_FBO, &scene_depthBuffer, 1, 1920, 1080);
+		scene_colorBuffers = GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&scene_FBO, &scene_depthBuffer, 1, 800, 600);
 		// ---------------------------------------
 
 
@@ -312,8 +308,6 @@ namespace GLCore {
     }
 	//--------------------------------------------------------------------------------
 
-
-
 	//--MAIN LOOP
     void Scene::update(Timestep deltaTime)
     {
@@ -332,11 +326,12 @@ namespace GLCore {
 		}
 		//------------------------------------------------------------------------------
 
+		//--SCENE BUNDLE
 		if (m_EntityMap.size() > 0)
 		{
 			CalcSceneBundle();
 		}
-
+		//------------------------------------------------------------------------------
 
 		//--ENTITIES UPDATE
 		auto viewTransform_UPDATE = RegistrySingleton::getRegistry().view<TransformComponent,MeshRendererComponent>();
@@ -355,7 +350,7 @@ namespace GLCore {
 			}
 		}
 
-		//Animator
+		//--ANIMATOR UPDATE
 		/*auto viewAnimator_UPDATE = RegistrySingleton::getRegistry().view<TransformComponent, AnimatorComponent>();
 		for (auto entity : viewAnimator_UPDATE)
 		{
@@ -364,9 +359,8 @@ namespace GLCore {
 		}*/
 		
 
-		//Directional Light
+		//--DIRECTIONAL LIGHT UPDATE
 		auto viewDirectionalLight_UPDATE = RegistrySingleton::getRegistry().view<TransformComponent, DirectionalLightComponent>();
-		
 		for (auto entity : viewDirectionalLight_UPDATE)
 		{
 			auto [transform, directionalLightComponent] = viewDirectionalLight_UPDATE.get<TransformComponent, DirectionalLightComponent>(entity);
@@ -399,14 +393,8 @@ namespace GLCore {
 
 
 
-
-
-
-
-
-        //--EDITOR CAMERA
+        //--EDITOR CAMERA UPDATE
         aspectRatio = static_cast<float>(sceneSize.x) / static_cast<float>(sceneSize.y);
-
         m_EditorCamera.GetCamera().SetProjection(m_EditorCamera.GetCamera().GetFov(), aspectRatio, 0.1f, 100.0f);
         m_EditorCamera.OnUpdate(deltaTime);
         //----------------------------------------------------------------------------------------------------------------------------
@@ -488,7 +476,6 @@ namespace GLCore {
 	}
 	void GLCore::Scene::RenderPipeline(glm::mat4 cameraProjectionMatrix, glm::mat4 cameraViewMatrix, glm::vec3 cameraPosition, FBO_Data fboData)
 	{
-
 		for (int i = 0; i <= 12; ++i) {
 			glActiveTexture(GL_TEXTURE0 + i);
 			glBindTexture(GL_TEXTURE_2D, 0); // Desvincula cualquier textura 2D
@@ -538,8 +525,6 @@ namespace GLCore {
 		//clear
 		glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
 
 		int SlotTextureCounter = 0;
 
@@ -641,22 +626,23 @@ namespace GLCore {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-			//RenderPipeline
-			//PASS LIGHTS
-			auto viewDirectionalLight = RegistrySingleton::getRegistry().view<TransformComponent, DirectionalLightComponent>();
+			//--------------------------------------------------RENDER-PIPELINE----------------------------------------------------------------------------------------
+			
 
+			//--PASS LIGHTS
+			//-Directional Light
+			auto viewDirectionalLight = RegistrySingleton::getRegistry().view<TransformComponent, DirectionalLightComponent>();
 			for (auto entity : viewDirectionalLight)
 			{
 				auto [transformComponent, directionalLightComponent] = viewDirectionalLight.get<TransformComponent, DirectionalLightComponent>(entity);
-
 				GLCore::Render::DrawDirectionalLight(&directionalLightComponent, &transformComponent);
 			}
 
-			//GEOMETRY PASS
+
+			//--GEOMETRY PASS
 			gridWorldRef->Render();
 
 			auto viewMaterialPass = RegistrySingleton::getRegistry().view<TransformComponent, MaterialComponent, MeshRendererComponent>();
-			
 			for (auto entity : viewMaterialPass)
 			{
 				auto [transform, matComponent, meshRendererComponent] = viewMaterialPass.get<TransformComponent, MaterialComponent, MeshRendererComponent>(entity);
@@ -690,8 +676,9 @@ namespace GLCore {
 				GLCore::Render::DrawBoundingBox(&meshRendererComponent);
 			}
 
+			//--IBL PASS
 			SlotTextureCounter = 5;
-			//--------------------------------------------IBL
+			
 			glDepthFunc(GL_LEQUAL);
 
 			GLCore::Render::ShaderManager::Get("pbr_ibl")->use();
@@ -737,7 +724,7 @@ namespace GLCore {
 
 
 
-			//RENDER FINAL QUAD
+			//--RENDER FINAL QUAD
 			glBindFramebuffer(GL_FRAMEBUFFER, GL_NONE);
 			glViewport(0, 0, fboData.drawSize.x, fboData.drawSize.y);
 			glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
@@ -753,15 +740,11 @@ namespace GLCore {
 		}
 		//-------------------------------------------------------------------------------------------------------------------------------------------
 	}
-
-
 	void Scene::renderGUI()
 	{
 		//------------------------------------------MATERIALS IN SCENE PANEL-----------------------------------------------------
 		GLCore::Render::MaterialManager::getInstance().drawMaterialsPanel();
 		//---------------------------------------------------------------------------------------------------------------
-
-		
 
 		//------------------------------------------HIERARCHY PANEL-----------------------------------------------------
 		sceneHierarchyPanel->OnImGuiRender();
@@ -785,7 +768,6 @@ namespace GLCore {
 		}
 		ImGui::End();
 		//---------------------------------------------------------------------------------------------------------------
-
 
 		//-------------------------------------------EVIROMENT LIGHT PANEL-----------------------------------------------
 		if (ImGui::Begin("Enviroment Panel"))
@@ -867,12 +849,9 @@ namespace GLCore {
 		ImGui::End();
 		//------------------------------------------------------------------------------------------------
 
-
 		//-------------------------------------------ASSETS PANEL--------------------------------------
 		assetsPanel.OnImGuiRender();
 		//------------------------------------------------------------------------------------------------
-
-
 
 		//-------------------------------------------SCENE PANEL--------------------------------------------
 		ImGui::Begin("SCENE", nullptr);
@@ -894,7 +873,6 @@ namespace GLCore {
 		}
 		ImGui::End();
 		//---------------------------------------------------------------------------------------------------
-
 
 		//-------------------------------------------GAME PANEL--------------------------------------------
 		ImGui::Begin("GAME", nullptr);
@@ -925,8 +903,6 @@ namespace GLCore {
 
 		ImGui::End();
 		//---------------------------------------------------------------------------------------------------
-
-
 
 		//--SHADER EDITOR PANEL
 		GLCore::Render::ShaderManager::DrawShaderEditorPanel();
@@ -968,9 +944,6 @@ namespace GLCore {
 		//---------------------------------------------------------------------------------------------------
 	}
 	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-	
 
 	//--HELPERS
 	void Scene::renderQuad()
@@ -1419,11 +1392,9 @@ namespace GLCore {
 		return true;
 	}
 	void Scene::shutdown() {}
+	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-
-
-
+	//--ENTITIES ADDED EVENTS
 	template<typename T>
 	void Scene::OnComponentAdded(Entity entity, T& component)
 	{
@@ -1463,4 +1434,6 @@ namespace GLCore {
 
 	template<>
 	void Scene::OnComponentAdded<SkinedMeshComponent>(Entity entity, SkinedMeshComponent& component) {}
+	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 }
