@@ -3,91 +3,8 @@
 #include "../Util/IMGLoader.h"
 
 
-namespace GLCore::Render {
-
-    //enum TEX_TYPES {
-    //    ALBEDO,
-    //    NORMAL,
-    //    METALLIC,
-    //    ROUGHNESS,
-    //    AO
-    //};
-
-    ////LA VERSION EN RAM
-    //struct ImgData {
-    //    unsigned char* pixels;
-    //    int width, height, channels;
-    //    std::string path = "NONE";
-    //};
-
-    ////LA VERSION EN GPU
-    //struct TexData {
-    //    GLuint textureID = 0;
-    //    TEX_TYPES type;
-    //    std::string typeString;
-    //    Ref<ImgData> image;
-    //    bool hasMap = false;
-
-    //    void Bind() {
-    //        if (hasMap) {
-
-    //            if (textureID != 0) {
-    //                glDeleteTextures(1, &textureID);
-    //            }
-
-    //            glGenTextures(1, &textureID);
-    //            glBindTexture(GL_TEXTURE_2D, textureID);
-
-    //            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    //            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    //            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    //            GLenum format{};
-    //            if (image->channels == 1)
-    //                format = GL_RED;
-    //            else if (image->channels == 3)
-    //                format = GL_RGB;
-    //            else if (image->channels == 4)
-    //                format = GL_RGBA;
-
-    //            glTexImage2D(GL_TEXTURE_2D, 0, format, image->width, image->height, 0, format, GL_UNSIGNED_BYTE, image->pixels);
-    //            glGenerateMipmap(GL_TEXTURE_2D);
-    //            glBindTexture(GL_TEXTURE_2D, 0);
-    //        }
-    //    }
-    //};
-
-
-    //struct MatData
-    //{
-    //    //TEXTURES
-    //    Ref<TexData> albedoMap;
-    //    Ref<TexData> normalMap;
-    //    Ref<TexData> metallicMap;
-    //    Ref<TexData> rougnessMap;
-    //    Ref<TexData> aOMap;
-    //    //-------------------------------------------------------
-
-    //    //VALUES
-    //    glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
-
-    //    float shininess;
-    //    float hdrMultiply = 0.0f;
-    //    float hdrIntensity = 0.3f;
-    //    float exposure = 1.0f;
-    //    float gamma = 2.2f;
-    //    float max_reflection_lod = 4.0;
-    //    float iblIntensity = 0.0;
-    //    float normalIntensity = 0.5f;
-    //    float metallicValue = 0.0f;
-    //    float roughnessValue = 0.05f;
-    //    float reflectanceValue = 0.04f;
-    //    float fresnelCoefValue = 5.0f;
-    //    //-------------------------------------------------------
-    //};
-
-
+namespace GLCore::Render 
+{
     class MaterialManager 
     {
 
@@ -175,9 +92,17 @@ namespace GLCore::Render {
         }
 
         // Agrega un nuevo material al manager
-        bool addMaterial(const std::string& key, Ref <MaterialData> materialData) {
+        Ref<MaterialData> addMaterial(const std::string& key, Ref<MaterialData> materialData) {
             auto result = materials.emplace(key, materialData);
-            return result.second; // Retorna true si se insertó, false si ya existía
+
+            if (result.second) {
+                // El material fue insertado correctamente.
+                return materialData;
+            }
+            else {
+                // El material ya existía, devuelve el material existente.
+                return result.first->second;
+            }
         }
 
         // Obtiene un material por su clave
@@ -194,6 +119,80 @@ namespace GLCore::Render {
         bool removeMaterial(const std::string& key) {
             return materials.erase(key) > 0;
         }
+
+
+        //DRAW IMGUI
+        void drawMaterialsPanel() {
+            ImGui::Begin("Materials In Scene"); // Comienza el panel de materiales
+
+            if (ImGui::TreeNode("Materials")) {
+                for (auto& pair : materials) {
+                    std::string key = pair.first;
+                    Ref<MaterialData> material = pair.second;
+
+                    if (ImGui::TreeNode(key.c_str())) {
+                        drawMaterial(material); // Dibuja la interfaz para este material específico
+                        ImGui::TreePop();
+                    }
+                }
+                ImGui::TreePop();
+            }
+
+            ImGui::End(); // Termina el panel de materiales
+        }
+
+        void drawMaterial(Ref<MaterialData> materialData) {
+            // Mostrar y editar el nombre del material
+            char buf[128];
+            // Suponiendo que 'buf' es tu buffer destino y 'sizeof(buf)' es su tamaño
+            strncpy_s(buf, sizeof(buf), materialData->materialName.c_str(), _TRUNCATE);
+
+            if (ImGui::InputText("Material Name", buf, sizeof(buf))) {
+                materialData->materialName = buf;
+            }
+
+            if (ImGui::Button("Reset Values")) {
+                materialData->ResetToDefaultValues();
+            }
+
+            // Mostrar y editar el color albedo
+            ImGui::ColorEdit3("Color", glm::value_ptr(materialData->color));
+
+            // Mostrar y editar las propiedades del material
+            ImGui::SliderFloat("Shininess", &materialData->shininess, 0.0f, 128.0f);
+            ImGui::SliderFloat("HDR Multiply", &materialData->hdrMultiply, 0.0f, 10.0f);
+            ImGui::SliderFloat("HDR Intensity", &materialData->hdrIntensity, 0.0f, 10.0f);
+            ImGui::SliderFloat("Exposure", &materialData->exposure, 0.1f, 10.0f);
+            ImGui::SliderFloat("Gamma", &materialData->gamma, 0.1f, 3.0f);
+            ImGui::SliderFloat("Max Reflection LOD", &materialData->max_reflection_lod, 0.0f, 10.0f);
+            ImGui::SliderFloat("IBL Intensity", &materialData->iblIntensity, 0.0f, 10.0f);
+            ImGui::SliderFloat("Normal Intensity", &materialData->normalIntensity, 0.0f, 10.0f);
+            ImGui::SliderFloat("Metallic Value", &materialData->metallicValue, 0.0f, 1.0f);
+            ImGui::SliderFloat("Roughness Value", &materialData->roughnessValue, 0.0f, 1.0f);
+            ImGui::SliderFloat("Reflectance Value", &materialData->reflectanceValue, 0.0f, 1.0f);
+            ImGui::SliderFloat("Fresnel Coefficient", &materialData->fresnelCoefValue, 0.1f, 10.0f);
+
+            // Mostrar y posiblemente cambiar las texturas
+            // Suponiendo que tienes una función que devuelve una representación de ImGui de la textura
+            showTexture("Albedo Map", materialData->albedoMap);
+            showTexture("Normal Map", materialData->normalMap);
+            showTexture("Metallic Map", materialData->metallicMap);
+            showTexture("Roughness Map", materialData->rougnessMap);
+            showTexture("AO Map", materialData->aOMap);
+        }
+
+        void showTexture(const char* label, Ref<Texture> texture) {
+            if (texture && texture->hasMap) {
+                ImGui::Text("%s: %s", label, texture->image->path.c_str());
+                // Aquí podrías añadir una imagen de ImGui si tienes el identificador de la textura de OpenGL
+                ImGui::Image((void*)(intptr_t)texture->textureID, ImVec2(64, 64));
+                // Podrías añadir también un botón para cargar una nueva textura
+                if (ImGui::Button("Load New Texture")) {
+                    // Lógica para cargar una nueva textura
+                }
+            }
+        }
+
 
     private:
         MaterialManager() {} // Constructor privado

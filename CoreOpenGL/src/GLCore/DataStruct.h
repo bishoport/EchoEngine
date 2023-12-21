@@ -134,6 +134,24 @@ namespace GLCore
         float reflectanceValue = 0.04f;
         float fresnelCoefValue = 5.0f;
         //-------------------------------------------------------
+
+        void ResetToDefaultValues()
+        {
+            color = glm::vec3(1.0f, 1.0f, 1.0f);
+
+            shininess;
+            hdrMultiply = 0.0f;
+            hdrIntensity = 0.3f;
+            exposure = 1.0f;
+            gamma = 2.2f;
+            max_reflection_lod = 4.0;
+            iblIntensity = 0.0;
+            normalIntensity = 0.5f;
+            metallicValue = 0.0f;
+            roughnessValue = 0.05f;
+            reflectanceValue = 0.04f;
+            fresnelCoefValue = 5.0f;
+        }
     };
 
 

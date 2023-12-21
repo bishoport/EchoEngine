@@ -12,7 +12,7 @@ namespace GLCore::Utils
 
 		glBindFramebuffer(GL_FRAMEBUFFER, IBL_FBO);
 		glBindRenderbuffer(GL_RENDERBUFFER, IBL_RBO);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 1024, 1024);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, IBL_RBO);
 
 
@@ -23,7 +23,7 @@ namespace GLCore::Utils
 
 		for (unsigned int i = 0; i < 6; ++i)
 		{
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 512, 512, 0, GL_RGB, GL_FLOAT, nullptr);
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 1024, 1024, 0, GL_RGB, GL_FLOAT, nullptr);
 		}
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -58,7 +58,7 @@ namespace GLCore::Utils
 		GLCore::Render::ShaderManager::Get("equirectangularToCubemap")->setMat4("projection", captureProjection);
 		
 
-		glViewport(0, 0, 512, 512); // don't forget to configure the viewport to the capture dimensions.
+		glViewport(0, 0, 1024, 1024); // don't forget to configure the viewport to the capture dimensions.
 		glBindFramebuffer(GL_FRAMEBUFFER, IBL_FBO);
 		for (unsigned int i = 0; i < 6; ++i)
 		{

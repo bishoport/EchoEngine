@@ -78,7 +78,9 @@ namespace GLCore {
 			meshRendererComponent->meshData->meshScale = glm::vec3(1.0f, 1.0f, 1.0f);
 			transformComponent->position = meshRendererComponent->meshData->meshLocalPosition;
 
-			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entity).setDefaultMaterial();
+			std::string matKey = GLCore::Render::MaterialManager::getInstance().CreateDefaultMaterial();
+			auto matD = GLCore::Render::MaterialManager::getInstance().getMaterial(matKey);
+			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entity).materialData = matD;
 		}
 		else if (action == MainMenuAction::AddPlane)
 		{
@@ -99,7 +101,9 @@ namespace GLCore {
 
 			transformComponent->position = meshRendererComponent->meshData->meshLocalPosition;
 
-			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entity).setDefaultMaterial();
+			std::string matKey = GLCore::Render::MaterialManager::getInstance().CreateDefaultMaterial();
+			auto matD = GLCore::Render::MaterialManager::getInstance().getMaterial(matKey);
+			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entity).materialData = matD;
 		}
 		else if (action == MainMenuAction::AddSphere)
 		{
@@ -120,7 +124,9 @@ namespace GLCore {
 
 			transformComponent->position = meshRendererComponent->meshData->meshLocalPosition;
 
-			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entity).setDefaultMaterial();
+			std::string matKey = GLCore::Render::MaterialManager::getInstance().CreateDefaultMaterial();
+			auto matD = GLCore::Render::MaterialManager::getInstance().getMaterial(matKey);
+			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entity).materialData = matD;
 		}
 		else if (action == MainMenuAction::AddQuad)
 		{
@@ -141,7 +147,9 @@ namespace GLCore {
 
 			transformComponent->position = meshRendererComponent->meshData->meshLocalPosition;
 
-			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entity).setDefaultMaterial();
+			std::string matKey = GLCore::Render::MaterialManager::getInstance().CreateDefaultMaterial();
+			auto matD = GLCore::Render::MaterialManager::getInstance().getMaterial(matKey);
+			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entity).materialData = matD;
 		}
 		else if (action == MainMenuAction::AddDirectionalLight)
 		{
@@ -246,7 +254,7 @@ namespace GLCore {
 		GLCore::Render::ShaderManager::LoadAllShaders();
 	
 		//--IBL
-		iblManager.prepare_PBR_IBL(800, 600);
+		iblManager.prepare_PBR_IBL(1920, 1080);
 		//--------------------------------------------------------------------------------------------------------------------------------
 
 		////--SKYBOX
@@ -271,12 +279,12 @@ namespace GLCore {
 
 		//--POST-PROCESS
 		postproManager = new Utils::PostProcessingManager();
-		postproManager->Init(800,600);
+		postproManager->Init(1920, 1080);
 		//--------------------------------------------------------------------------------------------------------------------------------
 
 
 		//--FBO SCENE
-		scene_colorBuffers = GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&scene_FBO, &scene_depthBuffer, 1, 800, 600);
+		scene_colorBuffers = GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&scene_FBO, &scene_depthBuffer, 1, 1920, 1080);
 		// ---------------------------------------
 
 
@@ -749,6 +757,12 @@ namespace GLCore {
 
 	void Scene::renderGUI()
 	{
+		//------------------------------------------MATERIALS IN SCENE PANEL-----------------------------------------------------
+		GLCore::Render::MaterialManager::getInstance().drawMaterialsPanel();
+		//---------------------------------------------------------------------------------------------------------------
+
+		
+
 		//------------------------------------------HIERARCHY PANEL-----------------------------------------------------
 		sceneHierarchyPanel->OnImGuiRender();
 		//---------------------------------------------------------------------------------------------------------------
@@ -1211,16 +1225,6 @@ namespace GLCore {
 
 				auto& meshFilterComponent = RegistrySingleton::getRegistry().emplace<MeshFilterComponent>(entityChild, modelParent.modelInfos[i].meshData, EXTERNAL_FILE);
 				auto& meshRendererComponent = RegistrySingleton::getRegistry().emplace<MeshRendererComponent>(entityChild);
-
-				//if (modelParent.modelInfos[i].meshData->GetBoneCount() > 0)
-				//{
-				//	RegistrySingleton::getRegistry().emplace<AnimatorComponent>(entityChild);
-				//	AnimatorComponent* animatorComponent = &RegistrySingleton::getRegistry().get<AnimatorComponent>(entityChild);
-				//	animatorComponent->meshData = modelParent.modelInfos[i].meshData;
-
-				//	//animatorComponent->SetAnimation("assets/meshes/vampire/dancing_vampire.dae");
-				//}
-
 				auto& transformComponent = RegistrySingleton::getRegistry().get<TransformComponent>(entityChild);
 
 				meshFilterComponent.modelPath = importOptions.filePath + importOptions.fileName;
@@ -1234,23 +1238,12 @@ namespace GLCore {
 				GLCore::Render::MaterialManager::getInstance().addMaterial(matKey,modelParent.modelInfos[i].model_textures);
 				auto matD = GLCore::Render::MaterialManager::getInstance().getMaterial(matKey);
 				RegistrySingleton::getRegistry().emplace<MaterialComponent>(entityChild).materialData = matD;
-
-				//RegistrySingleton::getRegistry().emplace<MaterialComponent>(entityChild).materialData = modelParent.modelInfos[i].model_textures;
 			}
 		}
 		else
 		{
 			RegistrySingleton::getRegistry().emplace<MeshFilterComponent>(entityParent, modelParent.modelInfos[0].meshData, EXTERNAL_FILE);
 			RegistrySingleton::getRegistry().emplace<MeshRendererComponent>(entityParent);
-			
-			//if (modelParent.modelInfos[0].meshData->GetBoneCount() > 0)
-			//{
-			//	RegistrySingleton::getRegistry().emplace<AnimatorComponent>(entityParent);
-			//	AnimatorComponent* animatorComponent = &RegistrySingleton::getRegistry().get<AnimatorComponent>(entityParent);
-			//	animatorComponent->meshData = modelParent.modelInfos[0].meshData;
-
-			//	//animatorComponent->SetAnimation("assets/meshes/vampire/dancing_vampire.dae");
-			//}
 
 			MeshFilterComponent* meshFilterComponent = &RegistrySingleton::getRegistry().get<MeshFilterComponent>(entityParent);
 			MeshRendererComponent* meshRendererComponent = &RegistrySingleton::getRegistry().get<MeshRendererComponent>(entityParent);
@@ -1264,7 +1257,11 @@ namespace GLCore {
 			meshRendererComponent->meshData->meshScale = glm::vec3(1.0f, 1.0f, 1.0f);
 			transformComponent->position = meshRendererComponent->meshData->meshLocalPosition;
 
-			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entityParent).materialData = modelParent.modelInfos[0].model_textures;
+
+			std::string matKey = modelParent.modelInfos[0].model_textures->materialName;
+			GLCore::Render::MaterialManager::getInstance().addMaterial(matKey, modelParent.modelInfos[0].model_textures);
+			auto matD = GLCore::Render::MaterialManager::getInstance().getMaterial(matKey);
+			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entityParent).materialData = matD;
 		}
 
 		
@@ -1422,6 +1419,7 @@ namespace GLCore {
 		return true;
 	}
 	void Scene::shutdown() {}
+
 
 
 

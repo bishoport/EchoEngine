@@ -13,9 +13,9 @@ namespace GLCore::Utils
         colorBuffers = GLCore::Render::FBOManager::CreateFBO_Color_RGBA16F(&FBO, &depthBuffer, 2, SCR_WIDTH, SCR_HEIGHT);
 
         //--RESIZE WINDOW EVENT
-        //EventManager::getWindowResizeEvent().subscribe([this](GLuint width, GLuint height) {
-        //    GLCore::Render::FBOManager::UpdateFBO_Color_RGBA16F(&FBO, &depthBuffer, colorBuffers, width, height);
-        //});
+        EventManager::getWindowResizeEvent().subscribe([this](GLuint width, GLuint height) {
+            GLCore::Render::FBOManager::UpdateFBO_Color_RGBA16F(&FBO, &depthBuffer, colorBuffers, width, height);
+        });
         // ---------------------------------------
 
         EventManager::getOnPanelResizedEvent().subscribe([this](const std::string name, const ImVec2& size, const ImVec2& position)
