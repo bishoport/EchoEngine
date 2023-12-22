@@ -167,13 +167,13 @@ void main()
     } 
     else 
     {
-        ambient = albedo * globalAmbient * ao; // O alguna otra definición de ambiente sin IBL
+        ambient = albedo * globalAmbient * ao; // O alguna otra definicin de ambiente sin IBL
     }
      
 
     vec3 color = ambient + Lo;
 
-    //Ajustar la exposición antes del tonemapping
+    //Ajustar la exposicin antes del tonemapping
     color *= pow(2.0, material.exposure);
     color = pow(color, vec3(1.0 / material.gamma));
 
@@ -433,3 +433,4 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
+

@@ -39,54 +39,36 @@ vec3 F0;
 vec2 adjustedTexCoords;
 //-------------------
 
-// IBL
-uniform bool useIBL;
-uniform samplerCube irradianceMap;
-uniform samplerCube prefilterMap;
-uniform sampler2D brdfLUT;
-//-------------------
 
-uniform vec2 repetitionFactor;
+// Factor de repeticin
+uniform vec2 repetitionFactor; 
 
 void main()
 {
-
+    // Factor de repeticin
     adjustedTexCoords = TexCoords * repetitionFactor;
 
-    if (material.hasAlbedoMap) {
-        vec3 textureColor = pow(texture(material.albedoMap, adjustedTexCoords).rgb, vec3(2.2));
-        albedo = textureColor * material.albedo; // Tonaliza la textura con el valor de material.albedo
-    }
-    else 
-    {
+    if (material.hasAlbedoMap)
+        albedo = pow(texture(material.albedoMap, adjustedTexCoords).rgb, vec3(2.2));
+    else
         albedo = material.albedo;
-    }
 
-    if (material.hasMetallicMap) 
-    {
-        float textureMetallic = texture(material.metallicMap, adjustedTexCoords).r;
-        metallic = textureMetallic * material.metallic; // Tonaliza la textura con el valor de material.metallic
-    }
-    else 
-    {
+    if (material.hasMetallicMap)
+        metallic = texture(material.metallicMap, adjustedTexCoords).r * material.metallic;
+    else
         metallic = material.metallic;
-    }
 
-    if (material.hasRougnessMap) 
-    {
-        float textureRoughness = texture(material.roughnessMap, adjustedTexCoords).r;
-        roughness = textureRoughness * material.roughness; // Tonaliza la textura con el valor de material.roughness
-    }
-    else {
+    if (material.hasRougnessMap)
+        roughness = texture(material.roughnessMap, adjustedTexCoords).r * material.roughness;
+    else
         roughness = material.roughness;
-    }
-
 
     if (material.hasAoMap)
         ao = texture(material.aoMap, adjustedTexCoords).r;
     else
         ao = 1.0;
-
+    
+    
 
     N = getNormalFromMap();      
     V = normalize(viewPos - FragPos);
@@ -96,7 +78,6 @@ void main()
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
     F0 = vec3(material.reflectance);
     F0 = mix(F0, albedo, metallic);
-
 
 
     //FASE DE ILUMINACION
@@ -134,54 +115,12 @@ void main()
 
     Lo += material.hdrMultiply;
 
-
-
-
-    // ambient lighting (we now use IBL as the ambient term)
-    //vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
-    //vec3 kS = F;
-    //vec3 kD = 1.0 - kS;
-    //kD *= 1.0 - metallic;
-    //vec3 irradiance = texture(irradianceMap, N).rgb;
-    //vec3 diffuse = mix(albedo, irradiance * albedo * material.iblIntensity, material.hdrIntensity);
-    //vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * material.max_reflection_lod).rgb;     
-    //vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
-    //vec3 specular = prefilteredColor * (F * brdf.x + brdf.y) * material.iblIntensity;
-    //vec3 ambient = (((kD * diffuse * globalAmbient) + specular) * ao);
-
-    vec3 ambient;
-    if (useIBL) 
-    {
-        vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
-        vec3 kS = F;
-        vec3 kD = 1.0 - kS;
-        kD *= 1.0 - metallic;
-    
-        vec3 irradiance = texture(irradianceMap, N).rgb;
-        vec3 diffuse = mix(albedo, irradiance * albedo * material.iblIntensity, material.hdrIntensity);
-        vec3 prefilteredColor = textureLod(prefilterMap, R, roughness * material.max_reflection_lod).rgb;
-        vec2 brdf = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
-        vec3 specular = prefilteredColor * (F * brdf.x + brdf.y) * material.iblIntensity;
-
-        ambient = (((kD * diffuse * globalAmbient) + specular) * ao);
-    } 
-    else 
-    {
-        ambient = albedo * globalAmbient * ao; // O alguna otra definición de ambiente sin IBL
-    }
-     
-
+    //COMBINAMOS TODO
+    vec3 ambient = (albedo * globalAmbient) * ao;
     vec3 color = ambient + Lo;
-
-    //Ajustar la exposición antes del tonemapping
-    color *= pow(2.0, material.exposure);
-    color = pow(color, vec3(1.0 / material.gamma));
 
     FragColor = vec4(color, 1.0);
 }
-
-
-
 
 
 
@@ -221,31 +160,23 @@ vec3 CalcDirLight(DirLight light)
 float CalcDirectionalLightShadow(DirLight light)
 {
     float shadow = 1.0f;
+
     vec3 L = normalize(light.position - FragPos);
-    vec4 shadowCoord = light.shadowBiasMVP * vec4(FragPos, 1.0);
-    vec3 sCoord = shadowCoord.xyz/shadowCoord.w;
+
+    vec4 shadowCoord = light.shadowBiasMVP * vec4(FragPos,1.0);
+
+    vec3 sCoord=shadowCoord.xyz/shadowCoord.w;
+
     float bias = 0.005 * tan(acos(dot(N,L)));
 
-    if (light.usePoisonDisk == true)
+    for (int i=0;i<64;i++)
     {
-        for (int i=0; i<64; i++)
-        {
-            if (texture(light.shadowMap, sCoord.xy + poissonDisk[i]/300.0).r < sCoord.z-bias)
-                shadow -= 1./64.;
-        }
+        if ( texture( light.shadowMap, sCoord.xy + poissonDisk[i]/300.0 ).r < sCoord.z-bias )
+            shadow-=1./64.;
     }
-    else
-    {
-        if (texture(light.shadowMap, sCoord.xy).r < sCoord.z-bias)
-            shadow = 0.0;
-    }
-
-    // Aplicar shadowIntensity
-    shadow = mix(shadow, 1.0, light.shadowIntensity);
 
     return shadow;
 }
-
 
 
 vec3 CalcSpotLight(SpotLight light)
@@ -280,13 +211,14 @@ vec3 CalcSpotLight(SpotLight light)
 
     // kS is equal to Fresnel
     vec3 kS = F;
-    vec3 kD = vec3(1.0) - kS; 
+    vec3 kD = vec3(1.0) - kS;
     kD *= 1.0 - metallic;
 
     // scale light by NdotL
     float NdotL = max(dot(N, L), 0.0);
 
     return vec3(kD * albedo / PI + specular) * radiance * NdotL;
+    //return (vec3(kD * albedo / PI + specular) * NdotL) * radiance * attenuation * intensity;
 }
 
 float CalcSpotLightShadow(SpotLight light)
@@ -307,11 +239,9 @@ float CalcSpotLightShadow(SpotLight light)
             shadow-=1./64.;
     }
 
-    // Aplicar shadowIntensity
-    shadow = mix(shadow, 1.0, light.shadowIntensity);
-
     return shadow;
 }
+
 
 
 vec3 CalcPointLight(PointLight light)
@@ -355,18 +285,30 @@ vec3 CalcPointLight(PointLight light)
 
     return vec3(kD * albedo / PI + specular) * radiance * NdotL;
 }
+// ----------------------------------------------------------------------------
 
 
 
 
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ----------------------------------------------------------------------------
 vec3 getNormalFromMap()
 {
@@ -384,6 +326,20 @@ vec3 getNormalFromMap()
     mat3 TBN = mat3(T, B, N);
 
     return normalize(TBN * tangentNormal);
+
+    //vec3 tangentNormal = texture(material.normalMap, adjustedTexCoords).xyz * 2.0 - 1.0;
+
+    //vec3 Q1  = dFdx(FragPos);
+    //vec3 Q2  = dFdy(FragPos);
+    //vec2 st1 = dFdx(adjustedTexCoords);
+    //vec2 st2 = dFdy(adjustedTexCoords);
+
+    //vec3 N   = normalize(Normal);
+    //vec3 T   = normalize(Q1*st2.t - Q2*st1.t);
+    //vec3 B   = -normalize(cross(N, T));
+    //mat3 TBN = mat3(T, B, N);
+
+    //return normalize(TBN * tangentNormal);
 }
 // ----------------------------------------------------------------------------
 float DistributionGGX(vec3 N, vec3 H, float roughness)

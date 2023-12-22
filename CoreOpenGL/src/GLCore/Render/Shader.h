@@ -193,10 +193,6 @@ namespace GLCore::Render {
                 glDeleteShader(geometry);
         }
 
-
-        
-
-
         // activate the shader
         // ------------------------------------------------------------------------
         void use()

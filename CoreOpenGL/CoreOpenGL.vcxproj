@@ -146,6 +146,7 @@
     <ClCompile Include="src\GLCore\Core\UUID.cpp" />
     <ClCompile Include="src\GLCore\Render\FBOManager.cpp" />
     <ClCompile Include="src\GLCore\Render\RendererManager.cpp" />
+    <ClCompile Include="src\GLCore\Render\TextEditor.cpp" />
     <ClCompile Include="src\GLCore\Util\DynamicSkybox.cpp" />
     <ClCompile Include="src\GLCore\Util\GridWorldReference.cpp" />
     <ClCompile Include="src\GLCore\Util\IBLManager.cpp" />
@@ -188,6 +189,7 @@
     <ClInclude Include="src\GLCore\Render\FBOManager.h" />
     <ClInclude Include="src\GLCore\Render\MaterialManager.h" />
     <ClInclude Include="src\GLCore\Render\RendererManager.h" />
+    <ClInclude Include="src\GLCore\Render\TextEditor.h" />
     <ClInclude Include="src\GLCore\Render\TextureManager.h" />
     <ClInclude Include="src\GLCore\Util\assimp_glm_helpers.h" />
     <ClInclude Include="src\GLCore\Util\DynamicSkybox.h" />

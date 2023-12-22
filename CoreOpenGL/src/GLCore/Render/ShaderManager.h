@@ -3,14 +3,12 @@
 #include "Shader.h"
 #include <string>
 #include <unordered_map>
-
+#include "TextEditor.h"
 
 namespace GLCore::Render {
 
-
     class ShaderManager {
     public:
-
         struct ShaderDataSource {
             GLCore::Render::Shader::ShaderType shaderType;
             std::string sourcePath;
@@ -24,7 +22,6 @@ namespace GLCore::Render {
             ShaderDataSource(GLCore::Render::Shader::ShaderType type, const std::string& path)
                 : shaderType(type), sourcePath(path) {}
         };
-
         struct ShaderProgramSource {
             std::string name;
 
@@ -45,19 +42,18 @@ namespace GLCore::Render {
             {
             }
         };
-
-
         static void LoadAllShaders();
 
         static void Load(const std::string& name, const std::string& vertexPath, const std::string& fragmentPath, const std::string& geometryPath = "");
         static Shader* Get(const std::string& name);
         static void CleanUp();
-
         static const std::unordered_map<std::string, Shader*>& GetAllShaders()
         {
             return compiledShaders;
         }
 
+
+        static void InitializeShaderEditors();
         static void DrawShaderEditorPanel();
 
 
@@ -67,10 +63,13 @@ namespace GLCore::Render {
 
         static std::unordered_map<std::string, Shader*> compiledShaders;
         static std::vector<ShaderProgramSource> shaderProgramSources;
-        static void ReloadAllShaders(ShaderProgramSource& programSource);
+        static void ReloadAllShaders();
 
         static std::string readFile(const std::string& filePath);
 
+        static TextEditor vertexEditor;
+        static TextEditor fragmentEditor;
+        static TextEditor geometryEditor;
     };
 }
 

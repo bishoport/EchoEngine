@@ -1,8 +1,6 @@
 #pragma once
 #include "../../glpch.h"
 
-
-
 namespace GLCore {
 
     class GuiLayer {
@@ -17,6 +15,7 @@ namespace GLCore {
             int m_height;
             dockPanel(ImGuiID id, int posX, int posY, int width, int height) : m_id(id), m_posX(posX), m_posY(posY), m_width(width), m_height(height) {}
         };
+
         GuiLayer(GLFWwindow* window);
         ~GuiLayer();
 
@@ -24,7 +23,6 @@ namespace GLCore {
         void end();
         void renderDockers();
         void renderMainMenuBar();
-        void dockersDimensions();
 
         dockPanel inspectorPanel = dockPanel(0, 0, 0, 0, 0);
         dockPanel assetsPanel = dockPanel(0, 0, 0, 0, 0);

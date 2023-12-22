@@ -40,12 +40,12 @@ vec2 adjustedTexCoords;
 //-------------------
 
 
-// Factor de repetición
+// Factor de repeticion
 uniform vec2 repetitionFactor; 
 
 void main()
 {
-    // Factor de repetición
+    // Factor de repeticion
     adjustedTexCoords = TexCoords * repetitionFactor;
 
     if (material.hasAlbedoMap)

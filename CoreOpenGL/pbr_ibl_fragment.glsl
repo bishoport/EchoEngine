@@ -2,7 +2,7 @@
 #include "common.glsl"
 
 out vec4 FragColor;
-
+ 
 in vec2 TexCoords;
 in vec3 FragPos;
 in vec3 Normal;
@@ -46,9 +46,7 @@ uniform samplerCube prefilterMap;
 uniform sampler2D brdfLUT;
 //-------------------
 
-uniform vec2 repetitionFactor;
-
-void main()
+uniform vec2 repetitionFactor; // Factor de repeticivoid main()
 {
 
     adjustedTexCoords = TexCoords * repetitionFactor;
@@ -167,13 +165,13 @@ void main()
     } 
     else 
     {
-        ambient = albedo * globalAmbient * ao; // O alguna otra definición de ambiente sin IBL
+        ambient = albedo * globalAmbient * ao; // O alguna otra definicie ambiente sin IBL
     }
      
 
     vec3 color = ambient + Lo;
 
-    //Ajustar la exposición antes del tonemapping
+    //Ajustar la exposicintes del tonemapping
     color *= pow(2.0, material.exposure);
     color = pow(color, vec3(1.0 / material.gamma));
 

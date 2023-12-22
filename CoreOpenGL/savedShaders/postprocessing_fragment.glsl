@@ -29,11 +29,11 @@ uniform float midtoneIntensity; // Intensidad del tono medio
 uniform float highlightIntensity; // Intensidad de la luz alta
 
 vec3 adjustShadows(vec3 color, float shadows) {
-    // Esta función atenúa o amplifica las sombras de la imagen.
-    // shadows: -1.0 (más oscuro) a 1.0 (más claro), 0.0 es neutral
+    // Esta funcin atena o amplifica las sombras de la imagen.
+    // shadows: -1.0 (ms oscuro) a 1.0 (ms claro), 0.0 es neutral
     float shadowStrength = clamp(shadows, -1.0, 1.0);
     float luminance = dot(color, vec3(0.299, 0.587, 0.114));
-    float shadowMask = smoothstep(0.0, 0.5, luminance); // Esto determina cuánto afectará el ajuste a las sombras.
+    float shadowMask = smoothstep(0.0, 0.5, luminance); // Esto determina cunto afectar el ajuste a las sombras.
     
     // Aplicar el ajuste basado en el shadowStrength
     color = mix(color, color + shadowStrength * shadowMask, shadowMask);
@@ -41,11 +41,11 @@ vec3 adjustShadows(vec3 color, float shadows) {
 }
 
 vec3 adjustMidtones(vec3 color, float midtones) {
-    // Esta función ajusta los tonos medios.
-    // midtones: -1.0 (más oscuro) a 1.0 (más claro), 0.0 es neutral
+    // Esta funcin ajusta los tonos medios.
+    // midtones: -1.0 (ms oscuro) a 1.0 (ms claro), 0.0 es neutral
     float midtoneStrength = clamp(midtones, -1.0, 1.0);
     float luminance = dot(color, vec3(0.299, 0.587, 0.114));
-    float midtoneMask = smoothstep(0.25, 0.75, luminance); // Esto determina cuánto afectará el ajuste a los tonos medios.
+    float midtoneMask = smoothstep(0.25, 0.75, luminance); // Esto determina cunto afectar el ajuste a los tonos medios.
     
     // Aplicar el ajuste basado en el midtoneStrength
     color = mix(color, color + midtoneStrength * midtoneMask, midtoneMask);
@@ -53,11 +53,11 @@ vec3 adjustMidtones(vec3 color, float midtones) {
 }
 
 vec3 adjustHighlights(vec3 color, float highlights) {
-    // Esta función amplifica o atenúa las luces altas.
-    // highlights: -1.0 (más oscuro) a 1.0 (más claro), 0.0 es neutral
+    // Esta funcin amplifica o atena las luces altas.
+    // highlights: -1.0 (ms oscuro) a 1.0 (ms claro), 0.0 es neutral
     float highlightStrength = clamp(highlights, -1.0, 1.0);
     float luminance = dot(color, vec3(0.299, 0.587, 0.114));
-    float highlightMask = smoothstep(0.5, 1.0, luminance); // Esto determina cuánto afectará el ajuste a las luces altas.
+    float highlightMask = smoothstep(0.5, 1.0, luminance); // Esto determina cunto afectar el ajuste a las luces altas.
     
     // Aplicar el ajuste basado en el highlightStrength
     color = mix(color, color + highlightStrength * highlightMask, highlightMask);
@@ -67,7 +67,7 @@ vec3 adjustHighlights(vec3 color, float highlights) {
 
 vec3 adjustTonality(vec3 color, float shadows, float midtones, float highlights) {
     // Aplica ajustes a las sombras, tonos medios y altas luces
-    // Este es un pseudocódigo y requeriría una función real basada en tu necesidad
+    // Este es un pseudocdigo y requerira una funcin real basada en tu necesidad
     color = adjustShadows(color, shadows);
     color = adjustMidtones(color, midtones);
     color = adjustHighlights(color, highlights);
@@ -77,11 +77,11 @@ vec3 adjustTonality(vec3 color, float shadows, float midtones, float highlights)
 
 //--TONNEMAPING ACES
 uniform bool ACES;
-uniform float ACES_a; // Controla la intensidad de las luces. Valores más altos resultan en realces más brillantes.
-uniform float ACES_b; // Afecta la transición de las medias tonalidades a las luces altas, actuando como un offset.
-uniform float ACES_c; // Ajusta el contraste general de la imagen. Valores más altos aumentan el contraste.
-uniform float ACES_d; // Afecta las sombras/midtones, desempeñando un papel en el contraste de áreas más oscuras.
-uniform float ACES_e; // Es un término de normalización para asegurarse de que los negros se mapean correctamente.
+uniform float ACES_a; // Controla la intensidad de las luces. Valores ms altos resultan en realces ms brillantes.
+uniform float ACES_b; // Afecta la transicin de las medias tonalidades a las luces altas, actuando como un offset.
+uniform float ACES_c; // Ajusta el contraste general de la imagen. Valores ms altos aumentan el contraste.
+uniform float ACES_d; // Afecta las sombras/midtones, desempeando un papel en el contraste de reas ms oscuras.
+uniform float ACES_e; // Es un trmino de normalizacin para asegurarse de que los negros se mapean correctamente.
 
 vec3 RRTAndODTFit(vec3 v)
 {
@@ -99,9 +99,9 @@ vec3 ACESFilm(vec3 x)
 
 //--SATURATION_COLOR
 uniform bool SATURATION;
-uniform float saturationRed;   // Saturación para el canal rojo
-uniform float saturationGreen; // Saturación para el canal verde
-uniform float saturationBlue;  // Saturación para el canal azul
+uniform float saturationRed;   // Saturacin para el canal rojo
+uniform float saturationGreen; // Saturacin para el canal verde
+uniform float saturationBlue;  // Saturacin para el canal azul
 
 uniform vec3 whiteBalanceColor; // Color para el balance de blancos
 
