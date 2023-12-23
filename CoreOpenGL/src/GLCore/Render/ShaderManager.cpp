@@ -46,7 +46,6 @@ namespace GLCore::Render
         ShaderManager::shaderProgramSources.emplace_back("brdf", "assets/shaders/IBL/brdf.vs", "assets/shaders/IBL/brdf.fs");
         ShaderManager::shaderProgramSources.emplace_back("background", "assets/shaders/IBL/background.vs", "assets/shaders/IBL/background.fs");
 
-
         //CARGAMOS LOS DATOS
         for (const auto& shaderSource : shaderProgramSources) {
 
@@ -228,6 +227,15 @@ namespace GLCore::Render
         static int selectedShaderIndex = -1;
         static int selectedProgramIndex = -1;
 
+        // Variables estáticas para el tamaño de fuente y la escala de fuente
+        static float fontSize = 16.0f; // Tamaño inicial de fuente
+        static float fontScale = 20.0f; // Escala inicial (1.0f es el tamaño por defecto)
+
+
+        ImGui::Begin("Shader Editor");
+        ImGui::SliderFloat("Font Scale", &fontScale, 0.5f, 2.0f, "%.1f");
+        
+
         // Lista de programas de shader a la izquierda
         if (ImGui::BeginChild("Shader List", ImVec2(150, 0), true)) 
         {
@@ -287,7 +295,8 @@ namespace GLCore::Render
 
         static int lastSelectedShaderIndex = -1; // Agrega una variable estática para rastrear la última selección
 
-        if (selectedShaderIndex != -1 || selectedProgramIndex != -1) {
+        if (selectedShaderIndex != -1 || selectedProgramIndex != -1) 
+        {
             if (ImGui::BeginChild("Shader Code Editor", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()), true)) {
                 if (selectedShaderIndex != -1 && selectedShaderIndex != lastSelectedShaderIndex) {
                     // Actualiza el contenido del editor solo si la selección ha cambiado

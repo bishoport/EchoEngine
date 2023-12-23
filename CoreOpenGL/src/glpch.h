@@ -68,6 +68,12 @@ constexpr Ref<T> CreateRef(Args&& ... args)
 #include <Windows.h>
 #endif
 
+//YAML
+#define YAML_CPP_STATIC_DEFINE
+#include "yaml-cpp/emitterstyle.h"
+#include "yaml-cpp/eventhandler.h"
+#include "yaml-cpp/yaml.h"  // IWYU pragma: keep
+
 
 enum class MainMenuAction {
     None,                   // Representa ninguna acción
@@ -86,4 +92,6 @@ enum class MainMenuAction {
     ReloadComponents,
     LiberateDLL
 };
+
+
 

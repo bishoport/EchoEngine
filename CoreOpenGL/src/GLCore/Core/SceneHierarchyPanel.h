@@ -22,7 +22,7 @@ namespace GLCore {
 	private:
 		Entity m_SelectionContext;
 		std::vector<Entity> m_EntitiesToBeDeleted;
-		void HandleDragDropForTexture(Ref<Texture> texture, MaterialComponent& materialComponent, const char* payloadType);
+		void HandleDragDropForTexture(Ref<Texture> texture,  const char* payloadType);
 	};
 
 }

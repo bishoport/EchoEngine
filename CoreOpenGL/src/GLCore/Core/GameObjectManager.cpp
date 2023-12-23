@@ -406,7 +406,7 @@ namespace GLCore
 		//entitiesInScene.clear();
 
 
-//for (const auto& node : data) {
+		//for (const auto& node : data) {
 		//	// Aquí se asume que tienes una forma de crear entidades y que manager es accesible
 		//	ECS::Entity& newEntity = manager.addEntity();
 		//	newEntity.deserialize(node); // Deserializa la información de cada entidad

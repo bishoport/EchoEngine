@@ -107,7 +107,6 @@ namespace GLCore
 
     struct MaterialData
     {
-
         std::string materialName = "none";
 
         //TEXTURES

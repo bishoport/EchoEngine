@@ -1,0 +1,31 @@
+- Entity: 0
+  TransformComponent:
+    position: [0, 0, 0]
+    rotation: [1, 0, 0, 0]
+    scale: [1, 1, 1]
+  MeshFilterComponent:
+    modelType: EXTERNAL_FILE
+    modelPath: assets\meshes\Turbina\turbina.fbx
+  MaterialComponent:
+    material_key: ""
+    albedo_path: assets\meshes\Turbina\turbina.fbm\Material_BaseColor.jpg
+    normal_path: assets\meshes\Turbina\turbina.fbm\Material_OpenGL_Normal.png
+    metallic_path: assets\meshes\Turbina\turbina.fbm\Material_Metallic.png
+    roughness_path: assets\meshes\Turbina\turbina.fbm\Material_Roughness.jpg
+    ao_path: assets/default/default_white.jpg
+    currentShaderName: pbr_ibl
+    color: [1, 1, 1]
+    shininess: 0
+    hdrMultiply: 0
+    hdrIntensity: 0.300000012
+    exposure: 1
+    gamma: 2.20000005
+    max_reflection_lod: 4
+    iblIntensity: 0
+    normalIntensity: 0.5
+    metallicValue: 0
+    roughnessValue: 0.0500000007
+    reflectanceValue: 0.0399999991
+    fresnelCoefValue: 5
+    repetitionFactor_x: 1
+    repetitionFactor_y: 1

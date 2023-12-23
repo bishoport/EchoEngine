@@ -5,7 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <cstring>
 #include "../Util/IMGLoader.h"
-
+#include "../Render/MaterialManager.h"
 
 namespace GLCore {
 	GLCore::Scene* m_SceneContext;
@@ -463,9 +463,23 @@ namespace GLCore {
 		{
 			ImGui::Text("Material Name: %s", component.materialData->materialName.c_str());
 				
+
+			// Iniciar un Drag & Drop target
+			if (ImGui::BeginDragDropTarget()) {
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MATERIAL_NAME")) {
+					// Asumimos que el payload es un string
+					const char* payload_n = (const char*)payload->Data;
+
+					// Obtener el MaterialData usando el nombre del material (payload_n)
+					auto matD = GLCore::Render::MaterialManager::getInstance().getMaterial(payload_n);
+					component.materialData = matD;
+					component.materialData->materialName = payload_n;
+				}
+				ImGui::EndDragDropTarget();
+			}
+
 			ImGui::SliderFloat("HDR INTENSITY", &component.materialData->hdrIntensity, 0.0f, 1.0f, "%.3f");
 			ImGui::Dummy(ImVec2(0.0f, 5.0f));
-
 			ImGui::SliderFloat("HDR Exposure", &component.materialData->exposure, 0.0f, 10.0f, "%.3f");
 			ImGui::SliderFloat("HDR Gamma", &component.materialData->gamma, 0.0f, 10.0f, "%.3f");
 			ImGui::SliderFloat("MAX REFLECTION LOD", &component.materialData->max_reflection_lod, 0.0f, 10.0f, "%.3f");
@@ -495,7 +509,7 @@ namespace GLCore {
 				//--drop place
 				ImGui::Image((void*)(intptr_t)texture->textureID, ImVec2(128, 128), ImVec2(0, 0), ImVec2(1, 1), ImColor(255, 255, 255, 255));
 
-				SceneHierarchyPanel::HandleDragDropForTexture(texture, component, "ASSET_DRAG");
+				SceneHierarchyPanel::HandleDragDropForTexture(texture, "ASSET_DRAG");
 
 				if (texture->hasMap)
 				{
@@ -628,7 +642,7 @@ namespace GLCore {
 		});
 	}
 
-	void SceneHierarchyPanel::HandleDragDropForTexture(Ref<Texture> texture, MaterialComponent& materialComponent, const char* payloadType) {
+	void SceneHierarchyPanel::HandleDragDropForTexture(Ref<Texture> texture, const char* payloadType) {
 		// Crear un área de drop. Si algo está siendo arrastrado sobre este área (que cumple con payloadType), resáltalo
 		if (ImGui::BeginDragDropTarget()) {
 			// Aceptar una carga útil de tipo payloadType. La carga útil necesita contener el identificador de la textura.

@@ -16,6 +16,20 @@
 #include "UUID.h"
 
 
+//namespace YAML {
+//    template<>
+//    struct convert<GLCore::UUID> {
+//        static Node encode(const GLCore::UUID& rhs) {
+//            // Código para convertir UUID a Node
+//        }
+//
+//        static bool decode(const Node& node, GLCore::UUID& rhs) {
+//            // Código para convertir Node a UUID
+//            return true;
+//        }
+//    };
+//}
+
 namespace GLCore {
 
     class Entity;
@@ -159,10 +173,12 @@ namespace GLCore {
             Scale
         };
         GizmoOperation m_GizmoOperation;
-
-        //
         //---------------------------------------------------
 
+        //--SERIALIZACIONES
+        void SaveSceneToFile(const std::string& filename);
+        void LoadSceneFromFile();
+        //---------------------------------------------------
 
         void loadFileModel(ImportOptions importOptions);
         bool pickingObj = false;

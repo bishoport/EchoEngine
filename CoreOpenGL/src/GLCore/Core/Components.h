@@ -7,6 +7,66 @@
 #include "../DataStruct.h"
 #include <tuple> // Asegúrate de incluir esta cabecera para std::tuple
 
+
+namespace YAML {
+	template<>
+	struct convert<glm::vec3> {
+		static Node encode(const glm::vec3& rhs) {
+			Node node;
+			node.push_back(rhs.x);
+			node.push_back(rhs.y);
+			node.push_back(rhs.z);
+			return node;
+		}
+
+		static bool decode(const Node& node, glm::vec3& rhs) {
+			if (!node.IsSequence() || node.size() != 3) {
+				return false;
+			}
+			rhs.x = node[0].as<float>();
+			rhs.y = node[1].as<float>();
+			rhs.z = node[2].as<float>();
+			return true;
+		}
+	};
+
+	template<>
+	struct convert<glm::quat> {
+		static Node encode(const glm::quat& rhs) {
+			Node node;
+			node.push_back(rhs.w);
+			node.push_back(rhs.x);
+			node.push_back(rhs.y);
+			node.push_back(rhs.z);
+			return node;
+		}
+
+		static bool decode(const Node& node, glm::quat& rhs) {
+			if (!node.IsSequence() || node.size() != 4) {
+				return false;
+			}
+			rhs.w = node[0].as<float>();
+			rhs.x = node[1].as<float>();
+			rhs.y = node[2].as<float>();
+			rhs.z = node[3].as<float>();
+			return true;
+		}
+	};
+
+	inline Emitter& operator<<(Emitter& out, const glm::vec3& v) {
+		out << Flow;
+		out << BeginSeq << v.x << v.y << v.z << EndSeq;
+		return out;
+	}
+
+	inline Emitter& operator<<(Emitter& out, const glm::quat& q) {
+		out << Flow;
+		out << BeginSeq << q.w << q.x << q.y << q.z << EndSeq;
+		return out;
+	}
+} // Fin del espacio de nombres YAML
+
+
 namespace GLCore
 {
 	struct IDComponent
@@ -37,6 +97,20 @@ namespace GLCore
 		glm::mat4 getLocalModelMatrix() const {
 			return glm::translate(glm::mat4(1.0f), position) * glm::toMat4(rotation) * glm::scale(glm::mat4(1.0f), scale);
 		}
+
+		void serialize(YAML::Emitter& out) const {
+			out << YAML::BeginMap;
+			out << YAML::Key << "position" << YAML::Value << position;
+			out << YAML::Key << "rotation" << YAML::Value << rotation;
+			out << YAML::Key << "scale" << YAML::Value << scale;
+			out << YAML::EndMap;
+		}
+
+		void deserialize(const YAML::Node& node) {
+			position = node["position"].as<glm::vec3>();
+			rotation = node["rotation"].as<glm::quat>();
+			scale    = node["scale"].as<glm::vec3>();
+		}
 	};
 
 	struct ParentComponent {
@@ -52,6 +126,19 @@ namespace GLCore
 		Ref<GLCore::MeshData> meshData;
 		GLCore::MODEL_TYPES modelType = GLCore::MODEL_TYPES::NONE;
 		std::string modelPath = "none";
+
+		void serialize(YAML::Emitter& out) const {
+			out << YAML::BeginMap;
+			out << YAML::Key << "modelType" << YAML::Value << ModelTypeToString(modelType);
+			out << YAML::Key << "modelPath" << YAML::Value << modelPath;	
+			out << YAML::EndMap;
+		}
+
+		void deserialize(const YAML::Node& node) {
+			//position = node["position"].as<glm::vec3>();
+			//rotation = node["rotation"].as<glm::quat>();
+			//scale = node["scale"].as<glm::vec3>();
+		}
 	};
 
 	struct MeshRendererComponent
@@ -99,71 +186,37 @@ namespace GLCore
 
 		Ref <MaterialData> materialData = nullptr;
 
-		void setDefaultMaterial() 
-		{
-			std::string defaultPathTexture_white  = "assets/default/default_white.jpg";
-			std::string defaultPathTexture_normal = "assets/default/default_normal.jpg";
-			std::string defaultPathTexture_black  = "assets/default/default_black.jpg";
+		void serialize(YAML::Emitter& out) const {
+			out << YAML::BeginMap;
+			out << YAML::Key << "material_key" << YAML::Value << matKey;
+			out << YAML::Key << "material_name" << YAML::Value << materialData->materialName;
 
-			materialData = std::make_shared<GLCore::MaterialData>();
+			out << YAML::Key << "albedo_path" << YAML::Value << materialData->albedoMap->image->path;
+			out << YAML::Key << "normal_path" << YAML::Value << materialData->normalMap->image->path;
+			out << YAML::Key << "metallic_path" << YAML::Value << materialData->metallicMap->image->path;
+			out << YAML::Key << "roughness_path" << YAML::Value << materialData->rougnessMap->image->path;
+			out << YAML::Key << "ao_path" << YAML::Value << materialData->aOMap->image->path;
 
-			//--ALBEDO
-			Ref<Texture> textureAlbedo = std::make_shared<GLCore::Texture>();
-			textureAlbedo->image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture_white);
-			textureAlbedo->image->path = defaultPathTexture_white;
-			textureAlbedo->hasMap = true;
-			materialData->albedoMap = textureAlbedo;
-			//---------------------------------------------------------------------------------------------------
+			out << YAML::Key << "currentShaderName" << YAML::Value << currentShaderName;
 
-			//--NORMAL
-			Ref<Texture> textureNormal = std::make_shared<GLCore::Texture>();
-			textureNormal->image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture_normal);
-			textureNormal->image->path = defaultPathTexture_normal;
-			textureNormal->hasMap = true;
-			materialData->normalMap = textureNormal;
-			//---------------------------------------------------------------------------------------------------
+			out << YAML::Key << "color" << YAML::Value << color;
+			out << YAML::Key << "shininess" << YAML::Value << shininess;
+			out << YAML::Key << "hdrMultiply" << YAML::Value << hdrMultiply;
+			out << YAML::Key << "hdrIntensity" << YAML::Value << hdrIntensity;
+			out << YAML::Key << "exposure" << YAML::Value << exposure;
+			out << YAML::Key << "gamma" << YAML::Value << gamma;
+			out << YAML::Key << "max_reflection_lod" << YAML::Value << max_reflection_lod;
+			out << YAML::Key << "iblIntensity" << YAML::Value << iblIntensity;
+			out << YAML::Key << "normalIntensity" << YAML::Value << normalIntensity;
+			out << YAML::Key << "metallicValue" << YAML::Value << metallicValue;
+			out << YAML::Key << "roughnessValue" << YAML::Value << roughnessValue;
+			out << YAML::Key << "reflectanceValue" << YAML::Value << reflectanceValue;
+			out << YAML::Key << "fresnelCoefValue" << YAML::Value << fresnelCoefValue;
 
-			//--METALLIC
-			Ref<Texture> textureMetallic = std::make_shared<GLCore::Texture>();
-			textureMetallic->image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture_black);
-			textureMetallic->image->path = defaultPathTexture_black;
-			textureMetallic->hasMap = true;
-			materialData->metallicMap = textureMetallic;
-			//---------------------------------------------------------------------------------------------------
+			out << YAML::Key << "repetitionFactor_x" << YAML::Value << repetitionFactor.x;
+			out << YAML::Key << "repetitionFactor_y" << YAML::Value << repetitionFactor.y;
 
-			//--ROUGHNESS
-			Ref<Texture> textureRoughness = std::make_shared<GLCore::Texture>();
-			textureRoughness->image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture_black);
-			textureRoughness->image->path = defaultPathTexture_black;
-			textureRoughness->hasMap = true;
-			materialData->rougnessMap = textureRoughness;
-			//---------------------------------------------------------------------------------------------------
-
-			//--AO
-			Ref<Texture> textureAO = std::make_shared<GLCore::Texture>();
-			textureAO->image = GLCore::Utils::ImageLoader::loadImage(defaultPathTexture_white);
-			textureAO->image->path = defaultPathTexture_white;
-			textureAO->hasMap = true;
-			materialData->aOMap = textureAO;
-			//---------------------------------------------------------------------------------------------------
-
-			materialData->albedoMap->typeString = "ALBEDO";
-			materialData->normalMap->typeString = "NORMAL";
-			materialData->metallicMap->typeString = "METALLIC";
-			materialData->rougnessMap->typeString = "ROUGHNESS";
-			materialData->aOMap->typeString = "AO";
-
-			materialData->albedoMap->type = TEXTURE_TYPES::ALBEDO;
-			materialData->normalMap->type = TEXTURE_TYPES::NORMAL;
-			materialData->metallicMap->type = TEXTURE_TYPES::METALLIC;
-			materialData->rougnessMap->type = TEXTURE_TYPES::ROUGHNESS;
-			materialData->aOMap->type = TEXTURE_TYPES::AO;
-
-			materialData->albedoMap->Bind();
-			materialData->normalMap->Bind();
-			materialData->metallicMap->Bind();
-			materialData->rougnessMap->Bind();
-			materialData->aOMap->Bind();
+			out << YAML::EndMap;
 		}
 	};
 
@@ -246,8 +299,6 @@ namespace GLCore
 		bool active = true;
 		bool debug = true;
 
-		
-
 		glm::vec3 ambient = glm::vec3(1.0f, 1.0f, 1.0f);
 		glm::vec3 diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
 		glm::vec3 specular = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -295,6 +346,11 @@ namespace GLCore
 			GLCore::Render::FBOManager::CreateShadowMapFBO(&shadowFBO, &shadowDepth, &shadowTex, shadowMapResolution);
 		}
 	};
+
+
+
+
+
 
 	inline std::tuple<IDComponent, TagComponent, TransformComponent, ParentComponent, ChildrenComponent,
 		MeshFilterComponent, SkinedMeshComponent, MeshRendererComponent, MaterialComponent, DirectionalLightComponent, AnimatorComponent> GetAllComponentTypes() {

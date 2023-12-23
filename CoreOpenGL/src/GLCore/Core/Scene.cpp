@@ -58,8 +58,8 @@ namespace GLCore {
 
 			transformComponent->position = meshRendererComponent->meshData->meshLocalPosition;
 			
-			std::string matKey =  GLCore::Render::MaterialManager::getInstance().CreateDefaultMaterial();
-			auto matD = GLCore::Render::MaterialManager::getInstance().getMaterial(matKey);
+			GLCore::Render::MaterialManager::getInstance().CreateEmptyMaterial("default");
+			auto matD = GLCore::Render::MaterialManager::getInstance().getMaterial("default");
 			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entity).materialData = matD;
 		}
 		else if (action == MainMenuAction::AddSegmentedCube)
@@ -80,8 +80,8 @@ namespace GLCore {
 			meshRendererComponent->meshData->meshScale = glm::vec3(1.0f, 1.0f, 1.0f);
 			transformComponent->position = meshRendererComponent->meshData->meshLocalPosition;
 
-			std::string matKey = GLCore::Render::MaterialManager::getInstance().CreateDefaultMaterial();
-			auto matD = GLCore::Render::MaterialManager::getInstance().getMaterial(matKey);
+			GLCore::Render::MaterialManager::getInstance().CreateEmptyMaterial("default");
+			auto matD = GLCore::Render::MaterialManager::getInstance().getMaterial("default");
 			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entity).materialData = matD;
 		}
 		else if (action == MainMenuAction::AddPlane)
@@ -103,8 +103,8 @@ namespace GLCore {
 
 			transformComponent->position = meshRendererComponent->meshData->meshLocalPosition;
 
-			std::string matKey = GLCore::Render::MaterialManager::getInstance().CreateDefaultMaterial();
-			auto matD = GLCore::Render::MaterialManager::getInstance().getMaterial(matKey);
+			GLCore::Render::MaterialManager::getInstance().CreateEmptyMaterial("default");
+			auto matD = GLCore::Render::MaterialManager::getInstance().getMaterial("default");
 			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entity).materialData = matD;
 		}
 		else if (action == MainMenuAction::AddSphere)
@@ -126,8 +126,8 @@ namespace GLCore {
 
 			transformComponent->position = meshRendererComponent->meshData->meshLocalPosition;
 
-			std::string matKey = GLCore::Render::MaterialManager::getInstance().CreateDefaultMaterial();
-			auto matD = GLCore::Render::MaterialManager::getInstance().getMaterial(matKey);
+			GLCore::Render::MaterialManager::getInstance().CreateEmptyMaterial("default");
+			auto matD = GLCore::Render::MaterialManager::getInstance().getMaterial("default");
 			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entity).materialData = matD;
 		}
 		else if (action == MainMenuAction::AddQuad)
@@ -149,8 +149,8 @@ namespace GLCore {
 
 			transformComponent->position = meshRendererComponent->meshData->meshLocalPosition;
 
-			std::string matKey = GLCore::Render::MaterialManager::getInstance().CreateDefaultMaterial();
-			auto matD = GLCore::Render::MaterialManager::getInstance().getMaterial(matKey);
+			GLCore::Render::MaterialManager::getInstance().CreateEmptyMaterial("default");
+			auto matD = GLCore::Render::MaterialManager::getInstance().getMaterial("default");
 			RegistrySingleton::getRegistry().emplace<MaterialComponent>(entity).materialData = matD;
 		}
 		else if (action == MainMenuAction::AddDirectionalLight)
@@ -159,6 +159,10 @@ namespace GLCore {
 			DirectionalLightComponent* directionalLightComponent = &RegistrySingleton::getRegistry().emplace<DirectionalLightComponent>(entity);
 			directionalLightComponent->prepareShadows();
 			useDirectionalLight = true;
+		}
+		else if (action == MainMenuAction::SaveProject)
+		{
+			SaveSceneToFile("Proyect.echo");
 		}
 	}
 	//-------------------------------------------------------------------------------------------
@@ -206,7 +210,7 @@ namespace GLCore {
 			glDeleteBuffers(1, &mr.meshData->EBO);
 		}
 
-		if (entity.HasComponent<MaterialComponent>())
+		/*if (entity.HasComponent<MaterialComponent>())
 		{
 			MaterialComponent mc = entity.GetComponent<MaterialComponent>();
 			std::vector<Ref<Texture>> textures;
@@ -222,16 +226,7 @@ namespace GLCore {
 				glDeleteTextures(1, &textures[i]->textureID);
 				textures[i]->hasMap = false;
 			}
-		}
-
-		entity.RemoveAllComponents();
-
-		//size_t numElements = m_EntityMap->size();
-		//std::cout << "m_EntityMap-> " << numElements << std::endl;
-
-		// Elimina la entidad de la lista de entidades mapeadas por UUID ???
-		/*m_EntityMap.erase(entity.GetUUID());
-		*/
+		}*/
 	}
 	//-----------------------------------------------------------------------------
 
@@ -1393,6 +1388,86 @@ namespace GLCore {
 	}
 	void Scene::shutdown() {}
 	//--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+	//--YAML
+	void Scene::SaveSceneToFile(const std::string& filename) {
+		YAML::Emitter out;
+
+		auto& registry = RegistrySingleton::getRegistry();
+		auto view = registry.view<TransformComponent>();
+
+		out << YAML::BeginSeq; // Comenzar una secuencia para todas las entidades
+		for (auto entity : view) {
+			out << YAML::BeginMap; // Comenzar un mapa para la entidad actual
+			out << YAML::Key << "Entity" << YAML::Value << static_cast<uint32_t>(entity);
+
+
+			// Serializar TransformComponent si está presente
+			if (registry.has<TransformComponent>(entity)) {
+				out << YAML::Key << "TransformComponent";
+				registry.get<TransformComponent>(entity).serialize(out);
+			}
+
+			// Serializar MeshFilterComponent si está presente
+			if (registry.has<MeshFilterComponent>(entity)) {
+				out << YAML::Key << "MeshFilterComponent";
+				registry.get<MeshFilterComponent>(entity).serialize(out);
+			}
+
+			// Serializar MaterialComponent si está presente
+			if (registry.has<MaterialComponent>(entity)) {
+				out << YAML::Key << "MaterialComponent";
+				registry.get<MaterialComponent>(entity).serialize(out);
+			}
+
+			out << YAML::EndMap; // Terminar el mapa para la entidad actual
+		}
+		out << YAML::EndSeq; // Terminar la secuencia para todas las entidades
+
+		// Escribir el resultado a un archivo
+		std::ofstream fout(filename);
+		if (fout.is_open()) {
+			fout << out.c_str();
+		}
+		else {
+			// Manejar el error si el archivo no se puede abrir
+			std::cerr << "Unable to open file for writing: " << filename << std::endl;
+		}
+	}
+
+
+
+
+	void Scene::LoadSceneFromFile() {
+		//std::ifstream fin(filename);
+		//if (!fin.is_open()) {
+		//	// Manejar error al abrir el archivo
+		//	std::cerr << "Error al abrir el archivo para cargar la escena" << std::endl;
+		//	return;
+		//}
+
+		//YAML::Node data = YAML::Load(fin); // Carga el archivo en un nodo de YAML
+
+		//if (!data.IsSequence()) {
+		//	// Manejar error de formato incorrecto
+		//	std::cerr << "Formato de archivo de escena incorrecto" << std::endl;
+		//	return;
+		//}
+
+		//// Limpia las entidades actuales en la escena antes de cargar
+		//entitiesInScene.clear();
+
+
+		//for (const auto& node : data) {
+		//	// Aquí se asume que tienes una forma de crear entidades y que manager es accesible
+		//	ECS::Entity& newEntity = manager.addEntity();
+		//	newEntity.deserialize(node); // Deserializa la información de cada entidad
+		//	entitiesInScene.push_back(&newEntity); // Añade la entidad al vector de entidades de la escena
+		//}
+	}
+
 
 	//--ENTITIES ADDED EVENTS
 	template<typename T>

@@ -145,6 +145,7 @@
     <ClCompile Include="src\GLCore\Core\SceneHierarchyPanel.cpp" />
     <ClCompile Include="src\GLCore\Core\UUID.cpp" />
     <ClCompile Include="src\GLCore\Render\FBOManager.cpp" />
+    <ClCompile Include="src\GLCore\Render\MaterialManager.cpp" />
     <ClCompile Include="src\GLCore\Render\RendererManager.cpp" />
     <ClCompile Include="src\GLCore\Render\TextEditor.cpp" />
     <ClCompile Include="src\GLCore\Util\DynamicSkybox.cpp" />
